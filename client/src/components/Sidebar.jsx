@@ -7,13 +7,8 @@ function SidebarBase({ navItems, role }) {
   const { connected } = useSocket() || {};
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
+  const handleLogout = async () => { await logout(); navigate('/login'); };
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
-  const roleColors = { admin: '#f59e0b', customer: '#10b981', agent: '#6366f1' };
 
   return (
     <aside className="sidebar">
@@ -21,7 +16,7 @@ function SidebarBase({ navItems, role }) {
         <div className="logo-icon">🛢</div>
         <div className="logo-text">Cyl<span>Dist</span></div>
         {connected !== undefined && (
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ marginLeft: 'auto' }}>
             <div className="live-dot" style={{ background: connected ? 'var(--accent)' : 'var(--danger)' }} />
           </div>
         )}
@@ -32,11 +27,8 @@ function SidebarBase({ navItems, role }) {
           <div className="nav-section" key={si}>
             {section.label && <div className="nav-section-label">{section.label}</div>}
             {section.items.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              >
+              <NavLink key={item.to} to={item.to} end={item.end}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
                 <span className="nav-icon">{item.icon}</span>
                 {item.label}
               </NavLink>
@@ -47,19 +39,16 @@ function SidebarBase({ navItems, role }) {
 
       <div className="sidebar-footer">
         <div className="user-chip">
-          <div className="avatar" style={{ background: `linear-gradient(135deg, ${roleColors[user?.role]}, var(--accent))` }}>
-            {initials}
-          </div>
+          <div className="avatar">{initials}</div>
           <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
-            <div className="user-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {user?.name}
-            </div>
-            <div className="user-role" style={{ textTransform: 'capitalize' }}>{user?.role}</div>
+            <div className="user-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
+            <div className="user-role">{user?.role}</div>
           </div>
-          <button
-            onClick={handleLogout}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', fontSize: '1rem' }}
+          <button onClick={handleLogout}
+            style={{ color: 'var(--text-muted)', padding: '4px', fontSize: '0.9rem', borderRadius: 6, transition: 'color 0.15s' }}
             title="Logout"
+            onMouseEnter={e => e.target.style.color = 'var(--danger)'}
+            onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
           >⏻</button>
         </div>
       </div>
@@ -70,12 +59,9 @@ function SidebarBase({ navItems, role }) {
 export function CustomerSidebar() {
   return <SidebarBase role="customer" navItems={[
     { items: [
-      { to: '/customer', icon: '🏠', label: 'Dashboard' },
-      { to: '/customer/orders', icon: '📦', label: 'My Orders' },
-      { to: '/customer/orders/new', icon: '➕', label: 'Book Cylinder' },
-    ]},
-    { label: 'Account', items: [
-      { to: '/customer/profile', icon: '👤', label: 'Profile' },
+      { to: '/customer', icon: '⬡', label: 'Dashboard', end: true },
+      { to: '/customer/orders', icon: '◫', label: 'My Orders' },
+      { to: '/customer/orders/new', icon: '＋', label: 'Book Cylinder' },
     ]},
   ]} />;
 }
@@ -83,10 +69,10 @@ export function CustomerSidebar() {
 export function AdminSidebar() {
   return <SidebarBase role="admin" navItems={[
     { items: [
-      { to: '/admin', icon: '📊', label: 'Dashboard' },
-      { to: '/admin/orders', icon: '📦', label: 'Orders' },
-      { to: '/admin/inventory', icon: '🏭', label: 'Inventory' },
-      { to: '/admin/users', icon: '👥', label: 'Users' },
+      { to: '/admin', icon: '◉', label: 'Dashboard', end: true },
+      { to: '/admin/orders', icon: '◫', label: 'Orders' },
+      { to: '/admin/inventory', icon: '⊞', label: 'Inventory' },
+      { to: '/admin/users', icon: '◔', label: 'Users' },
     ]},
   ]} />;
 }
@@ -94,8 +80,8 @@ export function AdminSidebar() {
 export function AgentSidebar() {
   return <SidebarBase role="agent" navItems={[
     { items: [
-      { to: '/agent', icon: '🏠', label: 'Dashboard' },
-      { to: '/agent/orders', icon: '🚚', label: 'My Deliveries' },
+      { to: '/agent', icon: '⬡', label: 'Dashboard', end: true },
+      { to: '/agent/orders', icon: '▷', label: 'My Deliveries' },
     ]},
   ]} />;
 }

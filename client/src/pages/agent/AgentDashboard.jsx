@@ -15,99 +15,74 @@ export default function AgentDashboard() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
 
-  useEffect(() => {
-    ordersAPI.list({ limit: 50 })
-      .then(r => setOrders(r.data.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  useEffect(() => { ordersAPI.list({ limit: 50 }).then(r => setOrders(r.data.data || [])).catch(() => {}).finally(() => setLoading(false)); }, []);
 
   const handleDutyToggle = async () => {
     setToggling(true);
-    try {
-      await usersAPI.setDutyStatus(!user.isOnDuty);
-      updateUser({ isOnDuty: !user.isOnDuty });
-      toast(user.isOnDuty ? 'Off duty' : 'On duty! Ready for deliveries', '', 'success');
-    } catch (err) {
-      toast('Error', err.response?.data?.message || 'Failed', 'error');
-    } finally { setToggling(false); }
+    try { await usersAPI.setDutyStatus(!user.isOnDuty); updateUser({ isOnDuty: !user.isOnDuty }); toast(user.isOnDuty ? 'Off duty' : 'On duty!', '', 'success'); }
+    catch (err) { toast('Error', err.response?.data?.message || 'Failed', 'error'); }
+    finally { setToggling(false); }
   };
 
   const active = orders.find(o => o.status === 'out_for_delivery');
   const assigned = orders.filter(o => o.status === 'assigned');
   const delivered = orders.filter(o => o.status === 'delivered');
-
   if (loading) return <PageLoader />;
 
   return (
     <div>
       <Topbar title="Agent Dashboard">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            {user?.isOnDuty ? <><span className="live-dot" style={{ marginRight: 6 }} />On Duty</> : '⭕ Off Duty'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            {user?.isOnDuty ? <><span className="live-dot" style={{ marginRight: 5 }} />On Duty</> : '⭕ Off Duty'}
           </span>
-          <button className={`btn btn-sm ${user?.isOnDuty ? 'btn-danger' : 'btn-success'}`}
-            onClick={handleDutyToggle} disabled={toggling}>
+          <button className={`btn btn-sm ${user?.isOnDuty ? 'btn-danger' : 'btn-success'}`} onClick={handleDutyToggle} disabled={toggling}>
             {toggling ? '...' : user?.isOnDuty ? 'Go Off Duty' : 'Go On Duty'}
           </button>
         </div>
       </Topbar>
       <div className="page">
-        <h1 className="page-title">🚚 My Dashboard</h1>
-        <p className="page-subtitle">Today's delivery overview</p>
+        <div style={{ marginBottom: '1.5rem' }}><h1 className="page-title">My Dashboard</h1><p className="page-subtitle">Today's delivery overview</p></div>
 
-        <div className="grid-3" style={{ marginBottom: '2rem' }}>
-          <StatCard icon="📋" label="Assigned Orders" value={assigned.length} color="var(--primary)" />
-          <StatCard icon="🚚" label="Active Delivery" value={active ? 1 : 0} color="var(--accent)" />
-          <StatCard icon="✅" label="Delivered Today" value={delivered.filter(o => new Date(o.deliveredAt).toDateString() === new Date().toDateString()).length} color="var(--success)" />
+        <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
+          <StatCard icon="◫" label="Assigned" value={assigned.length} color="var(--primary)" />
+          <StatCard icon="▷" label="Active Delivery" value={active ? 1 : 0} color="var(--accent)" />
+          <StatCard icon="●" label="Delivered Today" value={delivered.filter(o => new Date(o.deliveredAt).toDateString() === new Date().toDateString()).length} color="var(--success)" />
         </div>
 
-        {/* Active delivery alert */}
         {active && (
-          <div className="card" style={{ marginBottom: '1.5rem', borderColor: 'rgba(34,211,238,0.3)', background: 'rgba(34,211,238,0.04)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="card" style={{ marginBottom: '1.5rem', borderColor: 'rgba(6,182,212,0.2)', background: 'rgba(6,182,212,0.03)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.875rem' }}>
               <div className="live-dot" />
-              <span style={{ fontWeight: 700, fontSize: '1rem' }}>Active Delivery</span>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Active Delivery</span>
             </div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem' }}>
-              Order <span style={{ color: 'var(--accent)', fontFamily: 'monospace' }}>{active.orderId}</span> —{' '}
-              {active.deliveryAddress?.line1}, {active.deliveryAddress?.city}
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.825rem', marginBottom: '0.875rem' }}>
+              Order <span style={{ color: 'var(--accent)', fontFamily: 'monospace' }}>{active.orderId}</span> — {active.deliveryAddress?.line1}, {active.deliveryAddress?.city}
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <Link to={`/agent/delivery/${active.orderId}`} className="btn btn-primary btn-sm">📍 Open Delivery</Link>
-              {active.chatRoomId && <Link to={`/agent/chat/${active.chatRoomId}`} className="btn btn-ghost btn-sm">💬 Chat Customer</Link>}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <Link to={`/agent/delivery/${active.orderId}`} className="btn btn-primary btn-sm">📍 Open</Link>
+              {active.chatRoomId && <Link to={`/agent/chat/${active.chatRoomId}`} className="btn btn-ghost btn-sm">💬 Chat</Link>}
             </div>
           </div>
         )}
 
-        {/* Assigned orders */}
         <div className="card">
-          <div className="section-title">📋 Assigned Orders</div>
+          <div className="section-title">Assigned Orders</div>
           {assigned.length === 0
-            ? <EmptyState icon="📋" title="No assigned orders" message="You'll see new orders here when assigned." />
-            : (
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th>Order ID</th><th>Customer</th><th>Address</th><th>Qty</th><th>Status</th><th>Action</th></tr></thead>
-                  <tbody>
-                    {assigned.map(o => (
-                      <tr key={o._id}>
-                        <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.8rem' }}>{o.orderId}</span></td>
-                        <td style={{ fontWeight: 500 }}>{o.customerId?.name || '—'}</td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                          {o.deliveryAddress?.line1}, {o.deliveryAddress?.city}
-                        </td>
-                        <td>{o.cylinderCount} 🛢</td>
-                        <td><StatusBadge status={o.status} /></td>
-                        <td>
-                          <Link to={`/agent/delivery/${o.orderId}`} className="btn btn-primary btn-sm">Start →</Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ? <EmptyState icon="◫" title="No assigned orders" message="New orders will appear here." />
+            : <div className="table-wrap"><table>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Address</th><th>Qty</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>{assigned.map(o => (
+                  <tr key={o._id}>
+                    <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
+                    <td style={{ fontWeight: 500 }}>{o.customerId?.name || '—'}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{o.deliveryAddress?.line1}, {o.deliveryAddress?.city}</td>
+                    <td>{o.cylinderCount}</td>
+                    <td><StatusBadge status={o.status} /></td>
+                    <td><Link to={`/agent/delivery/${o.orderId}`} className="btn btn-primary btn-sm">Start →</Link></td>
+                  </tr>
+                ))}</tbody>
+              </table></div>}
         </div>
       </div>
     </div>
