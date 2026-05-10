@@ -1,0 +1,130 @@
+version: '3.9'
+
+services:
+  # ============================================================
+  # Application
+  # ============================================================
+  app:
+    build:
+      context: .
+      target: production
+    container_name: cylinder_app
+    restart: unless-stopped
+    ports:
+      - '${PORT:-5000}:5000'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/cylinder_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-15m}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@cylinderplatform.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@123456}
+    volumes:
+      - app_logs:/app/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cylinder_network
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:5000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================
+  # MongoDB
+  # ============================================================
+  mongo:
+    image: mongo:7.0-jammy
+    container_name: cylinder_mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      # Uncomment to enable authentication in production:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: cylinder_platform
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    networks:
+      - cylinder_network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ============================================================
+  # Redis
+  # ============================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: cylinder_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - cylinder_network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Mongo Express (Admin UI — development only)
+  # ============================================================
+  mongo-express:
+    image: mongo-express:1.0
+    container_name: cylinder_mongo_express
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASS:-password}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - cylinder_network
+    profiles:
+      - dev # Only starts with: docker compose --profile dev up
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  mongo_data:
+    driver: local
+  mongo_config:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  cylinder_network:
+    driver: bridge

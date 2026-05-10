@@ -1,0 +1,180 @@
+---
+# ============================================================
+# Kubernetes Deployment — Cylinder Distribution Platform App
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cylinder-app
+  namespace: cylinder-platform
+  labels:
+    app: cylinder-app
+    version: "1.0.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cylinder-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: cylinder-app
+    spec:
+      containers:
+        - name: cylinder-app
+          image: cylinder-distribution-platform:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "5000"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: cylinder-secrets
+                  key: MONGO_URI
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: cylinder-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: cylinder-config
+                  key: REDIS_PORT
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cylinder-secrets
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cylinder-secrets
+                  key: JWT_REFRESH_SECRET
+            - name: JWT_ACCESS_EXPIRES_IN
+              valueFrom:
+                configMapKeyRef:
+                  name: cylinder-config
+                  key: JWT_ACCESS_EXPIRES_IN
+            - name: CORS_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: cylinder-config
+                  key: CORS_ORIGIN
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: cylinder-config
+                  key: LOG_LEVEL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: logs
+          emptyDir: {}
+      # Spread pods across nodes for HA
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: cylinder-app
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cylinder-app-service
+  namespace: cylinder-platform
+spec:
+  selector:
+    app: cylinder-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+  type: ClusterIP
+
+---
+# ============================================================
+# ConfigMap — non-sensitive configuration
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cylinder-config
+  namespace: cylinder-platform
+data:
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  JWT_ACCESS_EXPIRES_IN: "15m"
+  JWT_REFRESH_EXPIRES_IN: "7d"
+  CORS_ORIGIN: "https://cylinderplatform.com"
+  LOG_LEVEL: "info"
+  PORT: "5000"
+  API_VERSION: "v1"
+
+---
+# ============================================================
+# HorizontalPodAutoscaler
+# ============================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cylinder-app-hpa
+  namespace: cylinder-platform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cylinder-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
