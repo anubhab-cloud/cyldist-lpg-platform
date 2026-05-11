@@ -14,8 +14,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      ordersAPI.list({ limit: 200 }),
-      usersAPI.list({ limit: 200 }),
+      ordersAPI.list({ limit: 100 }),
+      usersAPI.list({ limit: 100 }),
       inventoryAPI.list({ limit: 50 }),
     ]).then(([o, u, w]) => {
       setOrders(o.data.data || []);

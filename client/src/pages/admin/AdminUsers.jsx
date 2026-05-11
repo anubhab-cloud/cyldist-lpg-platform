@@ -13,7 +13,7 @@ export default function AdminUsers() {
   const [updating, setUpdating] = useState('');
 
   const load = useCallback(() => {
-    usersAPI.list({ limit: 200 }).then(r => setUsers(r.data.data || [])).catch(() => toast('Error', 'Failed to load', 'error')).finally(() => setLoading(false));
+    usersAPI.list({ limit: 100 }).then(r => setUsers(r.data.data || [])).catch(() => toast('Error', 'Failed to load', 'error')).finally(() => setLoading(false));
   }, []);
   useEffect(load, [load]);
 
