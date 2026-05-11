@@ -31,9 +31,12 @@ router.use(authenticate);
  *     tags: [Inventory]
  */
 
-router.get('/', authorize('admin'), controller.listWarehouses);
+// Read: any authenticated user can list/view warehouses (customers need this for booking)
+router.get('/', controller.listWarehouses);
 router.get('/low-stock', authorize('admin'), controller.getLowStock);
-router.get('/:id', authorize('admin'), controller.getWarehouse);
+router.get('/:id', controller.getWarehouse);
+
+// Write: admin only
 router.post('/', authorize('admin'), controller.createWarehouse);
 router.patch('/:id', authorize('admin'), controller.updateWarehouse);
 
