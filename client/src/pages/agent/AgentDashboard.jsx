@@ -4,7 +4,7 @@ import { ordersAPI, usersAPI } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useToast } from '../../context/ToastContext';
-import { StatusBadge, StatCard, PageLoader, EmptyState } from '../../components';
+import { StatusBadge, PaymentBadge, StatCard, PageLoader, EmptyState } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 
 export default function AgentDashboard() {
@@ -56,9 +56,27 @@ export default function AgentDashboard() {
               <div className="live-dot" />
               <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Active Delivery</span>
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.825rem', marginBottom: '0.875rem' }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.825rem', marginBottom: '0.625rem' }}>
               Order <span style={{ color: 'var(--accent)', fontFamily: 'monospace' }}>{active.orderId}</span> — {active.deliveryAddress?.line1}, {active.deliveryAddress?.city}
             </div>
+            {active.paymentMode === 'cod' && active.paymentStatus === 'pending' && (
+              <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius)', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1rem' }}>💵</span>
+                <div>
+                  <div style={{ fontSize: '0.775rem', fontWeight: 600, color: '#f59e0b' }}>Collect Cash on Delivery</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>₹{active.totalAmount?.toLocaleString()} — {active.cylinderCount} cylinder{active.cylinderCount > 1 ? 's' : ''}</div>
+                </div>
+              </div>
+            )}
+            {active.paymentMode !== 'cod' && (
+              <div style={{ padding: '0.5rem 0.75rem', borderRadius: 'var(--radius)', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1rem' }}>✅</span>
+                <div>
+                  <div style={{ fontSize: '0.775rem', fontWeight: 600, color: '#10b981' }}>Prepaid — No Collection Needed</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Paid via {active.paymentMode?.toUpperCase()}</div>
+                </div>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <Link to={`/agent/delivery/${active.orderId}`} className="btn btn-primary btn-sm">📍 Open</Link>
               {active.chatRoomId && <Link to={`/agent/chat/${active.chatRoomId}`} className="btn btn-ghost btn-sm">💬 Chat</Link>}
@@ -71,14 +89,20 @@ export default function AgentDashboard() {
           {assigned.length === 0
             ? <EmptyState icon="◫" title="No assigned orders" message="New orders will appear here." />
             : <div className="table-wrap"><table>
-                <thead><tr><th>Order ID</th><th>Customer</th><th>Address</th><th>Qty</th><th>Status</th><th>Action</th></tr></thead>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Address</th><th>Qty</th><th>Payment</th><th>Collect</th><th>Action</th></tr></thead>
                 <tbody>{assigned.map(o => (
                   <tr key={o._id}>
                     <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
                     <td style={{ fontWeight: 500 }}>{o.customerId?.name || '—'}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{o.deliveryAddress?.line1}, {o.deliveryAddress?.city}</td>
                     <td>{o.cylinderCount}</td>
-                    <td><StatusBadge status={o.status} /></td>
+                    <td><PaymentBadge mode={o.paymentMode} status={o.paymentStatus} /></td>
+                    <td>
+                      {o.paymentMode === 'cod' && o.paymentStatus === 'pending'
+                        ? <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>💵 ₹{o.totalAmount?.toLocaleString()}</span>
+                        : <span style={{ fontSize: '0.725rem', color: 'var(--success)' }}>✓ Paid</span>
+                      }
+                    </td>
                     <td><Link to={`/agent/delivery/${o.orderId}`} className="btn btn-primary btn-sm">Start →</Link></td>
                   </tr>
                 ))}</tbody>

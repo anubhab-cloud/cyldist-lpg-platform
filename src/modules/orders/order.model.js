@@ -42,6 +42,12 @@ const { v4: uuidv4 } = require('uuid');
  *                 type: string
  *         totalAmount:
  *           type: number
+ *         paymentMode:
+ *           type: string
+ *           enum: [cod, upi, card, netbanking, wallet]
+ *         paymentStatus:
+ *           type: string
+ *           enum: [pending, paid, failed, refunded]
  *         notes:
  *           type: string
  */
@@ -137,6 +143,16 @@ const orderSchema = new mongoose.Schema(
     pricePerCylinder: {
       type: Number,
       default: 0,
+    },
+    paymentMode: {
+      type: String,
+      enum: ['cod', 'upi', 'card', 'netbanking', 'wallet'],
+      default: 'cod',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'refunded'],
+      default: 'pending',
     },
     notes: {
       type: String,

@@ -23,10 +23,13 @@ class OrderService {
    * @param {string} customerId
    */
   async createOrder(data, customerId) {
-    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 0 } = data;
+    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 0, paymentMode = 'cod' } = data;
 
     // Verify warehouse exists and has stock
     await inventoryService.deductStock(warehouseId, cylinderCount);
+
+    // Online payments are considered paid immediately; COD stays pending for agent collection
+    const paymentStatus = paymentMode === 'cod' ? 'pending' : 'paid';
 
     const orderData = {
       customerId,
@@ -36,6 +39,8 @@ class OrderService {
       notes,
       pricePerCylinder,
       totalAmount: pricePerCylinder * cylinderCount,
+      paymentMode,
+      paymentStatus,
     };
 
     const order = await orderRepository.create(orderData);

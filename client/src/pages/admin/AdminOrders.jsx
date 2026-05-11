@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ordersAPI, usersAPI } from '../../api';
-import { StatusBadge, PageLoader, EmptyState, Modal } from '../../components';
+import { StatusBadge, PaymentBadge, PageLoader, EmptyState, Modal } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
 
@@ -72,7 +72,7 @@ export default function AdminOrders() {
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div className="table-wrap" style={{ border: 'none' }}>
               <table>
-                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Qty</th><th>Amount</th><th>Agent</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Qty</th><th>Amount</th><th>Payment</th><th>Agent</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                   {filtered.map(o => (
                     <tr key={o._id}>
@@ -81,6 +81,7 @@ export default function AdminOrders() {
                       <td style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td>{o.cylinderCount}</td>
                       <td>₹{o.totalAmount?.toLocaleString()}</td>
+                      <td><PaymentBadge mode={o.paymentMode} status={o.paymentStatus} /></td>
                       <td style={{ color: o.agentId ? 'var(--text-primary)' : 'var(--text-muted)' }}>{o.agentId?.name || <span style={{ fontStyle: 'italic' }}>Unassigned</span>}</td>
                       <td><StatusBadge status={o.status} /></td>
                       <td>

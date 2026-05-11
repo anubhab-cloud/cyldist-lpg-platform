@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersAPI } from '../../api';
-import { StatusBadge, PageLoader, EmptyState } from '../../components';
+import { StatusBadge, PaymentBadge, PageLoader, EmptyState } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
 
@@ -43,13 +43,14 @@ export default function CustomerOrders() {
           : <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="table-wrap" style={{ border: 'none' }}>
                 <table>
-                  <thead><tr><th>Order ID</th><th>Date</th><th>Qty</th><th>Amount</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>Order ID</th><th>Date</th><th>Qty</th><th>Amount</th><th>Payment</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>{filtered.map(o => (
                     <tr key={o._id}>
                       <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
                       <td style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td>{o.cylinderCount}</td>
                       <td>₹{o.totalAmount?.toLocaleString()}</td>
+                      <td><PaymentBadge mode={o.paymentMode} status={o.paymentStatus} /></td>
                       <td style={{ color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.deliveryAddress?.city}, {o.deliveryAddress?.pincode}</td>
                       <td><StatusBadge status={o.status} /></td>
                       <td>

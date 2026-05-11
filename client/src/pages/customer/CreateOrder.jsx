@@ -14,7 +14,7 @@ export default function CreateOrder() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, line1: '', line2: '', city: '', state: '', pincode: '', notes: '' });
+  const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: '' });
 
   useEffect(() => {
     inventoryAPI.list({ limit: 50 }).then(r => {
@@ -34,7 +34,7 @@ export default function CreateOrder() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setError(''); setSubmitting(true);
     try {
-      const { data } = await ordersAPI.create({ warehouseId: form.warehouseId, cylinderCount: Number(form.cylinderCount), deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, ...(form.notes && { notes: form.notes }) });
+      const { data } = await ordersAPI.create({ warehouseId: form.warehouseId, cylinderCount: Number(form.cylinderCount), paymentMode: form.paymentMode, deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, ...(form.notes && { notes: form.notes }) });
       toast('Order placed!', `Order ${data.data.orderId} confirmed`, 'success'); navigate('/customer/orders');
     } catch (err) { setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Failed.'); }
     finally { setSubmitting(false); }
@@ -77,9 +77,46 @@ export default function CreateOrder() {
             </div>
             <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>₹850 per cylinder (incl. delivery)</div>
           </div>
+          <div className="card">
+            <h2 className="section-title">3. Payment Method</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.5rem' }}>
+              {[
+                { value: 'cod', label: 'Cash on Delivery', icon: '💵', desc: 'Pay to agent' },
+                { value: 'upi', label: 'UPI', icon: '📱', desc: 'GPay, PhonePe, etc.' },
+                { value: 'card', label: 'Credit/Debit Card', icon: '💳', desc: 'Visa, Mastercard' },
+                { value: 'netbanking', label: 'Net Banking', icon: '🏦', desc: 'All major banks' },
+                { value: 'wallet', label: 'Wallet', icon: '👛', desc: 'Paytm, Amazon Pay' },
+              ].map(pm => (
+                <label key={pm.value} style={{ cursor: 'pointer' }}>
+                  <div style={{
+                    padding: '0.75rem', borderRadius: 'var(--radius)', textAlign: 'center',
+                    border: `1px solid ${form.paymentMode === pm.value ? 'rgba(99,102,241,0.4)' : 'var(--border)'}`,
+                    background: form.paymentMode === pm.value ? 'var(--primary-subtle)' : 'var(--bg-elevated)',
+                    transition: 'all 0.15s',
+                  }}>
+                    <input type="radio" name="paymentMode" value={pm.value} checked={form.paymentMode === pm.value}
+                      onChange={set('paymentMode')} style={{ display: 'none' }} />
+                    <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{pm.icon}</div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.1rem' }}>{pm.label}</div>
+                    <div style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>{pm.desc}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {form.paymentMode === 'cod' && (
+              <div className="alert alert-info" style={{ marginTop: '0.625rem', marginBottom: 0 }}>
+                💵 Cash will be collected by the delivery agent at the time of delivery.
+              </div>
+            )}
+            {form.paymentMode !== 'cod' && (
+              <div className="alert alert-success" style={{ marginTop: '0.625rem', marginBottom: 0 }}>
+                ✅ Online payment will be processed securely after confirming the order.
+              </div>
+            )}
+          </div>
 
           <div className="card">
-            <h2 className="section-title">3. Delivery Address</h2>
+            <h2 className="section-title">4. Delivery Address</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div className="form-group"><label className="form-label">Street Address *</label><input placeholder="House no, Street, Area" value={form.line1} onChange={set('line1')} required /></div>
               <div className="form-group"><label className="form-label">Landmark (optional)</label><input placeholder="Near post office..." value={form.line2} onChange={set('line2')} /></div>

@@ -21,6 +21,25 @@ export function RoleBadge({ role }) {
   return <span className={`badge badge-${role}`}>{role}</span>;
 }
 
+const PAY_ICONS = { cod: '💵', upi: '📱', card: '💳', netbanking: '🏦', wallet: '👛' };
+const PAY_LABELS = { cod: 'COD', upi: 'UPI', card: 'Card', netbanking: 'Net Banking', wallet: 'Wallet' };
+const PAY_STATUS_COLORS = { pending: '#f59e0b', paid: '#10b981', failed: '#ef4444', refunded: '#6366f1' };
+
+export function PaymentBadge({ mode, status }) {
+  const icon = PAY_ICONS[mode] || '₹';
+  const label = PAY_LABELS[mode] || mode || 'N/A';
+  const statusColor = PAY_STATUS_COLORS[status] || 'var(--text-muted)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+      <span style={{ fontSize: '0.8rem' }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: '0.725rem', fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: '0.6rem', color: statusColor, fontWeight: 600, textTransform: 'uppercase' }}>{status || '—'}</div>
+      </div>
+    </div>
+  );
+}
+
 export function Loader({ size = 22 }) {
   return <div className="loader-spin" style={{ width: size, height: size }} />;
 }
