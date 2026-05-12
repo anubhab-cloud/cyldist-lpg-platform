@@ -36,7 +36,14 @@ export default function CreateOrder() {
     try {
       const { data } = await ordersAPI.create({ warehouseId: form.warehouseId, cylinderCount: Number(form.cylinderCount), paymentMode: form.paymentMode, deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, ...(form.notes && { notes: form.notes }) });
       toast('Order placed!', `Order ${data.data.orderId} confirmed`, 'success'); navigate('/customer/orders');
-    } catch (err) { setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || 'Failed.'); }
+    } catch (err) {
+      const errs = err.response?.data?.errors;
+      if (errs?.length) {
+        setError(errs.map(e => `${e.field}: ${e.message}`).join(' · '));
+      } else {
+        setError(err.response?.data?.message || 'Order failed. Please check your details.');
+      }
+    }
     finally { setSubmitting(false); }
   };
 

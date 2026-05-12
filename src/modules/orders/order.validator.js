@@ -4,7 +4,7 @@ const { z } = require('zod');
 
 const deliveryAddressSchema = z.object({
   label: z.string().max(50).optional(),
-  line1: z.string().min(5, 'Address line 1 is required'),
+  line1: z.string().min(3, 'Address must be at least 3 characters'),
   line2: z.string().optional().default(''),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
