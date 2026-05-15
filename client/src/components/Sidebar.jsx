@@ -63,6 +63,9 @@ export function CustomerSidebar() {
       { to: '/customer/orders', icon: '◫', label: 'My Orders' },
       { to: '/customer/orders/new', icon: '＋', label: 'Book Cylinder' },
     ]},
+    { label: 'HELP', items: [
+      { to: '/customer/support', icon: '📞', label: 'Support Center' },
+    ]}
   ]} />;
 }
 

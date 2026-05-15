@@ -153,4 +153,14 @@ const logout = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Logged out successfully.');
 });
 
-module.exports = { register, registerAgent, login, refresh, logout };
+const requestOtp = asyncHandler(async (req, res) => {
+  const result = await authService.requestOtp(req.body);
+  return response.success(res, 200, result.message);
+});
+
+const verifyOtp = asyncHandler(async (req, res) => {
+  const result = await authService.verifyOtp(req.body);
+  return response.success(res, 200, 'Login successful.', result);
+});
+
+module.exports = { register, registerAgent, login, requestOtp, verifyOtp, refresh, logout };

@@ -4,12 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, requestOtp, verifyOtp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', phone: '', otp: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loginMode, setLoginMode] = useState('password'); // 'password' or 'otp'
+  const [otpSent, setOtpSent] = useState(false);
 
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -17,12 +19,26 @@ export default function Login() {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
-      const user = await login(form);
-      toast('Welcome back!', `Logged in as ${user.name}`, 'success');
-      const routes = { admin: '/admin', customer: '/customer', agent: '/agent' };
-      navigate(routes[user.role] || '/customer');
+      if (loginMode === 'password') {
+        const user = await login({ email: form.email, password: form.password });
+        toast('Welcome back!', `Logged in as ${user.name}`, 'success');
+        navigate(user.role === 'admin' ? '/admin' : user.role === 'agent' ? '/agent' : '/customer');
+      } else if (loginMode === 'otp' && !otpSent) {
+        // Request OTP
+        const credentials = form.email ? { email: form.email } : { phone: form.phone };
+        if (!credentials.email && !credentials.phone) throw new Error('Email or phone required');
+        const res = await requestOtp(credentials);
+        toast('OTP Sent', res.message || 'Check your WhatsApp or Email', 'success');
+        setOtpSent(true);
+      } else if (loginMode === 'otp' && otpSent) {
+        // Verify OTP
+        const credentials = form.email ? { email: form.email, otp: form.otp } : { phone: form.phone, otp: form.otp };
+        const user = await verifyOtp(credentials);
+        toast('Welcome back!', `Logged in as ${user.name}`, 'success');
+        navigate(user.role === 'admin' ? '/admin' : user.role === 'agent' ? '/agent' : '/customer');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Check your credentials.');
+      setError(err.response?.data?.message || err.message || 'Login failed.');
     } finally { setLoading(false); }
   };
 
@@ -40,17 +56,46 @@ export default function Login() {
 
           {error && <div className="alert alert-error">{error}</div>}
 
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <button className={`btn btn-sm ${loginMode === 'password' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('password'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>Password</button>
+            <button className={`btn btn-sm ${loginMode === 'otp' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('otp'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>OTP</button>
+          </div>
+
           <form className="auth-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input type="password" placeholder="••••••••" value={form.password} onChange={set('password')} required />
-            </div>
+            {loginMode === 'password' && (
+              <>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Password</label>
+                  <input type="password" placeholder="••••••••" value={form.password} onChange={set('password')} required />
+                </div>
+              </>
+            )}
+
+            {loginMode === 'otp' && !otpSent && (
+              <div className="form-group">
+                <label className="form-label">Email or Phone Number</label>
+                <input type="text" placeholder="you@example.com or +919876543210" value={form.email || form.phone} onChange={(e) => {
+                  const val = e.target.value;
+                  if (val.includes('@')) { setForm(p => ({ ...p, email: val, phone: '' })); }
+                  else { setForm(p => ({ ...p, phone: val, email: '' })); }
+                }} required />
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Enter email or full phone with country code.</div>
+              </div>
+            )}
+
+            {loginMode === 'otp' && otpSent && (
+              <div className="form-group">
+                <label className="form-label">Enter 6-digit OTP</label>
+                <input type="text" placeholder="123456" value={form.otp} onChange={set('otp')} maxLength={6} required style={{ letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.25rem' }} />
+              </div>
+            )}
+
             <button className="btn btn-primary btn-lg" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.25rem' }}>
-              {loading ? '⏳ Signing in...' : 'Sign In →'}
+              {loading ? '⏳ Please wait...' : loginMode === 'otp' && !otpSent ? 'Send OTP →' : 'Sign In →'}
             </button>
           </form>
 

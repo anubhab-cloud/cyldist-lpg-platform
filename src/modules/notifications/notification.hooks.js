@@ -2,6 +2,7 @@
 
 const logger = require('../../config/logger');
 const config = require('../../config');
+const whatsappService = require('../../shared/services/whatsapp.service');
 
 /**
  * Notification hooks — stub implementations ready for real integrations.
@@ -38,12 +39,24 @@ async function sendOutForDeliveryNotification({ order, customer }) {
   logger.info(`[EMAIL STUB] Out for delivery → ${customer?.email}`, {
     orderId: order?.orderId,
   });
+  if (customer?.phone) {
+    await whatsappService.sendTextMessage(
+      customer.phone,
+      `Your cylinder delivery #${order?.orderId} is OUT FOR DELIVERY. Keep your empty cylinder ready.`
+    );
+  }
 }
 
 async function sendDeliveredNotification({ order, customer }) {
   logger.info(`[EMAIL STUB] Delivered → ${customer?.email}`, {
     orderId: order?.orderId,
   });
+  if (customer?.phone) {
+    await whatsappService.sendTextMessage(
+      customer.phone,
+      `Your cylinder delivery #${order?.orderId} has been DELIVERED successfully. Thank you for using CylDist!`
+    );
+  }
 }
 
 async function sendCancelledNotification({ order, customer }) {
@@ -58,21 +71,23 @@ async function sendCancelledNotification({ order, customer }) {
 // ====================================================
 
 async function sendOrderCreatedSMS({ order, customer }) {
-  if (!config.notification.twilio.accountSid) {
-    logger.debug('[SMS STUB] Twilio not configured, skipping SMS');
-    return;
+  if (customer?.phone) {
+    await whatsappService.sendTextMessage(
+      customer.phone,
+      `Hello ${customer.name}, your cylinder booking #${order?.orderId} is confirmed and will be processed shortly.`
+    );
+  } else {
+    logger.debug('[SMS STUB] Order created SMS skipped (no phone)');
   }
-  // TODO: Replace with Twilio client.messages.create(...)
-  logger.info(`[SMS STUB] Order created SMS → ${customer?.phone}`, {
-    orderId: order?.orderId,
-  });
 }
 
 async function sendOrderAssignedSMS({ order, customer, agent }) {
-  logger.info(`[SMS STUB] Order assigned SMS → ${customer?.phone}`, {
-    orderId: order?.orderId,
-    agentName: agent?.name,
-  });
+  if (customer?.phone) {
+    await whatsappService.sendTextMessage(
+      customer.phone,
+      `Your cylinder delivery #${order?.orderId} has been assigned to ${agent?.name}. They will contact you soon.`
+    );
+  }
 }
 
 // ====================================================
@@ -109,6 +124,22 @@ async function sendLowStockAlert(warehouse) {
   // TODO: Send email/Slack/PagerDuty alert to operations team
 }
 
+// ====================================================
+// AUTH HOOKS
+// ====================================================
+
+async function sendOtpWhatsApp({ user, otp }) {
+  if (user?.phone) {
+    await whatsappService.sendTextMessage(
+      user.phone,
+      `Your CylDist login OTP is: *${otp}*. It will expire in 5 minutes. Do not share this code with anyone.`
+    );
+  }
+  if (user?.email) {
+    logger.info(`[EMAIL STUB] OTP for login → ${user.email}`, { otp });
+  }
+}
+
 module.exports = {
   sendOrderCreatedEmail,
   sendOrderAssignedEmail,
@@ -120,4 +151,5 @@ module.exports = {
   sendOrderCreatedPush,
   sendOrderAssignedPush,
   sendLowStockAlert,
+  sendOtpWhatsApp,
 };

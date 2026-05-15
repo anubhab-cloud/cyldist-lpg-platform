@@ -30,6 +30,19 @@ export function AuthProvider({ children }) {
     return data.data.user;
   };
 
+  const requestOtp = async (credentials) => {
+    const { data } = await authAPI.requestOtp(credentials);
+    return data;
+  };
+
+  const verifyOtp = async (credentials) => {
+    const { data } = await authAPI.verifyOtp(credentials);
+    localStorage.setItem('accessToken', data.data.accessToken);
+    localStorage.setItem('refreshToken', data.data.refreshToken);
+    setUser(data.data.user);
+    return data.data.user;
+  };
+
   const register = async (formData) => {
     const { data } = await authAPI.register(formData);
     localStorage.setItem('accessToken', data.data.accessToken);
@@ -47,7 +60,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updates) => setUser(prev => ({ ...prev, ...updates }));
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, loadUser }}>
+    <AuthContext.Provider value={{ user, loading, login, requestOtp, verifyOtp, register, logout, updateUser, loadUser }}>
       {children}
     </AuthContext.Provider>
   );

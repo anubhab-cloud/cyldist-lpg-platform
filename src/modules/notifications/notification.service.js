@@ -74,6 +74,13 @@ class NotificationService extends EventEmitter {
       ]);
     });
 
+    this.on('auth.otp_requested', async (data) => {
+      logger.info('Event: auth.otp_requested', { email: data.user?.email, phone: data.user?.phone });
+      await Promise.allSettled([
+        notificationHooks.sendOtpWhatsApp(data),
+      ]);
+    });
+
     // Global error guard — prevent unhandled event errors from crashing the process
     this.on('error', (err) => {
       logger.error('NotificationService error:', { error: err.message });

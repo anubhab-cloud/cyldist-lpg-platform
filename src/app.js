@@ -23,6 +23,7 @@ const inventoryRoutes = require('./modules/inventory/inventory.routes');
 const orderRoutes = require('./modules/orders/order.routes');
 const deliveryRoutes = require('./modules/delivery/delivery.routes');
 const chatRoutes = require('./modules/chat/chat.routes');
+const supportRoutes = require('./modules/support/support.routes');
 
 const app = express();
 
@@ -147,6 +148,7 @@ app.use(`${apiPrefix}/inventory`, inventoryRoutes);
 app.use(`${apiPrefix}/orders`, orderRoutes);
 app.use(`${apiPrefix}/delivery`, deliveryRoutes);
 app.use(`${apiPrefix}/chat`, chatRoutes);
+app.use(`${apiPrefix}/support`, supportRoutes);
 
 // ============================================================
 // Error Handling (must be last)

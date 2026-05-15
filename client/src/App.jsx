@@ -15,6 +15,8 @@ import CustomerOrders from './pages/customer/CustomerOrders';
 import CreateOrder from './pages/customer/CreateOrder';
 import TrackOrder from './pages/customer/TrackOrder';
 import ChatPage from './pages/customer/ChatPage';
+import CustomerSupport from './pages/customer/CustomerSupport';
+import RaiseComplaint from './pages/customer/RaiseComplaint';
 
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -44,6 +46,8 @@ function AppRoutes() {
         <Route path="orders/new" element={<CreateOrder />} />
         <Route path="track/:orderId" element={<TrackOrder />} />
         <Route path="chat/:roomId" element={<ChatPage />} />
+        <Route path="support" element={<CustomerSupport />} />
+        <Route path="support/raise" element={<RaiseComplaint />} />
       </Route>
 
       {/* Admin routes */}

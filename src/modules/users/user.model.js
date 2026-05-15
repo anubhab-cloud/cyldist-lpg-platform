@@ -125,6 +125,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    // OTP authentication
+    otp: {
+      type: String,
+      select: false,
+    },
+    otpExpiresAt: {
+      type: Date,
+      select: false,
+    },
     // Soft delete
     deletedAt: {
       type: Date,

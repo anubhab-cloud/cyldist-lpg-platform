@@ -11,6 +11,8 @@ const {
   registerAgentSchema,
   loginSchema,
   refreshSchema,
+  requestOtpSchema,
+  verifyOtpSchema,
 } = require('./auth.validator');
 
 const router = Router();
@@ -18,6 +20,8 @@ const router = Router();
 // Public routes (rate-limited)
 router.post('/register', authLimiter, validate({ body: registerSchema }), controller.register);
 router.post('/login', authLimiter, validate({ body: loginSchema }), controller.login);
+router.post('/request-otp', authLimiter, validate({ body: requestOtpSchema }), controller.requestOtp);
+router.post('/verify-otp', authLimiter, validate({ body: verifyOtpSchema }), controller.verifyOtp);
 router.post('/refresh', authLimiter, validate({ body: refreshSchema }), controller.refresh);
 
 // Admin-only: register delivery agents

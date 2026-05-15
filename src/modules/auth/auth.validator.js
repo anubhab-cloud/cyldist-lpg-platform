@@ -38,4 +38,21 @@ const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
-module.exports = { registerSchema, registerAgentSchema, loginSchema, refreshSchema };
+const requestOtpSchema = z.object({
+  email: z.string().email('Invalid email address').toLowerCase().trim().optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number').optional(),
+}).refine(data => data.email || data.phone, {
+  message: "Either email or phone must be provided",
+  path: ["email"], // Arbitrarily attach the error to email field
+});
+
+const verifyOtpSchema = z.object({
+  email: z.string().email('Invalid email address').toLowerCase().trim().optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number').optional(),
+  otp: z.string().length(6, 'OTP must be exactly 6 digits').regex(/^\d+$/, 'OTP must only contain numbers'),
+}).refine(data => data.email || data.phone, {
+  message: "Either email or phone must be provided",
+  path: ["email"],
+});
+
+module.exports = { registerSchema, registerAgentSchema, loginSchema, refreshSchema, requestOtpSchema, verifyOtpSchema };

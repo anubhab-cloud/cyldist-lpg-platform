@@ -1,6 +1,7 @@
 'use strict';
 
 const Redis = require('ioredis');
+const RedisMock = require('ioredis-mock');
 const config = require('./index');
 const logger = require('./logger');
 
@@ -21,9 +22,8 @@ function getRedisClient() {
     // Retry strategy: exponential backoff capped at 30s
     // In development, stop after 3 retries to avoid log spam when Redis isn't running
     retryStrategy(times) {
-      if (config.isDevelopment && times > 3) {
-        logger.warn('Redis unavailable — giving up retries (dev mode). Caching disabled.');
-        return null; // Stop retrying
+      if (config.isDevelopment) {
+        return null; // Stop retrying immediately in dev mode without noisy warnings
       }
       const delay = Math.min(times * 500, 30000);
       logger.warn(`Redis retry attempt ${times}, next attempt in ${delay}ms`);
@@ -41,8 +41,15 @@ function getRedisClient() {
 
   redisClient.on('connect', () => logger.info('Redis connected'));
   redisClient.on('ready', () => logger.info('Redis ready'));
-  redisClient.on('error', (err) => logger.error('Redis error', { error: err.message }));
-  redisClient.on('close', () => logger.warn('Redis connection closed'));
+  redisClient.on('error', (err) => {
+    if (config.isDevelopment && (err.code === 'ECONNREFUSED' || err.message === 'Connection is closed.' || !err.message)) {
+      return; // Suppress noisy connection errors in dev mode
+    }
+    logger.error('Redis error', { error: err.message });
+  });
+  redisClient.on('close', () => {
+    if (!config.isDevelopment) logger.warn('Redis connection closed');
+  });
 
   return redisClient;
 }
@@ -61,6 +68,14 @@ async function connectRedis() {
     await client.connect();
     return client;
   } catch (err) {
+    if (config.isDevelopment) {
+      logger.info('Redis unavailable locally. Falling back to in-memory Redis Mock!');
+      if (redisClient) {
+        redisClient.disconnect();
+      }
+      redisClient = new RedisMock();
+      return redisClient;
+    }
     logger.warn('Redis connection failed — caching will be disabled', { error: err.message });
     return null;
   }

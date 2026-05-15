@@ -3,6 +3,8 @@ import api from './axios';
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  requestOtp: (data) => api.post('/auth/request-otp', data),
+  verifyOtp: (data) => api.post('/auth/verify-otp', data),
   refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
   logout: () => api.post('/auth/logout'),
 };
@@ -47,4 +49,11 @@ export const chatAPI = {
   sendMessage: (roomId, content) => api.post(`/chat/${roomId}/messages`, { content }),
   markRead: (roomId) => api.patch(`/chat/${roomId}/read`),
   getUnread: (roomId) => api.get(`/chat/${roomId}/unread`),
+};
+
+export const supportAPI = {
+  createComplaint: (data) => api.post('/support/complaints', data),
+  getComplaints: (params) => api.get('/support/complaints', { params }),
+  getComplaintById: (id) => api.get(`/support/complaints/${id}`),
+  updateComplaint: (id, data) => api.patch(`/support/complaints/${id}`, data),
 };

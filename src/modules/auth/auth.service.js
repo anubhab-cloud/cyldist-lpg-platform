@@ -134,6 +134,86 @@ class AuthService {
   }
 
   /**
+   * Request OTP for login via email or phone.
+   * @param {{ email?: string, phone?: string }} data
+   */
+  async requestOtp({ email, phone }) {
+    if (!email && !phone) {
+      throw new AppError('Email or phone is required for OTP login.', 400);
+    }
+
+    let query = { deletedAt: null };
+    if (email) query.email = email.toLowerCase();
+    else if (phone) query.phone = phone;
+
+    const user = await User.findOne(query);
+    if (!user) {
+      throw new AppError('No account found with these details.', 404);
+    }
+
+    if (!user.isActive) {
+      throw new AppError('Your account has been deactivated. Please contact support.', 403);
+    }
+
+    // Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    user.otp = otp;
+    user.otpExpiresAt = expiresAt;
+    await user.save();
+
+    // Trigger notification (Email/WhatsApp)
+    const notificationService = require('../notifications/notification.service');
+    notificationService.emit('auth.otp_requested', { user, otp });
+
+    return { message: 'OTP sent successfully.' };
+  }
+
+  /**
+   * Verify OTP and login.
+   * @param {{ email?: string, phone?: string, otp: string }} data
+   */
+  async verifyOtp({ email, phone, otp }) {
+    if (!email && !phone) {
+      throw new AppError('Email or phone is required.', 400);
+    }
+
+    let query = { deletedAt: null };
+    if (email) query.email = email.toLowerCase();
+    else if (phone) query.phone = phone;
+
+    const userWithOtp = await User.findOne(query).select('+otp +otpExpiresAt');
+    if (!userWithOtp) {
+      throw new AppError('No account found with these details.', 404);
+    }
+
+    if (!userWithOtp.otp || !userWithOtp.otpExpiresAt) {
+      throw new AppError('No active OTP found. Please request a new one.', 400);
+    }
+
+    if (new Date() > userWithOtp.otpExpiresAt) {
+      userWithOtp.otp = undefined;
+      userWithOtp.otpExpiresAt = undefined;
+      await userWithOtp.save();
+      throw new AppError('OTP has expired. Please request a new one.', 400);
+    }
+
+    if (userWithOtp.otp !== otp) {
+      throw new AppError('Invalid OTP.', 401);
+    }
+
+    // Clear OTP upon successful verification
+    userWithOtp.otp = undefined;
+    userWithOtp.otpExpiresAt = undefined;
+    await userWithOtp.save();
+
+    const tokens = await this.buildTokenPair(userWithOtp);
+    const user = await userRepository.findById(userWithOtp._id);
+    return { user, ...tokens };
+  }
+
+  /**
    * Refresh access token using a valid refresh token.
    * Implements token rotation — old refresh token is invalidated.
    * @param {string} refreshToken
