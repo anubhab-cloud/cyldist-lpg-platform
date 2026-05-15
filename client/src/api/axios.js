@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = '/api/v1';
+const BASE_URL = import.meta.env.DEV 
+  ? '/api/v1' 
+  : 'https://cyldist-lpg-platform.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: BASE_URL,

@@ -20,7 +20,8 @@ export function SocketProvider({ children }) {
     }
 
     const token = localStorage.getItem('accessToken');
-    socketRef.current = io('/', {
+    const SOCKET_URL = import.meta.env.DEV ? '/' : 'https://cyldist-lpg-platform.onrender.com';
+    socketRef.current = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnectionDelay: 2000,
