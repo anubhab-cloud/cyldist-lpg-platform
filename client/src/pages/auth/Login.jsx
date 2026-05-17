@@ -24,7 +24,13 @@ export default function Login() {
         const res = await login({ email: form.email, password: form.password });
         if (res.requires2FA) {
           setRequires2FA(true);
-          toast('2FA Required', res.message, 'info');
+          if (res.devOtp) {
+            // DEV MODE: auto-fill OTP and show it in toast
+            setForm(p => ({ ...p, otp: res.devOtp }));
+            toast('🔧 Dev Mode OTP', `Your OTP is: ${res.devOtp} (auto-filled)`, 'info');
+          } else {
+            toast('2FA Required', res.message, 'info');
+          }
         } else {
           toast('Welcome back!', `Logged in as ${res.user.name}`, 'success');
           navigate(res.user.role === 'admin' ? '/admin' : res.user.role === 'agent' ? '/agent' : '/customer');

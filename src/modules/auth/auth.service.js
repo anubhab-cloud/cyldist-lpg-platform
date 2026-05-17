@@ -127,15 +127,21 @@ class AuthService {
       throw new AppError('Invalid email or password.', 401);
     }
 
-    // Instead of immediately issuing tokens, we trigger the OTP request (2FA)
-    await this.requestOtp({ email: userWithPassword.email });
+    // Trigger the OTP request (2FA)
+    const otpResult = await this.requestOtp({ email: userWithPassword.email });
 
-    const user = await userRepository.findById(userWithPassword._id);
-    return {
+    const response = {
       requires2FA: true,
       email: userWithPassword.email,
       message: 'Password correct. Please enter the OTP sent to your email to complete login.',
     };
+
+    // In development: expose OTP in the response so dummy accounts can still log in
+    if (config.isDevelopment) {
+      response.devOtp = otpResult.devOtp;
+    }
+
+    return response;
   }
 
   /**
@@ -168,11 +174,17 @@ class AuthService {
     user.otpExpiresAt = expiresAt;
     await user.save();
 
+    // In development mode, log the OTP clearly to the console
+    if (config.isDevelopment) {
+      const logger = require('../../config/logger');
+      logger.warn(`[DEV MODE] OTP for ${user.email}: ${otp}`);
+    }
+
     // Trigger notification (Email/WhatsApp)
     const notificationService = require('../notifications/notification.service');
     notificationService.emit('auth.otp_requested', { user, otp });
 
-    return { message: 'OTP sent successfully.' };
+    return { message: 'OTP sent successfully.', devOtp: config.isDevelopment ? otp : undefined };
   }
 
   /**
