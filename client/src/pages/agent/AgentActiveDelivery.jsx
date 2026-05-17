@@ -20,6 +20,8 @@ export default function AgentActiveDelivery() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [tracking, setTracking] = useState(false);
+  const [deliveryOtp, setDeliveryOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
   const watchRef = useRef(null);
 
   useEffect(() => {
@@ -62,9 +64,19 @@ export default function AgentActiveDelivery() {
   const handleStatusUpdate = async () => {
     const next = STATUS_FLOW[order.status];
     if (!next) return;
+
+    // Require OTP before marking delivered
+    if (next === 'delivered' && !showOtpInput) {
+      setShowOtpInput(true);
+      return;
+    }
+
     setUpdating(true);
     try {
-      await ordersAPI.updateStatus(orderId, { status: next });
+      const payload = { status: next };
+      if (next === 'delivered') payload.deliveryOtp = deliveryOtp;
+
+      await ordersAPI.updateStatus(orderId, payload);
       setOrder(prev => ({ ...prev, status: next }));
       toast('Status updated!', `Order is now ${next.replace(/_/g,' ')}`, 'success');
       if (next === 'delivered') {
@@ -72,6 +84,7 @@ export default function AgentActiveDelivery() {
         setTimeout(() => navigate('/agent'), 2000);
       } else if (next === 'out_for_delivery') {
         startTracking();
+        setShowOtpInput(false);
       }
     } catch (err) {
       toast('Error', err.response?.data?.message || 'Update failed', 'error');
@@ -157,11 +170,40 @@ export default function AgentActiveDelivery() {
         </div>
 
         {/* Action button */}
-        {nextStatus && (
+        {nextStatus && !showOtpInput && (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button className="btn btn-primary btn-lg" onClick={handleStatusUpdate} disabled={updating} style={{ minWidth: 240 }}>
               {updating ? '⏳ Updating...' : STATUS_LABELS[nextStatus] || 'Update Status'}
             </button>
+          </div>
+        )}
+
+        {/* Delivery OTP verification */}
+        {showOtpInput && nextStatus === 'delivered' && (
+          <div className="card" style={{ borderColor: 'rgba(99,102,241,0.5)', background: 'rgba(99,102,241,0.06)', textAlign: 'center' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>🔐 Enter Customer's Delivery OTP</div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              Ask the customer for the 4-digit code shown on their tracking screen.
+            </p>
+            <input
+              type="text"
+              placeholder="0000"
+              value={deliveryOtp}
+              onChange={e => setDeliveryOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              maxLength={4}
+              style={{
+                textAlign: 'center', letterSpacing: '0.5em', fontSize: '2rem', fontWeight: 700,
+                width: 160, padding: '0.75rem', background: 'var(--bg-dark)',
+                border: '2px solid var(--primary)', borderRadius: 12, color: 'var(--text-primary)',
+                fontFamily: 'monospace', margin: '0 auto', display: 'block', outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.25rem' }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setShowOtpInput(false); setDeliveryOtp(''); }}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleStatusUpdate} disabled={updating || deliveryOtp.length < 4}>
+                {updating ? '⏳ Verifying...' : '✅ Confirm Delivery'}
+              </button>
+            </div>
           </div>
         )}
 

@@ -244,7 +244,32 @@ tr:hover td{background:rgba(255,255,255,0.015)}
 .filters-bar{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
 .filters-bar input,.filters-bar select{width:auto;min-width:160px}
 
-/* ═══ Responsive ═══ */
-@media(max-width:1024px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.auth-page{grid-template-columns:1fr}.auth-right{display:none}}
-@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.page{padding:1rem}.topbar{padding:0 1rem}}
+/* ═══ Responsive / Mobile Navigation ═══ */
+.mobile-menu-btn { display: none; margin-right: 0.75rem; font-size: 1.5rem; color: var(--text-primary); transition: transform 0.2s; }
+.mobile-menu-btn:active { transform: scale(0.9); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 90; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+
+@media(max-width:1024px) {
+  .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; background: var(--bg-hover); }
+  .sidebar { transform: translateX(-100%); z-index: 100; box-shadow: var(--shadow-lg); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
+  .main-content { margin-left: 0; }
+  .auth-page { grid-template-columns: 1fr; }
+  .auth-right { display: none; }
+}
+
+@media(max-width:900px) {
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+@media(max-width:600px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .page { padding: 1rem; }
+  .topbar { padding: 0 1rem; }
+  .stat-card { padding: 1rem; }
+  .btn-lg { width: 100%; text-align: center; }
+}

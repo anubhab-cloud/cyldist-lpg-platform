@@ -12,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState('password'); // 'password' or 'otp'
   const [otpSent, setOtpSent] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
 
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -19,8 +20,18 @@ export default function Login() {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
-      if (loginMode === 'password') {
-        const user = await login({ email: form.email, password: form.password });
+      if (loginMode === 'password' && !requires2FA) {
+        const res = await login({ email: form.email, password: form.password });
+        if (res.requires2FA) {
+          setRequires2FA(true);
+          toast('2FA Required', res.message, 'info');
+        } else {
+          toast('Welcome back!', `Logged in as ${res.user.name}`, 'success');
+          navigate(res.user.role === 'admin' ? '/admin' : res.user.role === 'agent' ? '/agent' : '/customer');
+        }
+      } else if (loginMode === 'password' && requires2FA) {
+        // Verify 2FA OTP
+        const user = await verifyOtp({ email: form.email, otp: form.otp });
         toast('Welcome back!', `Logged in as ${user.name}`, 'success');
         navigate(user.role === 'admin' ? '/admin' : user.role === 'agent' ? '/agent' : '/customer');
       } else if (loginMode === 'otp' && !otpSent) {
@@ -56,13 +67,15 @@ export default function Login() {
 
           {error && <div className="alert alert-error">{error}</div>}
 
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-            <button className={`btn btn-sm ${loginMode === 'password' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('password'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>Password</button>
-            <button className={`btn btn-sm ${loginMode === 'otp' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('otp'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>OTP</button>
-          </div>
+          {!requires2FA && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <button className={`btn btn-sm ${loginMode === 'password' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('password'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>Password</button>
+              <button className={`btn btn-sm ${loginMode === 'otp' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setLoginMode('otp'); setOtpSent(false); setError(''); }} style={{ flex: 1 }}>Passwordless OTP</button>
+            </div>
+          )}
 
           <form className="auth-form" onSubmit={handleSubmit}>
-            {loginMode === 'password' && (
+            {loginMode === 'password' && !requires2FA && (
               <>
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
@@ -73,6 +86,13 @@ export default function Login() {
                   <input type="password" placeholder="••••••••" value={form.password} onChange={set('password')} required />
                 </div>
               </>
+            )}
+
+            {loginMode === 'password' && requires2FA && (
+              <div className="form-group">
+                <label className="form-label">Enter 6-digit 2FA Code (sent to email)</label>
+                <input type="text" placeholder="123456" value={form.otp} onChange={set('otp')} maxLength={6} required style={{ letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.25rem' }} />
+              </div>
             )}
 
             {loginMode === 'otp' && !otpSent && (
@@ -95,7 +115,7 @@ export default function Login() {
             )}
 
             <button className="btn btn-primary btn-lg" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.25rem' }}>
-              {loading ? '⏳ Please wait...' : loginMode === 'otp' && !otpSent ? 'Send OTP →' : 'Sign In →'}
+              {loading ? '⏳ Please wait...' : requires2FA || (loginMode === 'otp' && otpSent) ? 'Verify OTP →' : loginMode === 'otp' && !otpSent ? 'Send OTP →' : 'Sign In →'}
             </button>
           </form>
 

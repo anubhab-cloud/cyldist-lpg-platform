@@ -24,6 +24,12 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const { data } = await authAPI.login(credentials);
+    
+    // If backend requires 2FA, do not set tokens yet. Just return the response.
+    if (data.data.requires2FA) {
+      return data.data;
+    }
+
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);

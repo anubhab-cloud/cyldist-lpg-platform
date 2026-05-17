@@ -90,9 +90,9 @@ const assignAgent = asyncHandler(async (req, res) => {
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status, note } = req.body;
+  const { status, note, deliveryOtp } = req.body;
   const order = await orderService.updateStatus(
-    req.params.orderId, status, note, req.user.id, req.user.role
+    req.params.orderId, status, note, req.user.id, req.user.role, deliveryOtp
   );
   return response.success(res, 200, `Order status updated to '${status}'.`, order);
 });

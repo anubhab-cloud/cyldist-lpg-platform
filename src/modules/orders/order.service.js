@@ -7,6 +7,7 @@ const notificationService = require('../notifications/notification.service');
 const cache = require('../../shared/cache/redis.cache');
 const AppError = require('../../shared/utils/AppError');
 const Order = require('./order.model');
+const emailService = require('../../utils/email');
 
 const ACTIVE_ORDER_CACHE_TTL = 60; // seconds
 
@@ -138,7 +139,7 @@ class OrderService {
    * Update order status (agent or admin).
    * Validates against the status machine.
    */
-  async updateStatus(orderId, newStatus, note, userId, userRole) {
+  async updateStatus(orderId, newStatus, note, userId, userRole, deliveryOtp) {
     const order = await orderRepository.findByOrderId(orderId);
     if (!order) throw new AppError('Order not found.', 404);
 
@@ -147,7 +148,6 @@ class OrderService {
       if (!order.agentId || order.agentId._id.toString() !== userId) {
         throw new AppError('You are not assigned to this order.', 403);
       }
-      // Agents can only move forward (no cancellation via status update)
       if (newStatus === 'cancelled') {
         throw new AppError('Agents cannot cancel orders. Please contact admin.', 403);
       }
@@ -162,7 +162,34 @@ class OrderService {
       );
     }
 
-    const updated = await orderRepository.updateStatus(orderId, newStatus, note, userId);
+    let extraFields = {};
+
+    // DELIVERY OTP: Generate when moving to out_for_delivery
+    if (newStatus === 'out_for_delivery') {
+      const otp = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
+      extraFields.deliveryOtp = otp;
+
+      // Email OTP to customer
+      const customer = await userRepository.findById(order.customerId._id || order.customerId);
+      if (customer?.email) {
+        emailService.send2FAEmail(customer.email, otp).catch(() => {}); // non-blocking
+      }
+    }
+
+    // DELIVERY OTP: Verify when marking delivered
+    if (newStatus === 'delivered') {
+      if (!order.deliveryOtp) {
+        throw new AppError('No delivery OTP found for this order. Contact admin.', 400);
+      }
+      if (!deliveryOtp) {
+        throw new AppError('Delivery OTP is required to mark this order as delivered.', 400);
+      }
+      if (String(order.deliveryOtp) !== String(deliveryOtp)) {
+        throw new AppError('Invalid delivery OTP. Please ask the customer for the correct code.', 401);
+      }
+    }
+
+    const updated = await orderRepository.updateStatus(orderId, newStatus, note, userId, extraFields);
     await cache.del(`order:${orderId}`);
 
     // Handle inventory and notifications based on new status
@@ -170,7 +197,6 @@ class OrderService {
     const agent = updated.agentId ? await userRepository.findById(updated.agentId._id || updated.agentId) : null;
 
     if (newStatus === 'delivered') {
-      // Commit stock (remove from reserved and total — cylinders are now delivered)
       await inventoryService.commitStock(updated.warehouseId._id || updated.warehouseId, updated.cylinderCount);
       notificationService.emit('order.delivered', { order: updated, customer, agent });
     } else if (newStatus === 'out_for_delivery') {

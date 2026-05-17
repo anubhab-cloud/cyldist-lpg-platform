@@ -48,7 +48,7 @@ export default function SupportChatWidget() {
   };
 
   return (
-    <div className="support-chat-wrapper" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999 }}>
+    <div className="support-chat-wrapper" style={{ position: 'fixed', bottom: 'clamp(1rem, 5vw, 2rem)', right: 'clamp(1rem, 5vw, 2rem)', zIndex: 9999 }}>
       {!isOpen && (
         <button 
           onClick={() => setIsOpen(true)}
@@ -67,7 +67,9 @@ export default function SupportChatWidget() {
 
       {isOpen && (
         <div style={{
-          width: '350px', height: '500px', background: 'var(--bg-elevated)', borderRadius: '1rem',
+          width: 'calc(100vw - 2rem)', maxWidth: '350px', 
+          height: '500px', maxHeight: 'calc(100vh - 120px)',
+          background: 'var(--bg-elevated)', borderRadius: '1rem',
           boxShadow: '0 8px 24px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column',
           border: '1px solid var(--border)', overflow: 'hidden', backdropFilter: 'blur(10px)'
         }}>

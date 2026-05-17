@@ -8,6 +8,7 @@ const Order = require('./order.model');
 class OrderRepository {
   async findByOrderId(orderId) {
     return Order.findOne({ orderId })
+      .select('+deliveryOtp')
       .populate('customerId', 'name email phone')
       .populate('agentId', 'name email phone location')
       .populate('warehouseId', 'warehouseName location')
@@ -71,9 +72,10 @@ class OrderRepository {
       .lean({ virtuals: true });
   }
 
-  async updateStatus(orderId, status, note = '', updatedBy = null) {
+  async updateStatus(orderId, status, note = '', updatedBy = null, extraFields = {}) {
     const updates = {
       status,
+      ...extraFields,
       $push: {
         timeline: {
           status,
@@ -86,9 +88,11 @@ class OrderRepository {
 
     if (status === 'delivered') {
       updates.deliveredAt = new Date();
+      updates.deliveryOtp = null; // Clear OTP after delivery
     }
 
     return Order.findOneAndUpdate({ orderId }, updates, { new: true })
+      .select('+deliveryOtp')
       .populate('customerId', 'name email phone')
       .populate('agentId', 'name email phone')
       .lean({ virtuals: true });

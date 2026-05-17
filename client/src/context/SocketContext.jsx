@@ -7,6 +7,7 @@ const SocketContext = createContext(null);
 export function SocketProvider({ children }) {
   const { user } = useAuth();
   const socketRef = useRef(null);
+  const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -14,6 +15,7 @@ export function SocketProvider({ children }) {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
+        setSocket(null);
         setConnected(false);
       }
       return;
@@ -21,26 +23,29 @@ export function SocketProvider({ children }) {
 
     const token = localStorage.getItem('accessToken');
     const SOCKET_URL = import.meta.env.DEV ? '/' : 'https://cyldist-lpg-platform.onrender.com';
-    socketRef.current = io(SOCKET_URL, {
+    const s = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnectionDelay: 2000,
       reconnectionAttempts: 5,
     });
 
-    socketRef.current.on('connect', () => setConnected(true));
-    socketRef.current.on('disconnect', () => setConnected(false));
-    socketRef.current.on('error', (err) => console.error('Socket error:', err));
+    socketRef.current = s;
+
+    s.on('connect', () => { setConnected(true); setSocket(s); });
+    s.on('disconnect', () => setConnected(false));
+    s.on('error', (err) => console.error('Socket error:', err));
 
     return () => {
-      socketRef.current?.disconnect();
+      s.disconnect();
       socketRef.current = null;
+      setSocket(null);
       setConnected(false);
     };
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current, connected }}>
+    <SocketContext.Provider value={{ socket, connected }}>
       {children}
     </SocketContext.Provider>
   );

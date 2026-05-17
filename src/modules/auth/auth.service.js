@@ -127,10 +127,15 @@ class AuthService {
       throw new AppError('Invalid email or password.', 401);
     }
 
-    const tokens = await this.buildTokenPair(userWithPassword);
+    // Instead of immediately issuing tokens, we trigger the OTP request (2FA)
+    await this.requestOtp({ email: userWithPassword.email });
 
     const user = await userRepository.findById(userWithPassword._id);
-    return { user, ...tokens };
+    return {
+      requires2FA: true,
+      email: userWithPassword.email,
+      message: 'Password correct. Please enter the OTP sent to your email to complete login.',
+    };
   }
 
   /**

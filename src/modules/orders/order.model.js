@@ -171,6 +171,11 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // OTP shared with customer for delivery verification
+    deliveryOtp: {
+      type: String,
+      select: false, // hidden by default unless specifically requested
+    },
   },
   {
     timestamps: true,

@@ -77,6 +77,7 @@ class NotificationService extends EventEmitter {
     this.on('auth.otp_requested', async (data) => {
       logger.info('Event: auth.otp_requested', { email: data.user?.email, phone: data.user?.phone });
       await Promise.allSettled([
+        notificationHooks.sendOtpEmail(data),
         notificationHooks.sendOtpWhatsApp(data),
       ]);
     });

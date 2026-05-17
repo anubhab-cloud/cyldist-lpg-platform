@@ -1,17 +1,27 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useState, useEffect } from 'react';
 
 function SidebarBase({ navItems, role }) {
   const { user, logout } = useAuth();
   const { connected } = useSocket() || {};
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsOpen(prev => !prev);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, []);
 
   const handleLogout = async () => { await logout(); navigate('/login'); };
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   return (
-    <aside className="sidebar">
+    <>
+      <div className={`sidebar-overlay ${isOpen ? 'show' : ''}`} onClick={() => setIsOpen(false)} />
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div className="logo-icon">🛢</div>
         <div className="logo-text">Cyl<span>Dist</span></div>
@@ -28,6 +38,7 @@ function SidebarBase({ navItems, role }) {
             {section.label && <div className="nav-section-label">{section.label}</div>}
             {section.items.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end}
+                onClick={() => setIsOpen(false)}
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
                 <span className="nav-icon">{item.icon}</span>
                 {item.label}
@@ -52,7 +63,8 @@ function SidebarBase({ navItems, role }) {
           >⏻</button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
@@ -91,9 +103,14 @@ export function AgentSidebar() {
 }
 
 export function Topbar({ title, children }) {
+  const toggleSidebar = () => window.dispatchEvent(new CustomEvent('toggle-sidebar'));
+
   return (
     <div className="topbar">
-      <span className="topbar-title">{title}</span>
+      <div className="flex-center">
+        <button className="mobile-menu-btn" onClick={toggleSidebar}>☰</button>
+        <span className="topbar-title">{title}</span>
+      </div>
       <div className="topbar-actions">{children}</div>
     </div>
   );

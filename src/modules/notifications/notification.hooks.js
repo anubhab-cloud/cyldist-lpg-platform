@@ -3,6 +3,7 @@
 const logger = require('../../config/logger');
 const config = require('../../config');
 const whatsappService = require('../../shared/services/whatsapp.service');
+const emailService = require('../../utils/email');
 
 /**
  * Notification hooks — stub implementations ready for real integrations.
@@ -135,8 +136,15 @@ async function sendOtpWhatsApp({ user, otp }) {
       `Your CylDist login OTP is: *${otp}*. It will expire in 5 minutes. Do not share this code with anyone.`
     );
   }
+}
+
+async function sendOtpEmail({ user, otp }) {
   if (user?.email) {
-    logger.info(`[EMAIL STUB] OTP for login → ${user.email}`, { otp });
+    try {
+      await emailService.send2FAEmail(user.email, otp);
+    } catch (err) {
+      logger.error('Failed to send OTP email', { error: err.message });
+    }
   }
 }
 
@@ -152,4 +160,5 @@ module.exports = {
   sendOrderAssignedPush,
   sendLowStockAlert,
   sendOtpWhatsApp,
+  sendOtpEmail,
 };

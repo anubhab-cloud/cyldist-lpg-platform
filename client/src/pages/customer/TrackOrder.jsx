@@ -7,13 +7,25 @@ import { Topbar } from '../../components/Sidebar';
 
 export default function TrackOrder() {
   const { orderId } = useParams();
-  const { socket } = useSocket() || {};
+  const { socket, connected } = useSocket() || {};
   const [order, setOrder] = useState(null);
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deliveryOtp, setDeliveryOtp] = useState(null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+
+  // Inject Leaflet CSS once on mount
+  useEffect(() => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+  }, []);
 
   useEffect(() => {
     ordersAPI.getById(orderId).then(r => {
@@ -28,42 +40,45 @@ export default function TrackOrder() {
     deliveryAPI.getLocation(orderId).then(r => setLocation(r.data.data)).catch(() => {});
   }, [order, orderId]);
 
-  // Init Leaflet map
+  // Init Leaflet map when order is out_for_delivery
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    if (!mapRef.current || mapInstanceRef.current || !order || order.status !== 'out_for_delivery') return;
     import('leaflet').then(L => {
-      const map = L.map(mapRef.current).setView([28.6139, 77.2090], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const Leaf = L.default || L;
+      const map = Leaf.map(mapRef.current).setView([20.5937, 78.9629], 5);
+      Leaf.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
       }).addTo(map);
       mapInstanceRef.current = map;
     });
     return () => { mapInstanceRef.current?.remove(); mapInstanceRef.current = null; };
-  }, []);
+  }, [order]);
 
   // Update marker when location changes
   useEffect(() => {
     if (!location || !mapInstanceRef.current) return;
     import('leaflet').then(L => {
-      const icon = L.divIcon({
+      const Leaf = L.default || L;
+      const icon = Leaf.divIcon({
         className: '',
-        html: `<div style="background:var(--accent);width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(34,211,238,0.8);"></div>`,
-        iconSize: [20, 20], iconAnchor: [10, 10],
+        html: `<div style="background:var(--accent);width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(34,211,238,0.8);"></div>`,
+        iconSize: [22, 22], iconAnchor: [11, 11],
       });
       if (markerRef.current) {
         markerRef.current.setLatLng([location.lat, location.lng]);
       } else {
-        markerRef.current = L.marker([location.lat, location.lng], { icon })
+        markerRef.current = Leaf.marker([location.lat, location.lng], { icon })
           .addTo(mapInstanceRef.current)
           .bindPopup('🚚 Delivery Agent');
       }
       mapInstanceRef.current.panTo([location.lat, location.lng]);
+      mapInstanceRef.current.setZoom(14);
     });
   }, [location]);
 
-  // Real-time location updates via socket
+  // Subscribe to real-time location updates once socket is ready
   useEffect(() => {
-    if (!socket || !orderId) return;
+    if (!socket || !connected || !orderId) return;
     socket.emit('subscribe:order_tracking', { orderId });
     socket.on('location:updated', (data) => {
       if (data.orderId === orderId) setLocation(data);
@@ -72,7 +87,7 @@ export default function TrackOrder() {
       socket.off('location:updated');
       socket.emit('unsubscribe:order_tracking', { orderId });
     };
-  }, [socket, orderId]);
+  }, [socket, connected, orderId]);
 
   if (loading) return <PageLoader />;
   if (!order) return <div className="page"><div className="alert alert-error">Order not found.</div></div>;
@@ -129,6 +144,21 @@ export default function TrackOrder() {
           </div>
         </div>
 
+        {/* Delivery OTP Banner */}
+        {order.status === 'out_for_delivery' && order.deliveryOtp && (
+          <div className="card" style={{ marginBottom: '1.5rem', borderColor: 'rgba(99,102,241,0.5)', background: 'rgba(99,102,241,0.08)', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+              🔐 Your Delivery OTP
+            </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '0.4em', color: 'var(--accent)', fontFamily: 'monospace' }}>
+              {order.deliveryOtp}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+              Share this code with your agent to confirm delivery and receive your cylinders.
+            </div>
+          </div>
+        )}
+
         <div className="grid-2" style={{ gap: '1.5rem' }}>
           {/* Map */}
           <div>
@@ -142,8 +172,18 @@ export default function TrackOrder() {
                       · Updated {new Date(location.timestamp).toLocaleTimeString()}
                     </span>
                   )}
+                  {!connected && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--warning)', marginLeft: 'auto' }}>⚠ Connecting...</span>
+                  )}
                 </div>
-                <div ref={mapRef} className="map-container" />
+                {!location ? (
+                  <div className="card" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ fontSize: '2rem' }}>📡</div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Waiting for agent to share location...</p>
+                  </div>
+                ) : (
+                  <div ref={mapRef} className="map-container" />
+                )}
               </>
             ) : (
               <div className="card" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
