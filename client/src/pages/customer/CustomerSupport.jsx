@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supportAPI } from '../../api';
 import SupportChatWidget from '../../components/SupportChatWidget';
+import { Topbar } from '../../components/Sidebar';
 
 export default function CustomerSupport() {
   const navigate = useNavigate();
@@ -43,37 +44,38 @@ export default function CustomerSupport() {
   const resolvedTickets = complaints.filter(c => c.status === 'resolved' || c.status === 'closed').length;
 
   return (
-    <div className="dashboard-content">
-      {/* Emergency Banner */}
-      <div style={{ 
-        background: 'rgba(255, 51, 102, 0.1)', border: '1px solid #ff3366', 
-        padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        boxShadow: '0 0 20px rgba(255, 51, 102, 0.15)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ fontSize: '2rem', animation: 'pulse 2s infinite' }}>🚨</div>
-          <div>
-            <h3 style={{ color: '#ff3366', margin: '0 0 0.25rem 0', fontWeight: 700 }}>Gas Leak Emergency?</h3>
-            <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>Do not wait. Evacuate immediately and raise an emergency ticket or call 1-800-CYL-LEAK.</p>
+    <div>
+      <Topbar title="Support Center">
+        <button className="btn btn-primary btn-sm" onClick={() => navigate('/customer/support/raise')}>
+          ＋ Raise Complaint
+        </button>
+      </Topbar>
+      <div className="page">
+        {/* Emergency Banner */}
+        <div style={{ 
+          background: 'rgba(255, 51, 102, 0.1)', border: '1px solid #ff3366', 
+          padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          boxShadow: '0 0 20px rgba(255, 51, 102, 0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ fontSize: '2rem', animation: 'pulse 2s infinite' }}>🚨</div>
+            <div>
+              <h3 style={{ color: '#ff3366', margin: '0 0 0.25rem 0', fontWeight: 700 }}>Gas Leak Emergency?</h3>
+              <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>Do not wait. Evacuate immediately and raise an emergency ticket or call 1-800-CYL-LEAK.</p>
+            </div>
           </div>
+          <button 
+            onClick={() => navigate('/customer/support/raise')}
+            style={{ background: '#ff3366', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
+            Report Leak
+          </button>
         </div>
-        <button 
-          onClick={() => navigate('/customer/support/raise')}
-          style={{ background: '#ff3366', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}>
-          Report Leak
-        </button>
-      </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>Support Center</h1>
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>Manage your complaints and get help instantly.</p>
+        <div style={{ marginBottom: '1.75rem' }}>
+          <h1 className="page-title">Support Center</h1>
+          <p className="page-subtitle">Manage your complaints and get help instantly.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/customer/support/raise')}>
-          + Raise Complaint
-        </button>
-      </div>
 
       {/* Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
@@ -139,6 +141,7 @@ export default function CustomerSupport() {
             </tbody>
           </table>
         )}
+      </div>
       </div>
 
       {/* Floating Chat Widget */}

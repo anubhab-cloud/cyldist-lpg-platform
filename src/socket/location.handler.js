@@ -74,6 +74,22 @@ function registerLocationHandlers(socket, io) {
   });
 
   /**
+   * Agent signals they've reached the customer's location.
+   * Notifies the customer room so tracking UI can update.
+   */
+  socket.on('agent:reached_location', ({ orderId }) => {
+    if (role !== 'agent') return;
+    if (!orderId) return;
+    const room = `order:${orderId}`;
+    io.to(room).emit('location:agent_reached', {
+      agentId,
+      orderId,
+      timestamp: new Date().toISOString(),
+    });
+    logger.info(`Agent ${agentId} reached location for order ${orderId}`);
+  });
+
+  /**
    * Agent signals they've stopped (reached destination or ended session).
    */
   socket.on('agent:location_stop', ({ orderId }) => {

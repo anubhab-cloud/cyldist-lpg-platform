@@ -34,10 +34,20 @@ const assignAgentSchema = z.object({
 const updateStatusSchema = z.object({
   status: z.enum(['out_for_delivery', 'delivered', 'cancelled']),
   note: z.string().max(200).optional().default(''),
+  deliveryOtp: z.string().length(4).optional(),
+  deliveredCount: z.number().int().min(1).max(10).optional(),
 });
 
 const cancelOrderSchema = z.object({
   reason: z.string().min(1, 'Cancellation reason is required').max(200),
+});
+
+const rejectOrderSchema = z.object({
+  reason: z.string().min(1, 'Rejection reason is required').max(200),
+});
+
+const setPrioritySchema = z.object({
+  priority: z.enum(['urgent', 'medium', 'normal']),
 });
 
 const listOrdersQuerySchema = z.object({
@@ -54,5 +64,7 @@ module.exports = {
   assignAgentSchema,
   updateStatusSchema,
   cancelOrderSchema,
+  rejectOrderSchema,
+  setPrioritySchema,
   listOrdersQuerySchema,
 };

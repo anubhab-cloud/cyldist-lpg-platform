@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ordersAPI, usersAPI } from '../../api';
-import { StatusBadge, PaymentBadge, PageLoader, EmptyState, Modal } from '../../components';
+import { StatusBadge, PaymentBadge, Modal } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
+import { motion } from 'framer-motion';
+import { SkeletonTable } from '../../components/ui/Skeletons';
+import { EmptyIllustration } from '../../components/ui/EmptyIllustration';
 
 export default function AdminOrders() {
   const { toast } = useToast();
@@ -48,7 +51,21 @@ export default function AdminOrders() {
   };
 
   const NEXT_STATUS = { created: ['assigned'], assigned: ['out_for_delivery', 'cancelled'], out_for_delivery: ['delivered', 'cancelled'] };
-  if (loading) return <PageLoader />;
+
+  if (loading) return (
+    <div>
+      <Topbar title="Orders" />
+      <div className="page bg-grid">
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div className="skeleton-text" style={{ width: 120, height: 20, marginBottom: 8 }} />
+          <div className="skeleton-text" style={{ width: 260, height: 14 }} />
+        </div>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <SkeletonTable rows={8} cols={9} />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -68,14 +85,22 @@ export default function AdminOrders() {
           ))}
         </div>
 
-        {filtered.length === 0 ? <EmptyState icon="◫" title="No orders found" /> : (
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        {filtered.length === 0 ? (
+          <div className="card">
+            <EmptyIllustration type="orders" title="No orders found"
+              message="Try adjusting your search or filter criteria." />
+          </div>
+        ) : (
+          <div className="card glass-card" style={{ padding: 0, overflow: 'hidden' }}>
             <div className="table-wrap" style={{ border: 'none' }}>
               <table>
                 <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Qty</th><th>Amount</th><th>Payment</th><th>Agent</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {filtered.map(o => (
-                    <tr key={o._id}>
+                  {filtered.map((o, i) => (
+                    <motion.tr key={o._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.035 }}>
                       <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
                       <td style={{ fontWeight: 500 }}>{o.customerId?.name || '—'}</td>
                       <td style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
@@ -90,7 +115,7 @@ export default function AdminOrders() {
                           {NEXT_STATUS[o.status] && <button className="btn btn-ghost btn-sm" onClick={() => { setStatusModal(o); setNewStatus(''); }}>Update</button>}
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>

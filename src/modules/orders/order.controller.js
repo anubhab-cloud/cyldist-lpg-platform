@@ -90,11 +90,27 @@ const assignAgent = asyncHandler(async (req, res) => {
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status, note, deliveryOtp } = req.body;
+  const { status, note, deliveryOtp, deliveredCount, notes } = req.body;
+  const extraData = { deliveredCount, notes };
   const order = await orderService.updateStatus(
-    req.params.orderId, status, note, req.user.id, req.user.role, deliveryOtp
+    req.params.orderId, status, note, req.user.id, req.user.role, deliveryOtp, extraData
   );
   return response.success(res, 200, `Order status updated to '${status}'.`, order);
+});
+
+const rejectOrder = asyncHandler(async (req, res) => {
+  // Agent rejecting an assigned order — treated as cancellation with reason
+  const { reason } = req.body;
+  const extraData = { reason };
+  const order = await orderService.updateStatus(
+    req.params.orderId, 'cancelled', reason, req.user.id, req.user.role, undefined, extraData
+  );
+  return response.success(res, 200, 'Order rejected successfully.', order);
+});
+
+const setPriority = asyncHandler(async (req, res) => {
+  const order = await orderService.setPriority(req.params.orderId, req.body.priority);
+  return response.success(res, 200, 'Priority updated.', order);
 });
 
 const cancelOrder = asyncHandler(async (req, res) => {
@@ -104,4 +120,4 @@ const cancelOrder = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Order cancelled.', order);
 });
 
-module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder };
+module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder, rejectOrder, setPriority };

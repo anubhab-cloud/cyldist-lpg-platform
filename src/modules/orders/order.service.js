@@ -139,7 +139,7 @@ class OrderService {
    * Update order status (agent or admin).
    * Validates against the status machine.
    */
-  async updateStatus(orderId, newStatus, note, userId, userRole, deliveryOtp) {
+  async updateStatus(orderId, newStatus, note, userId, userRole, deliveryOtp, extraData = {}) {
     const order = await orderRepository.findByOrderId(orderId);
     if (!order) throw new AppError('Order not found.', 404);
 
@@ -148,8 +148,9 @@ class OrderService {
       if (!order.agentId || order.agentId._id.toString() !== userId) {
         throw new AppError('You are not assigned to this order.', 403);
       }
-      if (newStatus === 'cancelled') {
-        throw new AppError('Agents cannot cancel orders. Please contact admin.', 403);
+      // Agents can cancel (reject) their assigned orders, but not cancel delivered orders
+      if (newStatus === 'cancelled' && order.status === 'delivered') {
+        throw new AppError('Delivered orders cannot be rejected.', 403);
       }
     }
 
@@ -166,33 +167,33 @@ class OrderService {
 
     // DELIVERY OTP: Generate when moving to out_for_delivery
     if (newStatus === 'out_for_delivery') {
-      const otp = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
       extraFields.deliveryOtp = otp;
-
-      // Email OTP to customer
       const customer = await userRepository.findById(order.customerId._id || order.customerId);
       if (customer?.email) {
-        emailService.send2FAEmail(customer.email, otp).catch(() => {}); // non-blocking
+        emailService.send2FAEmail(customer.email, otp).catch(() => {});
       }
     }
 
     // DELIVERY OTP: Verify when marking delivered
     if (newStatus === 'delivered') {
-      if (!order.deliveryOtp) {
-        throw new AppError('No delivery OTP found for this order. Contact admin.', 400);
-      }
-      if (!deliveryOtp) {
-        throw new AppError('Delivery OTP is required to mark this order as delivered.', 400);
-      }
+      if (!order.deliveryOtp) throw new AppError('No delivery OTP found for this order. Contact admin.', 400);
+      if (!deliveryOtp) throw new AppError('Delivery OTP is required to mark this order as delivered.', 400);
       if (String(order.deliveryOtp) !== String(deliveryOtp)) {
         throw new AppError('Invalid delivery OTP. Please ask the customer for the correct code.', 401);
       }
+      if (extraData.deliveredCount) extraFields.deliveredCount = extraData.deliveredCount;
+      if (extraData.notes) extraFields.notes = extraData.notes;
+    }
+
+    // Store cancellation reason from agent rejection
+    if (newStatus === 'cancelled' && extraData.reason) {
+      extraFields.cancellationReason = extraData.reason;
     }
 
     const updated = await orderRepository.updateStatus(orderId, newStatus, note, userId, extraFields);
     await cache.del(`order:${orderId}`);
 
-    // Handle inventory and notifications based on new status
     const customer = await userRepository.findById(updated.customerId._id || updated.customerId);
     const agent = updated.agentId ? await userRepository.findById(updated.agentId._id || updated.agentId) : null;
 
@@ -201,6 +202,12 @@ class OrderService {
       notificationService.emit('order.delivered', { order: updated, customer, agent });
     } else if (newStatus === 'out_for_delivery') {
       notificationService.emit('order.out_for_delivery', { order: updated, customer, agent });
+    } else if (newStatus === 'cancelled') {
+      await inventoryService.releaseStock(
+        updated.warehouseId?._id || updated.warehouseId,
+        updated.cylinderCount
+      ).catch(() => {});
+      notificationService.emit('order.cancelled', { order: updated, customer });
     }
 
     return updated;
@@ -226,18 +233,12 @@ class OrderService {
       }
     }
 
-    if (order.status === 'cancelled') {
-      throw new AppError('Order is already cancelled.', 409);
-    }
-
-    if (order.status === 'delivered') {
-      throw new AppError('Delivered orders cannot be cancelled.', 409);
-    }
+    if (order.status === 'cancelled') throw new AppError('Order is already cancelled.', 409);
+    if (order.status === 'delivered') throw new AppError('Delivered orders cannot be cancelled.', 409);
 
     const updated = await orderRepository.cancelOrder(orderId, reason, userId);
     await cache.del(`order:${orderId}`);
 
-    // Release inventory back
     if (!['delivered'].includes(order.status)) {
       await inventoryService.releaseStock(
         updated.warehouseId?._id || updated.warehouseId,
@@ -247,7 +248,20 @@ class OrderService {
 
     const customer = await userRepository.findById(updated.customerId?._id || updated.customerId);
     notificationService.emit('order.cancelled', { order: updated, customer });
+    return updated;
+  }
 
+  /**
+   * Set order priority (Admin only).
+   */
+  async setPriority(orderId, priority) {
+    const order = await orderRepository.findByOrderId(orderId);
+    if (!order) throw new AppError('Order not found.', 404);
+    const updated = await Order.findOneAndUpdate(
+      { orderId },
+      { priority },
+      { new: true }
+    ).populate('customerId', 'name email phone').lean({ virtuals: true });
     return updated;
   }
 }

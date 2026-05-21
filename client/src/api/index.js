@@ -29,6 +29,9 @@ export const ordersAPI = {
   assignAgent: (orderId, data) => api.patch(`/orders/${orderId}/assign`, data),
   updateStatus: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
   cancel: (orderId, reason) => api.delete(`/orders/${orderId}`, { data: { reason } }),
+  reject: (orderId, reason) => api.delete(`/orders/${orderId}/reject`, { data: { reason } }),
+  setPriority: (orderId, priority) => api.patch(`/orders/${orderId}/priority`, { priority }),
+  partialDeliver: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
 };
 
 export const inventoryAPI = {

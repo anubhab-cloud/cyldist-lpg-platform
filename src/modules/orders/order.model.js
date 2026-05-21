@@ -61,11 +61,14 @@ const STATUS_TRANSITIONS = {
   cancelled: [],
 };
 
+// Priority levels
+const PRIORITY_LEVELS = ['urgent', 'medium', 'normal'];
+
 const timelineEntrySchema = new mongoose.Schema(
   {
     status: {
       type: String,
-      enum: ['created', 'assigned', 'out_for_delivery', 'delivered', 'cancelled'],
+      enum: ['created', 'assigned', 'out_for_delivery', 'delivered', 'cancelled', 'reached'],
       required: true,
     },
     timestamp: { type: Date, default: Date.now },
@@ -159,6 +162,17 @@ const orderSchema = new mongoose.Schema(
       default: '',
       maxlength: 500,
     },
+    // Priority label set by admin or auto-assigned
+    priority: {
+      type: String,
+      enum: ['urgent', 'medium', 'normal'],
+      default: 'normal',
+    },
+    // For partial delivery — actual cylinders delivered (may differ from cylinderCount)
+    deliveredCount: {
+      type: Number,
+      default: null,
+    },
     // Estimated delivery time (set when assigned)
     estimatedDeliveryTime: {
       type: Date,
@@ -203,6 +217,7 @@ orderSchema.statics.isValidTransition = function (currentStatus, newStatus) {
 };
 
 orderSchema.statics.STATUS_TRANSITIONS = STATUS_TRANSITIONS;
+orderSchema.statics.PRIORITY_LEVELS = PRIORITY_LEVELS;
 
 // --- Pre-save: ensure timeline is initialized ---
 orderSchema.pre('save', function (next) {

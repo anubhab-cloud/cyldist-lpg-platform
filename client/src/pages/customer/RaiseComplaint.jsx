@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supportAPI } from '../../api';
 import { useToast } from '../../context/ToastContext';
+import { Topbar } from '../../components/Sidebar';
 
 export default function RaiseComplaint() {
   const navigate = useNavigate();
@@ -57,16 +58,17 @@ export default function RaiseComplaint() {
   };
 
   return (
-    <div className="dashboard-content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>Raise a Complaint</h1>
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>We're here to help. Please provide details below.</p>
-        </div>
-        <button className="btn btn-ghost" onClick={() => navigate('/customer/support')}>
+    <div>
+      <Topbar title="Raise Complaint">
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/customer/support')}>
           ← Back to Support
         </button>
-      </div>
+      </Topbar>
+      <div className="page">
+        <div style={{ marginBottom: '1.75rem' }}>
+          <h1 className="page-title">Raise a Complaint</h1>
+          <p className="page-subtitle">We're here to help. Please provide details below.</p>
+        </div>
 
       <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '1rem', padding: '2rem', maxWidth: '800px' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -151,6 +153,7 @@ export default function RaiseComplaint() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

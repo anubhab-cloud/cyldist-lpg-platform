@@ -24,16 +24,11 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const { data } = await authAPI.login(credentials);
-    
-    // If backend requires 2FA, do not set tokens yet. Just return the response.
-    if (data.data.requires2FA) {
-      return data.data;
-    }
-
+    // Password login now returns tokens + user directly (no 2FA step)
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
-    return data.data.user;
+    return data.data; // { user, accessToken, refreshToken }
   };
 
   const requestOtp = async (credentials) => {
@@ -46,7 +41,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('accessToken', data.data.accessToken);
     localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
-    return data.data.user;
+    return data.data; // { user, accessToken, refreshToken }
   };
 
   const register = async (formData) => {

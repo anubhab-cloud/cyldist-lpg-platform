@@ -105,10 +105,11 @@ class AuthService {
 
   /**
    * Login with email and password.
+   * Issues tokens directly — no OTP step required for password-based login.
+   * OTP is only used for the separate passwordless flow.
    * @param {{ email, password }} credentials
    */
   async login({ email, password }) {
-    // Fetch with password hash
     const userWithPassword = await User.findOne({
       email: email.toLowerCase(),
       deletedAt: null,
@@ -127,21 +128,10 @@ class AuthService {
       throw new AppError('Invalid email or password.', 401);
     }
 
-    // Trigger the OTP request (2FA)
-    const otpResult = await this.requestOtp({ email: userWithPassword.email });
-
-    const response = {
-      requires2FA: true,
-      email: userWithPassword.email,
-      message: 'Password correct. Please enter the OTP sent to your email to complete login.',
-    };
-
-    // In development: expose OTP in the response so dummy accounts can still log in
-    if (config.isDevelopment) {
-      response.devOtp = otpResult.devOtp;
-    }
-
-    return response;
+    // Password is correct — issue tokens immediately (no OTP required)
+    const tokens = await this.buildTokenPair(userWithPassword);
+    const user = await userRepository.findById(userWithPassword._id);
+    return { user, ...tokens };
   }
 
   /**

@@ -11,6 +11,8 @@ const {
   assignAgentSchema,
   updateStatusSchema,
   cancelOrderSchema,
+  rejectOrderSchema,
+  setPrioritySchema,
   listOrdersQuerySchema,
 } = require('./order.validator');
 
@@ -57,9 +59,25 @@ router.patch(
 // Customer/Admin: Cancel order
 router.delete(
   '/:orderId',
-  authorize('customer', 'admin'),
+  authorize('customer', 'admin', 'agent'),
   validate({ body: cancelOrderSchema }),
   controller.cancelOrder
+);
+
+// Agent: Reject an assigned order
+router.delete(
+  '/:orderId/reject',
+  authorize('agent'),
+  validate({ body: rejectOrderSchema }),
+  controller.rejectOrder
+);
+
+// Admin: Set order priority
+router.patch(
+  '/:orderId/priority',
+  authorize('admin'),
+  validate({ body: setPrioritySchema }),
+  controller.setPriority
 );
 
 module.exports = router;

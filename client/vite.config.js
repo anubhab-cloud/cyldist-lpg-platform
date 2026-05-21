@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['leaflet', 'react-leaflet', '@react-leaflet/core'],
+  },
   server: {
     port: 5174,
     strictPort: true,
@@ -19,3 +22,4 @@ export default defineConfig({
     },
   },
 })
+
