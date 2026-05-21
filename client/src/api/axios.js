@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.DEV 
+// Prefer environment variable if provided, fallback to relative for local dev, and Render for prod default
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV 
   ? '/api/v1' 
-  : 'https://cyldist-lpg-platform.onrender.com/api/v1';
+  : 'https://cyldist-lpg-platform.onrender.com/api/v1');
 
 const api = axios.create({
   baseURL: BASE_URL,
