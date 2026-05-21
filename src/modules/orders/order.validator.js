@@ -21,9 +21,9 @@ const createOrderSchema = z.object({
   warehouseId: z.string().min(1, 'Warehouse ID is required'),
   deliveryAddress: deliveryAddressSchema,
   cylinderCount: z.number().int().min(1).max(10),
-  paymentMode: z.enum(['cod', 'upi', 'card', 'netbanking', 'wallet']).default('cod'),
+  paymentMode: z.enum(['cod', 'upi', 'card', 'netbanking', 'wallet', 'online']).default('cod'),
   notes: z.string().max(500).optional().default(''),
-  pricePerCylinder: z.number().min(0).optional().default(0),
+  pricePerCylinder: z.number().min(0).optional().default(850),
 });
 
 const assignAgentSchema = z.object({

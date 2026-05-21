@@ -107,6 +107,12 @@ const config = {
     password: optional('ADMIN_PASSWORD', 'Admin@123456'),
     phone: optional('ADMIN_PHONE', '+919999999999'),
   },
+
+  razorpay: {
+    keyId: optional('RAZORPAY_KEY_ID', ''),
+    keySecret: optional('RAZORPAY_KEY_SECRET', ''),
+  },
 };
+
 
 module.exports = config;

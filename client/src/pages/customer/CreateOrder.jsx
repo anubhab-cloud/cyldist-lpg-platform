@@ -6,6 +6,16 @@ import { useToast } from '../../context/ToastContext';
 import { Topbar } from '../../components/Sidebar';
 import { PageLoader } from '../../components';
 
+function loadScript(src) {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function CreateOrder() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -33,9 +43,74 @@ export default function CreateOrder() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setError(''); setSubmitting(true);
+    
+    // Convert all online payment modes to 'online' for backend logic
+    const backendPaymentMode = form.paymentMode === 'cod' ? 'cod' : 'online';
+
     try {
-      const { data } = await ordersAPI.create({ warehouseId: form.warehouseId, cylinderCount: Number(form.cylinderCount), paymentMode: form.paymentMode, deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, ...(form.notes && { notes: form.notes }) });
-      toast('Order placed!', `Order ${data.data.orderId} confirmed`, 'success'); navigate('/customer/orders');
+      const { data } = await ordersAPI.create({ 
+        warehouseId: form.warehouseId, 
+        cylinderCount: Number(form.cylinderCount), 
+        paymentMode: backendPaymentMode, 
+        deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, 
+        ...(form.notes && { notes: form.notes }) 
+      });
+
+      const orderData = data.data;
+
+      if (backendPaymentMode === 'online') {
+        const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+        if (!res) {
+          toast('Error', 'Razorpay SDK failed to load. Are you offline?', 'error');
+          setSubmitting(false);
+          return;
+        }
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'YOUR_RAZORPAY_KEY',
+          amount: orderData.totalAmount * 100,
+          currency: 'INR',
+          name: 'Cylinder Platform',
+          description: `Order ${orderData.orderId}`,
+          order_id: orderData.razorpayOrderId,
+          prefill: {
+            name: user?.name,
+            email: user?.email,
+            contact: user?.phone,
+          },
+          theme: {
+            color: '#6366f1',
+          },
+          handler: async function (response) {
+            try {
+              setSubmitting(true);
+              await ordersAPI.verifyPayment(orderData.orderId, {
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+              toast('Payment Successful!', `Order ${orderData.orderId} confirmed`, 'success');
+              navigate('/customer/orders');
+            } catch (verr) {
+              toast('Payment Verification Failed', verr.response?.data?.message || 'Contact support', 'error');
+              navigate('/customer/orders'); // Navigate anyway, they can try paying again later if we supported it
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              toast('Payment Cancelled', 'You closed the payment popup. Order is pending.', 'warning');
+              setSubmitting(false);
+              navigate('/customer/orders');
+            }
+          }
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+      } else {
+        toast('Order placed!', `Order ${orderData.orderId} confirmed`, 'success'); 
+        navigate('/customer/orders');
+      }
     } catch (err) {
       const errs = err.response?.data?.errors;
       if (errs?.length) {
@@ -43,8 +118,8 @@ export default function CreateOrder() {
       } else {
         setError(err.response?.data?.message || 'Order failed. Please check your details.');
       }
+      setSubmitting(false);
     }
-    finally { setSubmitting(false); }
   };
 
   if (loading) return <PageLoader />;

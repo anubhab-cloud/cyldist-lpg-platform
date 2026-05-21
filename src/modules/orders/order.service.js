@@ -8,6 +8,17 @@ const cache = require('../../shared/cache/redis.cache');
 const AppError = require('../../shared/utils/AppError');
 const Order = require('./order.model');
 const emailService = require('../../utils/email');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const config = require('../../config');
+
+let razorpayInstance = null;
+if (config.razorpay.keyId && config.razorpay.keySecret) {
+  razorpayInstance = new Razorpay({
+    key_id: config.razorpay.keyId,
+    key_secret: config.razorpay.keySecret,
+  });
+}
 
 const ACTIVE_ORDER_CACHE_TTL = 60; // seconds
 
@@ -24,13 +35,29 @@ class OrderService {
    * @param {string} customerId
    */
   async createOrder(data, customerId) {
-    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 0, paymentMode = 'cod' } = data;
+    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod' } = data;
 
     // Verify warehouse exists and has stock
     await inventoryService.deductStock(warehouseId, cylinderCount);
 
-    // Online payments are considered paid immediately; COD stays pending for agent collection
-    const paymentStatus = paymentMode === 'cod' ? 'pending' : 'paid';
+    // Online payments are considered pending until verified
+    const paymentStatus = paymentMode === 'cod' ? 'pending' : 'pending'; // Changed: online payments start as pending
+
+    let razorpayOrderId = null;
+
+    if (paymentMode === 'online' && razorpayInstance) {
+      try {
+        const rpOrder = await razorpayInstance.orders.create({
+          amount: (pricePerCylinder * cylinderCount) * 100, // amount in paise
+          currency: 'INR',
+          receipt: `rcpt_${Date.now()}`,
+        });
+        razorpayOrderId = rpOrder.id;
+      } catch (err) {
+        const errorMsg = err.error?.description || err.message || JSON.stringify(err);
+        throw new AppError('Failed to create online payment order. ' + errorMsg, 500);
+      }
+    }
 
     const orderData = {
       customerId,
@@ -42,6 +69,7 @@ class OrderService {
       totalAmount: pricePerCylinder * cylinderCount,
       paymentMode,
       paymentStatus,
+      razorpayOrderId,
     };
 
     const order = await orderRepository.create(orderData);
@@ -263,6 +291,35 @@ class OrderService {
       { new: true }
     ).populate('customerId', 'name email phone').lean({ virtuals: true });
     return updated;
+  }
+  /**
+   * Verify Razorpay payment signature
+   */
+  async verifyPayment(orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature) {
+    const order = await orderRepository.findByOrderId(orderId);
+    if (!order) throw new AppError('Order not found.', 404);
+    if (order.razorpayOrderId !== razorpayOrderId) {
+      throw new AppError('Invalid order id for this payment.', 400);
+    }
+
+    const body = razorpayOrderId + "|" + razorpayPaymentId;
+    const expectedSignature = crypto
+      .createHmac('sha256', config.razorpay.keySecret)
+      .update(body.toString())
+      .digest('hex');
+
+    if (expectedSignature === razorpaySignature) {
+      order.paymentStatus = 'completed';
+      order.razorpayPaymentId = razorpayPaymentId;
+      await Order.findOneAndUpdate(
+        { orderId },
+        { paymentStatus: 'completed', razorpayPaymentId }
+      );
+      await cache.del(`order:${orderId}`);
+      return order;
+    } else {
+      throw new AppError('Payment signature verification failed.', 400);
+    }
   }
 }
 

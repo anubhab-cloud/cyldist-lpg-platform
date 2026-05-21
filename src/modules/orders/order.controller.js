@@ -120,4 +120,12 @@ const cancelOrder = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Order cancelled.', order);
 });
 
-module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder, rejectOrder, setPriority };
+const verifyPayment = asyncHandler(async (req, res) => {
+  const { razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+  const order = await orderService.verifyPayment(
+    req.params.orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature
+  );
+  return response.success(res, 200, 'Payment verified successfully.', order);
+});
+
+module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder, rejectOrder, setPriority, verifyPayment };

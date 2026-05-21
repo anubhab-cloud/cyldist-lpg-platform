@@ -80,4 +80,11 @@ router.patch(
   controller.setPriority
 );
 
+// Customer: Verify online payment
+router.post(
+  '/:orderId/verify-payment',
+  authorize('customer'),
+  controller.verifyPayment
+);
+
 module.exports = router;

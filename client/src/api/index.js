@@ -32,6 +32,7 @@ export const ordersAPI = {
   reject: (orderId, reason) => api.delete(`/orders/${orderId}/reject`, { data: { reason } }),
   setPriority: (orderId, priority) => api.patch(`/orders/${orderId}/priority`, { priority }),
   partialDeliver: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
+  verifyPayment: (orderId, data) => api.post(`/orders/${orderId}/verify-payment`, data),
 };
 
 export const inventoryAPI = {
