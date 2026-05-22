@@ -61,3 +61,7 @@ export const supportAPI = {
   getComplaintById: (id) => api.get(`/support/complaints/${id}`),
   updateComplaint: (id, data) => api.patch(`/support/complaints/${id}`, data),
 };
+
+export const notificationsAPI = {
+  broadcast: (data) => api.post('/notifications/broadcast', data),
+};

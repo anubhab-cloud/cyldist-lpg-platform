@@ -24,6 +24,7 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminNotifications from './pages/admin/AdminNotifications';
+import BroadcastCenter from './pages/admin/BroadcastCenter';
 
 // Agent
 import AgentDashboard from './pages/agent/AgentDashboard';
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="inventory" element={<AdminInventory />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="notifications" element={<AdminNotifications />} />
+        <Route path="broadcast" element={<BroadcastCenter />} />
       </Route>
 
       {/* Agent routes */}

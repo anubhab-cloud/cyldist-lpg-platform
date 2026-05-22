@@ -4,6 +4,7 @@ const logger = require('../../config/logger');
 const config = require('../../config');
 const whatsappService = require('../../shared/services/whatsapp.service');
 const emailService = require('../../utils/email');
+const smsService = require('../../utils/sms');
 
 /**
  * Notification hooks — stub implementations ready for real integrations.
@@ -138,6 +139,15 @@ async function sendOtpWhatsApp({ user, otp }) {
   }
 }
 
+async function sendOtpSMS({ user, otp }) {
+  if (user?.phone) {
+    await smsService.sendSMS(
+      user.phone,
+      `Your CylDist login OTP is: ${otp}. It will expire in 5 minutes. Do not share this code with anyone.`
+    );
+  }
+}
+
 async function sendOtpEmail({ user, otp }) {
   if (user?.email) {
     try {
@@ -160,5 +170,6 @@ module.exports = {
   sendOrderAssignedPush,
   sendLowStockAlert,
   sendOtpWhatsApp,
+  sendOtpSMS,
   sendOtpEmail,
 };

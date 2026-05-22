@@ -79,6 +79,7 @@ class NotificationService extends EventEmitter {
       await Promise.allSettled([
         notificationHooks.sendOtpEmail(data),
         notificationHooks.sendOtpWhatsApp(data),
+        notificationHooks.sendOtpSMS(data),
       ]);
     });
 

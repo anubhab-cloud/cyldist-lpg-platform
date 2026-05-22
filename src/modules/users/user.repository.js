@@ -70,6 +70,16 @@ class UserRepository {
       .select('name email phone location isOnDuty');
   }
 
+  async findPhonesByTarget(target) {
+    const filter = { isActive: true, deletedAt: null, phone: { $exists: true, $ne: '' } };
+    if (target === 'customers') filter.role = 'customer';
+    else if (target === 'agents') filter.role = 'agent';
+    // 'all' means no role filter
+    
+    const users = await User.find(filter).select('phone name').lean();
+    return users;
+  }
+
   async addAddress(userId, address) {
     return User.findByIdAndUpdate(
       userId,
