@@ -17,6 +17,11 @@ import TrackOrder from './pages/customer/TrackOrder';
 import ChatPage from './pages/customer/ChatPage';
 import CustomerSupport from './pages/customer/CustomerSupport';
 import RaiseComplaint from './pages/customer/RaiseComplaint';
+import CustomerWallet from './pages/customer/CustomerWallet';
+import CustomerInvoices from './pages/customer/CustomerInvoices';
+import CustomerTrackingHub from './pages/customer/CustomerTrackingHub';
+import CustomerProducts from './pages/customer/CustomerProducts';
+import CustomerSettings from './pages/customer/CustomerSettings';
 
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -46,6 +51,11 @@ function AppRoutes() {
         <Route path="orders" element={<CustomerOrders />} />
         <Route path="orders/new" element={<CreateOrder />} />
         <Route path="track/:orderId" element={<TrackOrder />} />
+        <Route path="track" element={<CustomerTrackingHub />} />
+        <Route path="invoices" element={<CustomerInvoices />} />
+        <Route path="products" element={<CustomerProducts />} />
+        <Route path="wallet" element={<CustomerWallet />} />
+        <Route path="settings" element={<CustomerSettings />} />
         <Route path="chat/:roomId" element={<ChatPage />} />
         <Route path="support" element={<CustomerSupport />} />
         <Route path="support/raise" element={<RaiseComplaint />} />

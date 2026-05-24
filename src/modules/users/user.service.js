@@ -51,6 +51,17 @@ class UserService {
     return user;
   }
 
+  async addWalletFunds(userId, amount) {
+    if (amount <= 0) throw new AppError('Amount must be greater than zero.', 400);
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $inc: { walletBalance: amount } },
+      { new: true }
+    );
+    if (!user) throw new AppError('User not found.', 404);
+    return user;
+  }
+
   // === Admin operations ===
 
   async listUsers({ page, limit, role, isActive }) {

@@ -37,6 +37,12 @@ const removeMyAddress = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Address removed.', user);
 });
 
+const addWalletFunds = asyncHandler(async (req, res) => {
+  const { amount } = req.body;
+  const user = await userService.addWalletFunds(req.user.id, Number(amount));
+  return response.success(res, 200, 'Funds added successfully.', user);
+});
+
 // --- Agent duty status ---
 const updateDutyStatus = asyncHandler(async (req, res) => {
   const user = await userService.updateAgentDutyStatus(req.user.id, req.body.isOnDuty);
@@ -78,6 +84,6 @@ const getAvailableAgents = asyncHandler(async (req, res) => {
 
 module.exports = {
   getMyProfile, updateMyProfile, changeMyPassword,
-  addMyAddress, removeMyAddress, updateDutyStatus,
+  addMyAddress, removeMyAddress, addWalletFunds, updateDutyStatus,
   listUsers, getUserById, changeUserRole, toggleUserActive, getAvailableAgents,
 };

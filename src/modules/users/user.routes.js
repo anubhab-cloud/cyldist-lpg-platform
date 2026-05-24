@@ -25,6 +25,7 @@ router.put('/me', validate({ body: updateProfileSchema }), controller.updateMyPr
 router.patch('/me/password', validate({ body: changePasswordSchema }), controller.changeMyPassword);
 router.post('/me/addresses', validate({ body: addressSchema }), controller.addMyAddress);
 router.delete('/me/addresses/:addressId', controller.removeMyAddress);
+router.post('/me/wallet/add', validate({ body: z.object({ amount: z.number().positive() }) }), controller.addWalletFunds);
 
 // --- Agent routes ---
 router.patch(

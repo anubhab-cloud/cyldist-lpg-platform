@@ -12,6 +12,7 @@ export const authAPI = {
 export const usersAPI = {
   getMe: () => api.get('/users/me'),
   updateMe: (data) => api.put('/users/me', data),
+  addWalletFunds: (amount) => api.post('/users/me/wallet/add', { amount }),
   addAddress: (data) => api.post('/users/me/addresses', data),
   removeAddress: (id) => api.delete(`/users/me/addresses/${id}`),
   setDutyStatus: (isOnDuty) => api.patch('/users/me/duty-status', { isOnDuty }),
