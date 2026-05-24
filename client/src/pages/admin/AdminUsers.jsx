@@ -32,9 +32,33 @@ export default function AdminUsers() {
     finally { setUpdating(''); }
   };
 
-  const filtered = users.filter(u => filter === 'all' || u.role === filter).filter(u => !search || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()));
+  const filtered = users.filter(u => {
+    if (filter === 'kyc') return u.kycStatus === 'submitted';
+    if (filter === 'all') return true;
+    return u.role === filter;
+  }).filter(u => !search || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()));
+
   if (loading) return <PageLoader />;
-  const counts = { all: users.length, customer: users.filter(u => u.role === 'customer').length, agent: users.filter(u => u.role === 'agent').length, admin: users.filter(u => u.role === 'admin').length };
+  const counts = { 
+    all: users.length, 
+    customer: users.filter(u => u.role === 'customer').length, 
+    agent: users.filter(u => u.role === 'agent').length, 
+    kyc: users.filter(u => u.kycStatus === 'submitted').length 
+  };
+
+  const handleKycAction = async (id, status) => {
+    if (!window.confirm(`Are you sure you want to ${status} this KYC?`)) return;
+    setUpdating(id);
+    try {
+      await usersAPI.updateKycStatus(id, status);
+      toast(`KYC ${status}`, '', 'success');
+      load();
+    } catch (err) {
+      toast('Error', err.response?.data?.message || 'Failed to update KYC', 'error');
+    } finally {
+      setUpdating('');
+    }
+  };
 
   return (
     <div>
@@ -44,10 +68,10 @@ export default function AdminUsers() {
 
         <div className="grid-4" style={{ marginBottom: '1.25rem' }}>
           {Object.entries(counts).map(([k, v]) => (
-            <div key={k} className="card" style={{ textAlign: 'center', cursor: 'pointer', borderColor: filter === k ? 'rgba(99,102,241,0.3)' : undefined, background: filter === k ? 'var(--primary-subtle)' : undefined, transition: 'all 0.15s' }}
+            <div key={k} className="card" style={{ textAlign: 'center', cursor: 'pointer', borderColor: filter === k ? (k === 'kyc' ? 'var(--warning)' : 'rgba(99,102,241,0.3)') : undefined, background: filter === k ? (k === 'kyc' ? 'rgba(245, 158, 11, 0.1)' : 'var(--primary-subtle)') : undefined, transition: 'all 0.15s' }}
               onClick={() => setFilter(k)}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '-0.03em' }}>{v}</div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.725rem', textTransform: 'capitalize' }}>{k === 'all' ? 'Total Users' : `${k}s`}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: k === 'kyc' ? 'var(--warning)' : 'var(--primary)', letterSpacing: '-0.03em' }}>{v}</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.725rem', textTransform: 'capitalize' }}>{k === 'all' ? 'Total Users' : k === 'kyc' ? 'Pending KYC' : `${k}s`}</div>
             </div>
           ))}
         </div>
@@ -72,12 +96,33 @@ export default function AdminUsers() {
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{u.phone || '—'}</td>
                       <td><RoleBadge role={u.role} /></td>
                       <td>
-                        <span className={`badge badge-${u.isActive ? 'active' : 'inactive'}`}>{u.isActive ? 'Active' : 'Inactive'}</span>
-                        {u.role === 'agent' && u.isOnDuty && <span className="badge badge-out_for_delivery" style={{ marginLeft: '0.25rem' }}>On Duty</span>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <div>
+                            <span className={`badge badge-${u.isActive ? 'active' : 'inactive'}`}>{u.isActive ? 'Active' : 'Inactive'}</span>
+                            {u.role === 'agent' && u.isOnDuty && <span className="badge badge-out_for_delivery" style={{ marginLeft: '0.25rem' }}>On Duty</span>}
+                          </div>
+                          {u.role === 'customer' && (
+                            <div>
+                              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600, color: u.kycStatus === 'verified' ? 'var(--success)' : u.kycStatus === 'submitted' ? 'var(--warning)' : 'var(--text-muted)' }}>
+                                KYC: {u.kycStatus || 'pending'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          {u.kycStatus === 'submitted' && (
+                            <>
+                              <button className="btn btn-sm btn-primary" disabled={updating === u._id} onClick={() => handleKycAction(u._id, 'verified')}>
+                                Verify KYC
+                              </button>
+                              <button className="btn btn-sm btn-danger" disabled={updating === u._id} onClick={() => handleKycAction(u._id, 'rejected')}>
+                                Reject KYC
+                              </button>
+                            </>
+                          )}
                           {u.role !== 'admin' && <select value={u.role} disabled={updating === u._id} onChange={e => handleRoleChange(u._id, e.target.value)}
                             style={{ padding: '0.25rem 0.4rem', fontSize: '0.7rem', width: 'auto', cursor: 'pointer' }}>
                             <option value="customer">Customer</option><option value="agent">Agent</option><option value="admin">Admin</option>

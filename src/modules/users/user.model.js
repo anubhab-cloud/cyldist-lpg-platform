@@ -148,6 +148,19 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // KYC Verification
+    kycStatus: {
+      type: String,
+      enum: ['pending', 'submitted', 'verified', 'rejected'],
+      default: 'pending',
+    },
+    kycDetails: {
+      documentType: { type: String, enum: ['Aadhar', 'PAN', 'VoterID'] },
+      documentNumber: { type: String },
+      documentImageUrl: { type: String },
+      submittedAt: { type: Date },
+      verifiedAt: { type: Date },
+    },
   },
   {
     timestamps: true,

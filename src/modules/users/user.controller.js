@@ -43,6 +43,11 @@ const addWalletFunds = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Funds added successfully.', user);
 });
 
+const submitKyc = asyncHandler(async (req, res) => {
+  const user = await userService.submitKyc(req.user.id, req.body);
+  return response.success(res, 200, 'KYC submitted successfully.', user);
+});
+
 // --- Agent duty status ---
 const updateDutyStatus = asyncHandler(async (req, res) => {
   const user = await userService.updateAgentDutyStatus(req.user.id, req.body.isOnDuty);
@@ -74,7 +79,17 @@ const changeUserRole = asyncHandler(async (req, res) => {
 
 const toggleUserActive = asyncHandler(async (req, res) => {
   const user = await userService.toggleActive(req.params.id, req.body.isActive);
-  return response.success(res, 200, `User ${req.body.isActive ? 'activated' : 'deactivated'}.`, user);
+  return response.success(res, 200, 'User active status updated.', user);
+});
+
+const listPendingKyc = asyncHandler(async (req, res) => {
+  const result = await userService.listPendingKyc(req.query);
+  return response.success(res, 200, 'Pending KYC requests fetched successfully.', result);
+});
+
+const updateKycStatus = asyncHandler(async (req, res) => {
+  const user = await userService.updateKycStatus(req.params.id, req.body);
+  return response.success(res, 200, 'KYC status updated.', user);
 });
 
 const getAvailableAgents = asyncHandler(async (req, res) => {
@@ -84,6 +99,7 @@ const getAvailableAgents = asyncHandler(async (req, res) => {
 
 module.exports = {
   getMyProfile, updateMyProfile, changeMyPassword,
-  addMyAddress, removeMyAddress, addWalletFunds, updateDutyStatus,
+  addMyAddress, removeMyAddress, addWalletFunds, submitKyc, updateDutyStatus,
   listUsers, getUserById, changeUserRole, toggleUserActive, getAvailableAgents,
+  listPendingKyc, updateKycStatus,
 };

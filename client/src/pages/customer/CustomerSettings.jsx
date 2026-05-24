@@ -76,8 +76,110 @@ export default function CustomerSettings() {
               </div>
             </form>
           </div>
+
+          <div className="card glass-card" style={{ maxWidth: 600, margin: '2rem auto 0', padding: '2.5rem' }}>
+            <h2 className="section-title" style={{ fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between' }}>
+              <span>KYC Verification</span>
+              <span className={`badge ${user?.kycStatus === 'verified' ? 'badge-success' : user?.kycStatus === 'submitted' ? 'badge-warning' : 'badge-danger'}`}>
+                {user?.kycStatus?.toUpperCase() || 'PENDING'}
+              </span>
+            </h2>
+
+            {user?.kycStatus === 'verified' ? (
+              <div style={{ textAlign: 'center', color: 'var(--success)', padding: '1rem' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+                <p>Your KYC has been successfully verified. You can book cylinders.</p>
+              </div>
+            ) : user?.kycStatus === 'submitted' ? (
+              <div style={{ textAlign: 'center', color: 'var(--warning)', padding: '1rem' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+                <p>Your KYC application is under review by our administrators.</p>
+              </div>
+            ) : (
+              <KYCForm />
+            )}
+          </div>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+function KYCForm() {
+  const { showToast } = useToast();
+  const [kycData, setKycData] = useState({ documentType: 'Aadhar', documentNumber: '', documentImageUrl: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleKycSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      // Simulate image upload by providing a mock URL if none given
+      const payload = {
+        ...kycData,
+        documentImageUrl: kycData.documentImageUrl || 'https://via.placeholder.com/800x400.png?text=Simulated+KYC+Document'
+      };
+      await usersAPI.submitKyc(payload);
+      showToast('KYC Details submitted successfully!', 'success');
+      // A page reload is easiest to refresh context for now
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to submit KYC', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleKycSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div className="form-group">
+        <label className="form-label">Document Type</label>
+        <select 
+          value={kycData.documentType} 
+          onChange={e => setKycData({ ...kycData, documentType: e.target.value })}
+          required
+        >
+          <option value="Aadhar">Aadhar Card</option>
+          <option value="PAN">PAN Card</option>
+          <option value="VoterID">Voter ID</option>
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Document Number</label>
+        <input 
+          type="text" 
+          value={kycData.documentNumber} 
+          onChange={e => setKycData({ ...kycData, documentNumber: e.target.value })} 
+          placeholder={`Enter your ${kycData.documentType} number`}
+          required 
+          minLength={5}
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Document Image</label>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input 
+            type="file" 
+            accept="image/*"
+            style={{ flex: 1 }}
+            onChange={(e) => {
+              if (e.target.files.length > 0) {
+                // Mock setting a URL for the uploaded file
+                setKycData({ ...kycData, documentImageUrl: URL.createObjectURL(e.target.files[0]) });
+              }
+            }}
+          />
+        </div>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>*Image upload is simulated in this environment.</span>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Submitting...' : 'Submit for Verification'}
+        </button>
+      </div>
+    </form>
   );
 }

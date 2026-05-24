@@ -26,6 +26,7 @@ router.patch('/me/password', validate({ body: changePasswordSchema }), controlle
 router.post('/me/addresses', validate({ body: addressSchema }), controller.addMyAddress);
 router.delete('/me/addresses/:addressId', controller.removeMyAddress);
 router.post('/me/wallet/add', validate({ body: z.object({ amount: z.number().positive() }) }), controller.addWalletFunds);
+router.post('/me/kyc', validate({ body: z.object({ documentType: z.enum(['Aadhar', 'PAN', 'VoterID']), documentNumber: z.string().min(5), documentImageUrl: z.string().url() }) }), controller.submitKyc);
 
 // --- Agent routes ---
 router.patch(
@@ -36,6 +37,7 @@ router.patch(
 );
 
 // --- Admin routes ---
+router.get('/kyc/pending', authorize('admin'), controller.listPendingKyc);
 router.get('/', authorize('admin'), validate({ query: listUsersQuerySchema }), controller.listUsers);
 router.get('/available-agents', authorize('admin'), controller.getAvailableAgents);
 router.get('/:id', authorize('admin'), controller.getUserById);
@@ -45,6 +47,12 @@ router.patch(
   authorize('admin'),
   validate({ body: z.object({ isActive: z.boolean() }) }),
   controller.toggleUserActive
+);
+router.patch(
+  '/:id/kyc-status',
+  authorize('admin'),
+  validate({ body: z.object({ status: z.enum(['verified', 'rejected']) }) }),
+  controller.updateKycStatus
 );
 
 module.exports = router;

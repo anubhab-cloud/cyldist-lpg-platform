@@ -62,7 +62,43 @@ class UserService {
     return user;
   }
 
+  async submitKyc(userId, { documentType, documentNumber, documentImageUrl }) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found.', 404);
+    if (user.kycStatus === 'verified') throw new AppError('KYC already verified.', 400);
+
+    user.kycStatus = 'submitted';
+    user.kycDetails = {
+      documentType,
+      documentNumber,
+      documentImageUrl,
+      submittedAt: new Date(),
+    };
+    await user.save();
+    return user;
+  }
+
   // === Admin operations ===
+
+  async listPendingKyc({ page = 1, limit = 10 }) {
+    const skip = (page - 1) * limit;
+    const users = await User.find({ kycStatus: 'submitted' }).skip(skip).limit(limit).sort({ 'kycDetails.submittedAt': 1 });
+    const total = await User.countDocuments({ kycStatus: 'submitted' });
+    return { data: users, total, page, limit };
+  }
+
+  async updateKycStatus(userId, { status }) {
+    if (!['verified', 'rejected'].includes(status)) throw new AppError('Invalid status.', 400);
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found.', 404);
+
+    user.kycStatus = status;
+    if (status === 'verified') {
+      user.kycDetails.verifiedAt = new Date();
+    }
+    await user.save();
+    return user;
+  }
 
   async listUsers({ page, limit, role, isActive }) {
     return userRepository.findAll({ page, limit, role, isActive });

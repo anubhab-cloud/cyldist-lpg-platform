@@ -12,6 +12,7 @@ export const authAPI = {
 export const usersAPI = {
   getMe: () => api.get('/users/me'),
   updateMe: (data) => api.put('/users/me', data),
+  submitKyc: (data) => api.post('/users/me/kyc', data),
   addWalletFunds: (amount) => api.post('/users/me/wallet/add', { amount }),
   addAddress: (data) => api.post('/users/me/addresses', data),
   removeAddress: (id) => api.delete(`/users/me/addresses/${id}`),
@@ -21,6 +22,8 @@ export const usersAPI = {
   changeRole: (id, role) => api.patch(`/users/${id}/role`, { role }),
   toggleActive: (id, isActive) => api.patch(`/users/${id}/active`, { isActive }),
   getAvailableAgents: () => api.get('/users/available-agents'),
+  getPendingKyc: () => api.get('/users/kyc/pending'),
+  updateKycStatus: (id, status) => api.patch(`/users/${id}/kyc-status`, { status }),
 };
 
 export const ordersAPI = {

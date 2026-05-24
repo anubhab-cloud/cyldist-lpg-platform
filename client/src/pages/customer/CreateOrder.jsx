@@ -27,6 +27,13 @@ export default function CreateOrder() {
   const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: '' });
 
   useEffect(() => {
+    if (user && user.kycStatus !== 'verified') {
+      alert('KYC Verification Required. Please complete KYC before booking.');
+      navigate('/customer/settings');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     inventoryAPI.list({ limit: 50 }).then(r => {
       const available = (r.data.data || []).filter(w => w.availableCylinders > 0 && w.isActive);
       setWarehouses(available);

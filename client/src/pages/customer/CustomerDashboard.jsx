@@ -128,6 +128,20 @@ export default function CustomerDashboard() {
 
       <div className="page bg-grid" style={{ position: 'relative' }}>
         
+        {/* ─── KYC ALERT ─── */}
+        {profile?.kycStatus !== 'verified' && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '2rem', padding: '1rem 1.5rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', borderRadius: 'var(--radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--danger)', fontSize: '1rem' }}>KYC Verification Required</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>You cannot book cylinders until your KYC is submitted and verified.</p>
+              </div>
+            </div>
+            <Link to="/customer/settings" className="btn btn-danger btn-sm">Complete KYC</Link>
+          </motion.div>
+        )}
+
         {/* ─── 1. TOP HEADER & METRICS ─── */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', position: 'relative', zIndex: 1 }}>
           <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
@@ -159,13 +173,28 @@ export default function CustomerDashboard() {
 
         {/* ─── 2. QUICK ACTIONS ─── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem', zIndex: 1, position: 'relative' }}>
-          <Link to="/customer/orders/new" className="btn btn-primary btn-lg" style={{ flex: 1, fontSize: '0.95rem' }}>
+          <button 
+            className="btn btn-primary btn-lg" 
+            style={{ flex: 1, fontSize: '0.95rem' }} 
+            onClick={() => profile?.kycStatus === 'verified' ? navigate('/customer/orders/new') : alert('Please complete KYC verification first.')}
+            disabled={profile?.kycStatus !== 'verified'}
+          >
             ＋ Book Cylinder
-          </Link>
-          <button className="btn btn-ghost btn-lg" style={{ flex: 1, fontSize: '0.95rem' }} onClick={() => navigate('/customer/orders/new?quick=true')}>
+          </button>
+          <button 
+            className="btn btn-ghost btn-lg" 
+            style={{ flex: 1, fontSize: '0.95rem' }} 
+            onClick={() => profile?.kycStatus === 'verified' ? navigate('/customer/orders/new?quick=true') : alert('Please complete KYC verification first.')}
+            disabled={profile?.kycStatus !== 'verified'}
+          >
             ⚡ Quick Reorder
           </button>
-          <button className="btn btn-danger btn-lg" style={{ flex: 1, fontSize: '0.95rem' }} onClick={() => navigate('/customer/orders/new?priority=high')}>
+          <button 
+            className="btn btn-danger btn-lg" 
+            style={{ flex: 1, fontSize: '0.95rem' }} 
+            onClick={() => profile?.kycStatus === 'verified' ? navigate('/customer/orders/new?priority=high') : alert('Please complete KYC verification first.')}
+            disabled={profile?.kycStatus !== 'verified'}
+          >
             🚨 Emergency Booking
           </button>
         </motion.div>

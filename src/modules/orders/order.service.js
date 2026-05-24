@@ -37,6 +37,13 @@ class OrderService {
   async createOrder(data, customerId) {
     const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod', cylinderType = 'Domestic (14.2 kg)' } = data;
 
+    // Check KYC Status
+    const user = await userRepository.findById(customerId);
+    if (!user) throw new AppError('User not found.', 404);
+    if (user.kycStatus !== 'verified') {
+      throw new AppError('KYC not verified. Please complete your KYC verification to book a cylinder.', 403);
+    }
+
     // Billing calculations
     const subTotal = pricePerCylinder * cylinderCount;
     const taxAmount = Math.round(subTotal * 0.05); // 5% GST
