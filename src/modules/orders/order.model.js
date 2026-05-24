@@ -143,6 +143,27 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    subTotal: {
+      type: Number,
+      default: 0,
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    deliveryCharge: {
+      type: Number,
+      default: 0,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    cylinderType: {
+      type: String,
+      enum: ['Domestic (14.2 kg)', 'Commercial (19 kg)'],
+      default: 'Domestic (14.2 kg)',
+    },
     pricePerCylinder: {
       type: Number,
       default: 0,

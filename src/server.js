@@ -68,6 +68,10 @@ async function bootstrap() {
     await connectDB();
     await connectRedis();
 
+    // Seed default data
+    const { seedData } = require('./utils/seed');
+    await seedData();
+
     // Create HTTP server
     server = http.createServer(app);
 

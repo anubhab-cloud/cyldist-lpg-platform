@@ -35,20 +35,27 @@ class OrderService {
    * @param {string} customerId
    */
   async createOrder(data, customerId) {
-    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod' } = data;
+    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod', cylinderType = 'Domestic (14.2 kg)' } = data;
+
+    // Billing calculations
+    const subTotal = pricePerCylinder * cylinderCount;
+    const taxAmount = Math.round(subTotal * 0.05); // 5% GST
+    const deliveryCharge = 50; // Flat delivery fee
+    const discountAmount = paymentMode === 'online' ? Math.round(subTotal * 0.05) : 0; // 5% off for online payments
+    const totalAmount = subTotal + taxAmount + deliveryCharge - discountAmount;
 
     // Verify warehouse exists and has stock
     await inventoryService.deductStock(warehouseId, cylinderCount);
 
     // Online payments are considered pending until verified
-    const paymentStatus = paymentMode === 'cod' ? 'pending' : 'pending'; // Changed: online payments start as pending
+    const paymentStatus = paymentMode === 'cod' ? 'pending' : 'pending';
 
     let razorpayOrderId = null;
 
     if (paymentMode === 'online' && razorpayInstance) {
       try {
         const rpOrder = await razorpayInstance.orders.create({
-          amount: (pricePerCylinder * cylinderCount) * 100, // amount in paise
+          amount: totalAmount * 100, // amount in paise (using calculated total)
           currency: 'INR',
           receipt: `rcpt_${Date.now()}`,
         });
@@ -64,9 +71,14 @@ class OrderService {
       warehouseId,
       deliveryAddress,
       cylinderCount,
+      cylinderType,
       notes,
       pricePerCylinder,
-      totalAmount: pricePerCylinder * cylinderCount,
+      subTotal,
+      taxAmount,
+      deliveryCharge,
+      discountAmount,
+      totalAmount,
       paymentMode,
       paymentStatus,
       razorpayOrderId,

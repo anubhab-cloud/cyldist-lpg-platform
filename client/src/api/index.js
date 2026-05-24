@@ -65,3 +65,11 @@ export const supportAPI = {
 export const notificationsAPI = {
   broadcast: (data) => api.post('/notifications/broadcast', data),
 };
+
+export const productsAPI = {
+  list: () => api.get('/products'),
+};
+
+export const couponsAPI = {
+  getActive: () => api.get('/coupons/active'),
+};

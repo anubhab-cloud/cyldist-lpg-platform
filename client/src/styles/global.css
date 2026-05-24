@@ -1452,3 +1452,44 @@ tr:hover td{background:rgba(255,255,255,0.015)}
 /* Leaflet tile dark filter */
 .leaflet-tile { filter: brightness(0.7) saturate(0.8) hue-rotate(180deg) invert(1); }
 
+/* ── Print Styles for Invoice Modal ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .invoice-modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+  .print-area, .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000 !important; /* Force black text for print */
+  }
+  
+  /* Force light theme colors for printing */
+  .print-area table th { background: #f1f5f9 !important; color: #334155 !important; }
+  .print-area table td { border-color: #e2e8f0 !important; }
+  
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+}

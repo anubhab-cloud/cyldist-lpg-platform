@@ -25,6 +25,8 @@ const deliveryRoutes = require('./modules/delivery/delivery.routes');
 const chatRoutes = require('./modules/chat/chat.routes');
 const supportRoutes = require('./modules/support/support.routes');
 const notificationRoutes = require('./modules/notifications/notification.routes');
+const productRoutes = require('./modules/products/product.routes');
+const couponRoutes = require('./modules/coupons/coupon.routes');
 
 const app = express();
 
@@ -151,6 +153,8 @@ app.use(`${apiPrefix}/delivery`, deliveryRoutes);
 app.use(`${apiPrefix}/chat`, chatRoutes);
 app.use(`${apiPrefix}/support`, supportRoutes);
 app.use(`${apiPrefix}/notifications`, notificationRoutes);
+app.use(`${apiPrefix}/products`, productRoutes);
+app.use(`${apiPrefix}/coupons`, couponRoutes);
 
 // ============================================================
 // Error Handling (must be last)

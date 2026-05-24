@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersAPI } from '../../api';
-import { StatusBadge, PaymentBadge, PageLoader, EmptyState } from '../../components';
+import { StatusBadge, PaymentBadge, PageLoader, EmptyState, InvoiceModal } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
 
@@ -11,6 +11,7 @@ export default function CustomerOrders() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState('');
   const [filter, setFilter] = useState('all');
+  const [invoiceOrder, setInvoiceOrder] = useState(null);
 
   const load = () => { setLoading(true); ordersAPI.list({ limit: 50 }).then(r => setOrders(r.data.data || [])).catch(() => toast('Error', 'Failed', 'error')).finally(() => setLoading(false)); };
   useEffect(load, []);
@@ -28,36 +29,36 @@ export default function CustomerOrders() {
 
   return (
     <div>
-      <Topbar title="My Orders"><Link to="/customer/orders/new" className="btn btn-primary btn-sm">＋ New Order</Link></Topbar>
+      <Topbar title="My Orders"><Link to="/customer/orders/new" className="btn btn-primary btn-sm">＋ Book Cylinder</Link></Topbar>
       <div className="page">
-        <div className="filters-bar">
+        <div className="filters-bar" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
           {['all','created','assigned','out_for_delivery','delivered','cancelled'].map(s => (
-            <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter(s)}>
-              {s === 'all' ? 'All' : s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+            <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setFilter(s)} style={{ whiteSpace: 'nowrap' }}>
+              {s === 'all' ? 'All Orders' : s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
             </button>
           ))}
         </div>
 
         {filtered.length === 0
-          ? <EmptyState icon="◫" title="No orders" message="No orders match this filter." action={<Link to="/customer/orders/new" className="btn btn-primary">Book Cylinder</Link>} />
+          ? <EmptyState icon="◫" title="No orders found" message="No orders match this filter." action={<Link to="/customer/orders/new" className="btn btn-primary">Book Cylinder</Link>} />
           : <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div className="table-wrap" style={{ border: 'none' }}>
                 <table>
-                  <thead><tr><th>Order ID</th><th>Date</th><th>Qty</th><th>Amount</th><th>Payment</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>Order ID</th><th>Date</th><th>Qty</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>{filtered.map(o => (
                     <tr key={o._id}>
-                      <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
+                      <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}>{o.orderId.split('-')[0].toUpperCase()}</span></td>
                       <td style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td>{o.cylinderCount}</td>
-                      <td>₹{o.totalAmount?.toLocaleString()}</td>
+                      <td style={{ fontWeight: 600 }}>₹{o.totalAmount?.toLocaleString()}</td>
                       <td><PaymentBadge mode={o.paymentMode} status={o.paymentStatus} /></td>
-                      <td style={{ color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.deliveryAddress?.city}, {o.deliveryAddress?.pincode}</td>
                       <td><StatusBadge status={o.status} /></td>
                       <td>
-                        <div style={{ display: 'flex', gap: '0.35rem' }}>
-                          {o.status === 'out_for_delivery' && <Link to={`/customer/track/${o.orderId}`} className="btn btn-ghost btn-sm">📍</Link>}
-                          {o.chatRoomId && ['assigned','out_for_delivery'].includes(o.status) && <Link to={`/customer/chat/${o.chatRoomId}`} className="btn btn-ghost btn-sm">💬</Link>}
-                          {['created'].includes(o.status) && <button className="btn btn-danger btn-sm" disabled={cancelling === o.orderId} onClick={() => handleCancel(o.orderId)}>{cancelling === o.orderId ? '...' : '✕'}</button>}
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => setInvoiceOrder(o)} className="btn btn-ghost btn-sm" title="View Invoice">📄</button>
+                          {o.status === 'out_for_delivery' && <Link to={`/customer/track/${o.orderId}`} className="btn btn-primary btn-sm" title="Track Live">📍</Link>}
+                          {o.chatRoomId && ['assigned','out_for_delivery'].includes(o.status) && <Link to={`/customer/chat/${o.chatRoomId}`} className="btn btn-ghost btn-sm" title="Chat with Agent">💬</Link>}
+                          {['created'].includes(o.status) && <button className="btn btn-danger btn-sm" disabled={cancelling === o.orderId} onClick={() => handleCancel(o.orderId)} title="Cancel Order">{cancelling === o.orderId ? '...' : '✕'}</button>}
                         </div>
                       </td>
                     </tr>
@@ -65,6 +66,10 @@ export default function CustomerOrders() {
                 </table>
               </div>
             </div>}
+            
+        {invoiceOrder && (
+          <InvoiceModal order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />
+        )}
       </div>
     </div>
   );

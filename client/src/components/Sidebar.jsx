@@ -73,10 +73,14 @@ export function CustomerSidebar() {
     { items: [
       { to: '/customer', icon: '⬡', label: 'Dashboard', end: true },
       { to: '/customer/orders', icon: '◫', label: 'My Orders' },
-      { to: '/customer/orders/new', icon: '＋', label: 'Book Cylinder' },
+      { to: '/customer/products', icon: '🛍', label: 'Products' },
+      { to: '/customer/invoices', icon: '📄', label: 'Invoices' },
+      { to: '/customer/track', icon: '📍', label: 'Tracking' },
+      { to: '/customer/wallet', icon: '💳', label: 'Wallet' },
     ]},
-    { label: 'HELP', items: [
-      { to: '/customer/support', icon: '📞', label: 'Support Center' },
+    { label: 'HELP & SETTINGS', items: [
+      { to: '/customer/support', icon: '📞', label: 'Support' },
+      { to: '/customer/settings', icon: '⚙️', label: 'Settings' },
     ]}
   ]} />;
 }

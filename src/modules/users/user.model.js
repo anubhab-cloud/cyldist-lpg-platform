@@ -139,6 +139,15 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Wallet & Rewards
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
+    rewardPoints: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
