@@ -145,34 +145,11 @@ export default function AdminDashboard() {
         <div className="ambient-glow" style={{ width: 400, height: 400, top: -100, right: -100, background: 'var(--primary)', opacity: 0.12 }} />
         <div className="ambient-glow" style={{ width: 300, height: 300, bottom: 100, left: -80, background: 'var(--accent)', opacity: 0.08 }} />
 
-        {/* Page header + 3D Spline widget */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.75rem', position: 'relative', zIndex: 1 }}>
+        {/* Page header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', marginBottom: '1.75rem', position: 'relative', zIndex: 1 }}>
           <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="page-title gradient-text">Overview</h1>
             <p className="page-subtitle">Real-time platform metrics & analytics</p>
-          </motion.div>
-
-          {/* Spline 3D holographic cylinder widget */}
-          <motion.div
-            className="spline-widget"
-            style={{ width: 200, height: 130, flexShrink: 0 }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <iframe
-              src="https://sketchfab.com/models/4e10694598b4430b810266d6d5307323/embed?autostart=1&ui_controls=0&ui_infos=0&ui_inspector=0&ui_stop=0&ui_watermark=0&ui_watermark_link=0&ui_ar=0&ui_help=0&ui_settings=0&ui_vr=0&ui_fullscreen=0&ui_annotations=0&transparent=1&camera=0&preload=1"
-              title="Gas Cylinder 3D"
-              allow="autoplay; fullscreen; xr-spatial-tracking"
-              style={{ width: '100%', height: '100%', border: 'none' }}
-            />
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0,
-              background: 'linear-gradient(to top, rgba(9,9,11,0.8) 0%, transparent 100%)',
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase',
-              letterSpacing: '0.1em', color: 'var(--accent)',
-            }}>Live Fleet ·  {stats.totalStock} units</div>
           </motion.div>
         </div>
 

@@ -24,4 +24,8 @@ router.post(
   controller.broadcastMessage
 );
 
+router.get('/', authenticate, authorize('admin'), controller.getAdminNotifications);
+router.patch('/read-all', authenticate, authorize('admin'), controller.markAllAsRead);
+router.patch('/:id/read', authenticate, authorize('admin'), controller.markAsRead);
+
 module.exports = router;

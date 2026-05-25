@@ -5,6 +5,8 @@ const response = require('../../shared/utils/response');
 const userRepository = require('../users/user.repository');
 const smsService = require('../../utils/sms');
 
+const notificationRepository = require('./notification.repository');
+
 /**
  * Broadcast an SMS message to a group or a specific user
  * POST /api/v1/notifications/broadcast
@@ -49,6 +51,31 @@ const broadcastMessage = asyncHandler(async (req, res) => {
   });
 });
 
+const getAdminNotifications = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 50, filter } = req.query;
+  const result = await notificationRepository.list({ page, limit, filter: filter !== 'All' ? filter : null });
+  const unreadCount = await notificationRepository.getUnreadCount();
+  
+  return response.success(res, 200, 'Notifications fetched.', {
+    notifications: result.notifications,
+    unreadCount,
+  }, response.paginate(result.total, page, limit));
+});
+
+const markAsRead = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await notificationRepository.markAsRead(id);
+  return response.success(res, 200, 'Notification marked as read.');
+});
+
+const markAllAsRead = asyncHandler(async (req, res) => {
+  await notificationRepository.markAllAsRead();
+  return response.success(res, 200, 'All notifications marked as read.');
+});
+
 module.exports = {
   broadcastMessage,
+  getAdminNotifications,
+  markAsRead,
+  markAllAsRead,
 };

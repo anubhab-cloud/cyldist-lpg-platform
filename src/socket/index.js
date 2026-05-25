@@ -44,6 +44,9 @@ function initSocket(httpServer) {
 
     // Auto-join a user-specific room for private notifications
     socket.join(`user:${socket.user.id}`);
+    if (socket.user.role === 'admin') {
+      socket.join('admin:room');
+    }
 
     // Register feature handlers
     registerLocationHandlers(socket, io);
@@ -78,6 +81,14 @@ function initSocket(httpServer) {
       logger.error(`Socket error: ${socket.id}`, { error: err.message });
     });
   });
+
+  const notificationService = require('../modules/notifications/notification.service');
+  // Avoid duplicate listeners in dev hot-reloads
+  if (notificationService.listenerCount('admin:notification') === 0) {
+    notificationService.on('admin:notification', (notification) => {
+      io.to('admin:room').emit('admin:notification', notification);
+    });
+  }
 
   logger.info('Socket.IO server initialized');
   return io;

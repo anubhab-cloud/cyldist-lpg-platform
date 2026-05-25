@@ -1,11 +1,18 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import './WhatsAppWidget.css'; // We will create this CSS file
 
 export function WhatsAppWidget({ phoneNumber = "918732011084", message = "Hello, I want to book a gas cylinder." }) {
+  const location = useLocation();
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+  // Only show the widget on customer pages
+  if (!location.pathname.startsWith('/customer')) {
+    return null;
+  }
 
   return (
     <motion.div

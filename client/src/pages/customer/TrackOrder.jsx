@@ -2,8 +2,31 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { deliveryAPI, ordersAPI } from '../../api';
 import { useSocket } from '../../context/SocketContext';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { StatusBadge, PageLoader } from '../../components';
 import { Topbar } from '../../components/Sidebar';
+
+// Fix default Leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+const agentIcon = new L.DivIcon({
+  className: '',
+  html: `<div style="background:var(--accent);width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(34,211,238,0.8);"></div>`,
+  iconSize: [22, 22], iconAnchor: [11, 11],
+});
+
+function MapFlyTo({ center }) {
+  const map = useMap();
+  useEffect(() => { if (center) map.flyTo(center, map.getZoom(), { animate: true, duration: 1 }); }, [center, map]);
+  return null;
+}
 
 export default function TrackOrder() {
   const { orderId } = useParams();
@@ -12,21 +35,9 @@ export default function TrackOrder() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deliveryOtp, setDeliveryOtp] = useState(null);
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
+  const mapCenter = location ? [location.lat, location.lng] : [20.5937, 78.9629];
 
-  // Inject Leaflet CSS once on mount
-  useEffect(() => {
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css';
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-  }, []);
-
+  // Fetch order data
   useEffect(() => {
     ordersAPI.getById(orderId).then(r => {
       setOrder(r.data.data);
@@ -39,42 +50,6 @@ export default function TrackOrder() {
     if (!order) return;
     deliveryAPI.getLocation(orderId).then(r => setLocation(r.data.data)).catch(() => {});
   }, [order, orderId]);
-
-  // Init Leaflet map when order is out_for_delivery
-  useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current || !order || order.status !== 'out_for_delivery') return;
-    import('leaflet').then(L => {
-      const Leaf = L.default || L;
-      const map = Leaf.map(mapRef.current).setView([20.5937, 78.9629], 5);
-      Leaf.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-      }).addTo(map);
-      mapInstanceRef.current = map;
-    });
-    return () => { mapInstanceRef.current?.remove(); mapInstanceRef.current = null; };
-  }, [order]);
-
-  // Update marker when location changes
-  useEffect(() => {
-    if (!location || !mapInstanceRef.current) return;
-    import('leaflet').then(L => {
-      const Leaf = L.default || L;
-      const icon = Leaf.divIcon({
-        className: '',
-        html: `<div style="background:var(--accent);width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(34,211,238,0.8);"></div>`,
-        iconSize: [22, 22], iconAnchor: [11, 11],
-      });
-      if (markerRef.current) {
-        markerRef.current.setLatLng([location.lat, location.lng]);
-      } else {
-        markerRef.current = Leaf.marker([location.lat, location.lng], { icon })
-          .addTo(mapInstanceRef.current)
-          .bindPopup('🚚 Delivery Agent');
-      }
-      mapInstanceRef.current.panTo([location.lat, location.lng]);
-      mapInstanceRef.current.setZoom(14);
-    });
-  }, [location]);
 
   // Subscribe to real-time location updates once socket is ready
   useEffect(() => {
@@ -98,8 +73,8 @@ export default function TrackOrder() {
   return (
     <div>
       <Topbar title="Track Delivery">
-        {order.chatRoomId && (
-          <Link to={`/customer/chat/${order.chatRoomId}`} className="btn btn-ghost btn-sm">💬 Chat Agent</Link>
+        {(order.chatRoomId || order.orderId) && (
+          <Link to={`/customer/chat/${order.chatRoomId || order.orderId}`} className="btn btn-ghost btn-sm">💬 Chat Agent</Link>
         )}
       </Topbar>
       <div className="page">
@@ -182,7 +157,15 @@ export default function TrackOrder() {
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Waiting for agent to share location...</p>
                   </div>
                 ) : (
-                  <div ref={mapRef} className="map-container" />
+                  <div className="map-container" style={{ position: 'relative', overflow: 'hidden' }}>
+                    <MapContainer center={mapCenter} zoom={14} style={{ height: '100%', width: '100%' }}>
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap contributors" />
+                      <Marker position={mapCenter} icon={agentIcon}>
+                        <Popup>🚚 Delivery Agent</Popup>
+                      </Marker>
+                      <MapFlyTo center={mapCenter} />
+                    </MapContainer>
+                  </div>
                 )}
               </>
             ) : (

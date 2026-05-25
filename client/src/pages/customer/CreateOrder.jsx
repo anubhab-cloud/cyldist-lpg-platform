@@ -24,7 +24,7 @@ export default function CreateOrder() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: '' });
+  const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: '', priority: 'normal' });
 
   useEffect(() => {
     if (user && user.kycStatus !== 'verified') {
@@ -59,6 +59,7 @@ export default function CreateOrder() {
         warehouseId: form.warehouseId, 
         cylinderCount: Number(form.cylinderCount), 
         paymentMode: backendPaymentMode, 
+        priority: form.priority,
         deliveryAddress: { line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode }, 
         ...(form.notes && { notes: form.notes }) 
       });
@@ -159,12 +160,48 @@ export default function CreateOrder() {
           </div>
 
           <div className="card">
-            <h2 className="section-title">2. Quantity & Pricing</h2>
+            <h2 className="section-title">2. Quantity & Delivery Speed</h2>
             <div className="form-row">
               <div className="form-group"><label className="form-label">Cylinders (1–10)</label><input type="number" min={1} max={Math.min(10, selectedWh?.availableCylinders || 10)} value={form.cylinderCount} onChange={set('cylinderCount')} required /></div>
-              <div className="form-group"><label className="form-label">Estimated Total</label><div style={{ padding: '0.65rem 0.875rem', background: 'var(--bg-base)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--success)' }}>₹{(Number(form.cylinderCount) * 850).toLocaleString()}</div></div>
+              <div className="form-group">
+                <label className="form-label">Delivery Speed</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                  {[
+                    { value: 'normal', label: 'Normal', fee: 0, desc: 'Usually 2-3 days' },
+                    { value: 'medium', label: 'Moderate', fee: 50, desc: 'Usually 1 day' },
+                    { value: 'urgent', label: 'Fast', fee: 100, desc: 'Within 2 hours' }
+                  ].map(p => (
+                    <label key={p.value} style={{ cursor: 'pointer' }}>
+                      <div style={{
+                        padding: '0.65rem 0.5rem', borderRadius: 'var(--radius)', textAlign: 'center',
+                        border: `1px solid ${form.priority === p.value ? 'rgba(99,102,241,0.4)' : 'var(--border)'}`,
+                        background: form.priority === p.value ? 'var(--primary-subtle)' : 'var(--bg-elevated)',
+                        transition: 'all 0.15s', height: '100%'
+                      }}>
+                        <input type="radio" name="priority" value={p.value} checked={form.priority === p.value}
+                          onChange={set('priority')} style={{ display: 'none' }} />
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.15rem' }}>{p.label}</div>
+                        <div style={{ fontSize: '0.7rem', color: form.priority === p.value ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.15rem' }}>
+                          {p.fee === 0 ? 'Free' : `+₹${p.fee}`}
+                        </div>
+                        <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{p.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>₹850 per cylinder (incl. delivery)</div>
+            <div className="form-row" style={{ marginTop: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label">Estimated Total</label>
+                <div style={{ padding: '0.65rem 0.875rem', background: 'var(--bg-base)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontWeight: 700, fontSize: '1.05rem', color: 'var(--success)' }}>
+                  ₹{((Number(form.cylinderCount) * 850) + (form.priority === 'urgent' ? 100 : form.priority === 'medium' ? 50 : 0)).toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  Includes 5% GST & ₹{(form.priority === 'urgent' ? 100 : form.priority === 'medium' ? 50 : 0)} delivery fee
+                </div>
+              </div>
+            </div>
           </div>
           <div className="card">
             <h2 className="section-title">3. Payment Method</h2>

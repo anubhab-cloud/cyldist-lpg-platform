@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { StatusBadge, PageLoader, Modal } from '../../components';
 import { Topbar } from '../../components/Sidebar';
+import ProofOfDeliveryModal from '../../components/agent/ProofOfDeliveryModal';
 
 // Fix default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -193,6 +194,15 @@ export default function AgentActiveDelivery() {
       .finally(() => setLoading(false));
     return () => stopTracking();
   }, [orderId]);
+
+  // Join Chat Room
+  useEffect(() => {
+    if (!socket || !order?.chatRoomId) return;
+    socket.emit('chat:join', { chatRoomId: order.chatRoomId });
+    return () => {
+      socket.emit('chat:leave', { chatRoomId: order.chatRoomId });
+    };
+  }, [socket, order?.chatRoomId]);
 
   // ── GPS Tracking ──
   const startTracking = () => {
@@ -664,31 +674,39 @@ export default function AgentActiveDelivery() {
         )}
       </div>
 
-      {/* ── Reject Modal ── */}
-      <Modal
-        open={showReject}
-        onClose={() => { setShowReject(false); setRejectReason(''); }}
-        title="✕ Reject this Order"
+      {/* Reject Order Modal */}
+      <Modal open={showReject} onClose={() => setShowReject(false)} title="✕ Reject Order"
         footer={<>
-          <button className="btn btn-ghost btn-sm" onClick={() => { setShowReject(false); setRejectReason(''); }}>Cancel</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowReject(false)}>Cancel</button>
           <button className="btn btn-danger" onClick={handleReject} disabled={!rejectReason || rejecting}>
             {rejecting ? '⏳ Rejecting...' : 'Confirm Reject'}
           </button>
-        </>}
-      >
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-          Select a reason. The order will be returned to the dispatcher for reassignment.
-        </p>
+        </>}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Select a reason for rejecting this order.</p>
         <div className="reject-reasons">
           {REJECT_REASONS.map(r => (
-            <button
-              key={r}
-              className={`reject-reason-btn ${rejectReason === r ? 'selected' : ''}`}
-              onClick={() => setRejectReason(r)}
-            >{r}</button>
+            <button key={r} className={`reject-reason-btn ${rejectReason === r ? 'selected' : ''}`} onClick={() => setRejectReason(r)}>{r}</button>
           ))}
         </div>
       </Modal>
+
+      {/* Proof of Delivery Modal */}
+      <ProofOfDeliveryModal 
+        isOpen={showOtpInput} 
+        onClose={() => setShowOtpInput(false)}
+        requireOtp={true}
+        onSubmit={async (podData) => {
+          if (!podData.otp) return;
+          setUpdating(true);
+          try {
+            await ordersAPI.completeDelivery(orderId, { otp: podData.otp });
+            toast('Delivery completed', 'Order marked as delivered successfully', 'success');
+            navigate('/agent/dashboard');
+          } catch (err) {
+            toast('Error', err.response?.data?.message || 'Failed to complete delivery', 'error');
+          } finally { setUpdating(false); }
+        }}
+      />
     </div>
   );
 }

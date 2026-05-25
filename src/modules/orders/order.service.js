@@ -35,7 +35,7 @@ class OrderService {
    * @param {string} customerId
    */
   async createOrder(data, customerId) {
-    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod', cylinderType = 'Domestic (14.2 kg)' } = data;
+    const { warehouseId, deliveryAddress, cylinderCount, notes, pricePerCylinder = 850, paymentMode = 'cod', cylinderType = 'Domestic (14.2 kg)', priority = 'normal' } = data;
 
     // Check KYC Status
     const user = await userRepository.findById(customerId);
@@ -47,7 +47,12 @@ class OrderService {
     // Billing calculations
     const subTotal = pricePerCylinder * cylinderCount;
     const taxAmount = Math.round(subTotal * 0.05); // 5% GST
-    const deliveryCharge = 50; // Flat delivery fee
+    
+    // Dynamic Delivery Charge based on Priority
+    let deliveryCharge = 0; // normal
+    if (priority === 'medium') deliveryCharge = 50;
+    if (priority === 'urgent') deliveryCharge = 100;
+    
     const discountAmount = paymentMode === 'online' ? Math.round(subTotal * 0.05) : 0; // 5% off for online payments
     const totalAmount = subTotal + taxAmount + deliveryCharge - discountAmount;
 
@@ -80,6 +85,7 @@ class OrderService {
       cylinderCount,
       cylinderType,
       notes,
+      priority,
       pricePerCylinder,
       subTotal,
       taxAmount,

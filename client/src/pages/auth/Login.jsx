@@ -42,7 +42,15 @@ export default function Login() {
         const credentials = form.email ? { email: form.email } : { phone: form.phone };
         if (!credentials.email && !credentials.phone) throw new Error('Email or phone required');
         const res = await requestOtp(credentials);
-        toast('OTP Sent ✓', res.message || 'Check your email or WhatsApp', 'success');
+        
+        // DEV helper: Auto-fill OTP if returned from backend
+        if (res.devOtp) {
+          setForm({ ...form, otp: res.devOtp });
+          toast('Development OTP Generated', `Auto-filled OTP: ${res.devOtp}`, 'info');
+        } else {
+          toast('OTP Sent ✓', res.message || 'Check your email or WhatsApp', 'success');
+        }
+        
         setOtpSent(true);
 
       } else if (loginMode === 'otp' && otpSent) {

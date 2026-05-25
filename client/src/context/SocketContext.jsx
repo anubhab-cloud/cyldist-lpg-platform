@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const socketRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -22,7 +22,9 @@ export function SocketProvider({ children }) {
     }
 
     const token = localStorage.getItem('accessToken');
-    const SOCKET_URL = import.meta.env.DEV ? '/' : 'https://cyldist-lpg-platform.onrender.com';
+    const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:5000' : 'https://cyldist-lpg-platform.onrender.com';
+    
+    console.log('Connecting socket to:', SOCKET_URL);
     const s = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
@@ -32,9 +34,24 @@ export function SocketProvider({ children }) {
 
     socketRef.current = s;
 
-    s.on('connect', () => { setConnected(true); setSocket(s); });
-    s.on('disconnect', () => setConnected(false));
+    s.on('connect', () => { 
+      console.log('Socket connected successfully!', s.id);
+      setConnected(true); 
+      setSocket(s); 
+    });
+    s.on('connect_error', (err) => {
+      console.error('Socket connection error:', err.message);
+    });
+    s.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+      setConnected(false);
+    });
     s.on('error', (err) => console.error('Socket error:', err));
+    
+    // Real-time user profile updates (e.g., KYC status changes from admin)
+    s.on('user:updated', (updatedUser) => {
+      updateUser(updatedUser);
+    });
 
     return () => {
       s.disconnect();
@@ -42,7 +59,7 @@ export function SocketProvider({ children }) {
       setSocket(null);
       setConnected(false);
     };
-  }, [user]);
+  }, [user?.id]);
 
   return (
     <SocketContext.Provider value={{ socket, connected }}>

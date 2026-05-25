@@ -68,6 +68,9 @@ export const supportAPI = {
 
 export const notificationsAPI = {
   broadcast: (data) => api.post('/notifications/broadcast', data),
+  getAdminNotifications: (params) => api.get('/notifications', { params }),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
 };
 
 export const productsAPI = {

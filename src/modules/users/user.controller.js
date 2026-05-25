@@ -97,6 +97,13 @@ const listPendingKyc = asyncHandler(async (req, res) => {
 
 const updateKycStatus = asyncHandler(async (req, res) => {
   const user = await userService.updateKycStatus(req.params.id, req.body);
+  
+  // Notify the user in real-time that their KYC status changed
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${user._id.toString()}`).emit('user:updated', user);
+  }
+  
   return response.success(res, 200, 'KYC status updated.', user);
 });
 

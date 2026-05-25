@@ -2,20 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
 import { useSocket } from '../../context/SocketContext';
-
-// ── Mock notification data (replace with API when backend is ready) ──
-const MOCK_NOTIFICATIONS = [
-  { id: 'n1', type: 'emergency', priority: 'critical', icon: '🚨', title: 'Gas Leak Detected — Sector 14', body: 'Emergency response team dispatched. All deliveries in zone halted. Warehouse WH-DEL-03 isolated.', time: new Date(Date.now() - 120000), read: false, actions: ['View Details', 'Acknowledge'] },
-  { id: 'n2', type: 'order', priority: 'high', icon: '📦', title: 'New Bulk Order #ORD-2026-0847', body: '8 cylinders requested by Industrial Corp. Requires priority assignment.', time: new Date(Date.now() - 300000), read: false, actions: ['Assign Agent'] },
-  { id: 'n3', type: 'delivery', priority: 'medium', icon: '🚚', title: 'Delivery Delayed — Order #ORD-2026-0841', body: 'Agent Rajesh Kumar is 25 min behind ETA. Customer notified via SMS.', time: new Date(Date.now() - 900000), read: false },
-  { id: 'n4', type: 'payment', priority: 'low', icon: '₹', title: 'Payment Received ₹4,250', body: 'Order #ORD-2026-0839 — Online payment confirmed via Razorpay.', time: new Date(Date.now() - 1800000), read: true },
-  { id: 'n5', type: 'stock', priority: 'high', icon: '⚠️', title: 'Low Stock Alert — WH-MUM-01', body: 'Mumbai Central warehouse down to 12 cylinders. Restock threshold breached.', time: new Date(Date.now() - 3600000), read: false },
-  { id: 'n6', type: 'delivery', priority: 'low', icon: '✅', title: 'Delivery Completed — #ORD-2026-0838', body: 'Agent Priya delivered 3 cylinders. Customer rated 5 stars.', time: new Date(Date.now() - 5400000), read: true },
-  { id: 'n7', type: 'order', priority: 'medium', icon: '📦', title: 'Order Cancelled — #ORD-2026-0836', body: 'Customer requested cancellation. Cylinders returned to inventory.', time: new Date(Date.now() - 7200000), read: true },
-  { id: 'n8', type: 'stock', priority: 'medium', icon: '📥', title: 'Restock Completed — WH-DEL-01', body: '200 cylinders added. Available stock: 245/300.', time: new Date(Date.now() - 10800000), read: true },
-  { id: 'n9', type: 'payment', priority: 'low', icon: '₹', title: 'COD Collected ₹1,700', body: 'Agent Amit collected cash for Order #ORD-2026-0835.', time: new Date(Date.now() - 14400000), read: true },
-  { id: 'n10', type: 'delivery', priority: 'medium', icon: '📍', title: 'Agent GPS Lost — Rajesh Kumar', body: 'Location signal lost for 8 minutes during active delivery.', time: new Date(Date.now() - 18000000), read: true },
-];
+import { notificationsAPI } from '../../api';
+import { PageLoader } from '../../components';
 
 const DELIVERY_TIMELINE = [
   { time: '14:32', label: 'Order placed', status: 'done', detail: '#ORD-2026-0847' },
@@ -80,10 +68,10 @@ function NotificationCard({ n, onMarkRead, onAction }) {
           <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>{n.body}</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>{timeAgo(n.time)}</span>
-            {!n.read && <button onClick={(e) => { e.stopPropagation(); onMarkRead(n.id); }}
+            {!n.read && <button onClick={(e) => { e.stopPropagation(); onMarkRead(n._id || n.id); }}
               style={{ fontSize: '0.675rem', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Mark read</button>}
             {n.actions?.map(a => (
-              <button key={a} onClick={(e) => { e.stopPropagation(); onAction(n.id, a); }}
+              <button key={a} onClick={(e) => { e.stopPropagation(); onAction(n._id || n.id, a); }}
                 className="btn btn-sm" style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem' }}>{a}</button>
             ))}
           </div>
@@ -128,18 +116,29 @@ function MessagePreview({ channel, to, body, time }) {
 export default function AdminNotifications() {
   const { toast } = useToast();
   const { socket } = useSocket() || {};
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
   const [bulkMsg, setBulkMsg] = useState('');
+  const [bulkTarget, setBulkTarget] = useState('agents');
   const [sending, setSending] = useState(false);
 
-  // Simulated real-time notification
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Pulse effect on emergency section
-    }, 5000);
-    return () => clearInterval(interval);
+    notificationsAPI.getAdminNotifications({ limit: 50 })
+      .then(r => setNotifications(r.data.data.notifications))
+      .catch(err => toast('Error', 'Failed to load notifications', 'error'))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotif = (newNotif) => {
+      setNotifications(prev => [newNotif, ...prev]);
+      toast('New Alert', newNotif.title, 'info');
+    };
+    socket.on('admin:notification', handleNewNotif);
+    return () => socket.off('admin:notification', handleNewNotif);
+  }, [socket]);
 
   const filtered = notifications.filter(n => {
     const type = FILTER_MAP[filter];
@@ -149,28 +148,42 @@ export default function AdminNotifications() {
   const unreadCount = notifications.filter(n => !n.read).length;
   const emergencies = notifications.filter(n => n.type === 'emergency' && !n.read);
 
-  const markRead = (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    toast('Marked as read', '', 'success');
+  const markRead = async (id) => {
+    try {
+      await notificationsAPI.markAsRead(id);
+      setNotifications(prev => prev.map(n => (n._id === id || n.id === id) ? { ...n, read: true } : n));
+      toast('Marked as read', '', 'success');
+    } catch (e) {
+      toast('Error', 'Failed to mark as read', 'error');
+    }
   };
 
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    toast('All notifications marked as read', '', 'success');
+  const markAllRead = async () => {
+    try {
+      await notificationsAPI.markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      toast('All notifications marked as read', '', 'success');
+    } catch (e) {
+      toast('Error', 'Failed to mark all as read', 'error');
+    }
   };
 
   const handleAction = (id, action) => {
     toast(`Action: ${action}`, `Notification ${id}`, 'info');
   };
 
-  const handleBulkSend = () => {
+  const handleBulkSend = async () => {
     if (!bulkMsg.trim()) return;
     setSending(true);
-    setTimeout(() => {
-      toast('Bulk notification sent!', `Sent to all active agents via Push + SMS`, 'success');
+    try {
+      await notificationsAPI.broadcast({ target: bulkTarget, message: bulkMsg });
+      toast('Bulk notification sent!', `Sent to ${bulkTarget}`, 'success');
       setBulkMsg('');
+    } catch (e) {
+      toast('Broadcast Failed', 'Failed to send bulk notification', 'error');
+    } finally {
       setSending(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -198,13 +211,13 @@ export default function AdminNotifications() {
               <PriorityBadge priority="critical" />
             </div>
             {emergencies.map(e => (
-              <div key={e.id} style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                {e.title} — <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{timeAgo(e.time)}</span>
+              <div key={e._id || e.id} style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                {e.title} — <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{timeAgo(new Date(e.createdAt || e.time))}</span>
               </div>
             ))}
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
               <button className="btn btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>View Emergency Protocol</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => emergencies.forEach(e => markRead(e.id))}>Acknowledge All</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => emergencies.forEach(e => markRead(e._id || e.id))}>Acknowledge All</button>
             </div>
           </div>
         )}
@@ -237,7 +250,7 @@ export default function AdminNotifications() {
               {filtered.length === 0 ? (
                 <div className="empty-state"><div className="empty-icon">🔔</div><h3>No notifications</h3><p>All clear in this category.</p></div>
               ) : filtered.map(n => (
-                <NotificationCard key={n.id} n={n} onMarkRead={markRead} onAction={handleAction} />
+                <NotificationCard key={n._id || n.id} n={{...n, time: new Date(n.createdAt || n.time)}} onMarkRead={markRead} onAction={handleAction} />
               ))}
             </div>
           </div>
@@ -291,11 +304,10 @@ export default function AdminNotifications() {
               <h3 className="section-title">Send Bulk Notification</h3>
               <div className="form-group" style={{ marginBottom: '0.625rem' }}>
                 <label className="form-label">Recipients</label>
-                <select style={{ fontSize: '0.8rem' }}>
-                  <option>All Active Agents</option>
-                  <option>All Customers</option>
-                  <option>Low Stock Warehouse Managers</option>
-                  <option>On-Duty Agents Only</option>
+                <select value={bulkTarget} onChange={(e) => setBulkTarget(e.target.value)} style={{ fontSize: '0.8rem' }}>
+                  <option value="agents">All Active Agents</option>
+                  <option value="customers">All Customers</option>
+                  <option value="all">Everyone</option>
                 </select>
               </div>
               <div className="form-group" style={{ marginBottom: '0.625rem' }}>
