@@ -24,6 +24,7 @@
   "author": "Cylinder Distribution Platform",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1053.0",
     "axios": "^1.16.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
@@ -39,6 +40,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.4",
     "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "multer-s3": "^3.0.1",
     "nodemailer": "^8.0.7",
     "razorpay": "^2.9.6",
     "socket.io": "^4.7.5",

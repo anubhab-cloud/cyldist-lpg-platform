@@ -107,21 +107,25 @@ export default function CustomerSettings() {
 
 function KYCForm() {
   const { showToast } = useToast();
-  const [kycData, setKycData] = useState({ documentType: 'Aadhar', documentNumber: '', documentImageUrl: '' });
+  const [kycData, setKycData] = useState({ documentType: 'Aadhar', documentNumber: '' });
+  const [file, setFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleKycSubmit = async (e) => {
     e.preventDefault();
+    if (!file) {
+      showToast('Please select a document image to upload.', 'error');
+      return;
+    }
     setSubmitting(true);
     try {
-      // Simulate image upload by providing a mock URL if none given
-      const payload = {
-        ...kycData,
-        documentImageUrl: kycData.documentImageUrl || 'https://via.placeholder.com/800x400.png?text=Simulated+KYC+Document'
-      };
-      await usersAPI.submitKyc(payload);
+      const formData = new FormData();
+      formData.append('documentType', kycData.documentType);
+      formData.append('documentNumber', kycData.documentNumber);
+      formData.append('documentImage', file);
+
+      await usersAPI.submitKyc(formData);
       showToast('KYC Details submitted successfully!', 'success');
-      // A page reload is easiest to refresh context for now
       setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to submit KYC', 'error');
@@ -166,13 +170,12 @@ function KYCForm() {
             style={{ flex: 1 }}
             onChange={(e) => {
               if (e.target.files.length > 0) {
-                // Mock setting a URL for the uploaded file
-                setKycData({ ...kycData, documentImageUrl: URL.createObjectURL(e.target.files[0]) });
+                setFile(e.target.files[0]);
               }
             }}
           />
         </div>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>*Image upload is simulated in this environment.</span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>*Upload a clear image of your ID document.</span>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>

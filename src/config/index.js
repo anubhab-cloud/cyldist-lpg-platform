@@ -112,6 +112,13 @@ const config = {
     keyId: optional('RAZORPAY_KEY_ID', ''),
     keySecret: optional('RAZORPAY_KEY_SECRET', ''),
   },
+
+  aws: {
+    accessKeyId: optional('AWS_ACCESS_KEY_ID', ''),
+    secretAccessKey: optional('AWS_SECRET_ACCESS_KEY', ''),
+    region: optional('AWS_REGION', 'ap-south-1'),
+    s3BucketName: optional('AWS_S3_BUCKET_NAME', ''),
+  },
 };
 
 

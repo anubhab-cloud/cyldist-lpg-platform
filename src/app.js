@@ -87,6 +87,10 @@ app.use(mongoSanitize());
 // Compress responses
 app.use(compression());
 
+// Serve static uploads for local fallback
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
 // ============================================================
 // Logging
 // ============================================================

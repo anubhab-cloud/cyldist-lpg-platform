@@ -106,6 +106,11 @@ export default function AdminUsers() {
                               <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600, color: u.kycStatus === 'verified' ? 'var(--success)' : u.kycStatus === 'submitted' ? 'var(--warning)' : 'var(--text-muted)' }}>
                                 KYC: {u.kycStatus || 'pending'}
                               </span>
+                              {u.kycDetails?.documentImageUrl && (
+                                <a href={u.kycDetails.documentImageUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--primary)', marginTop: '0.2rem' }}>
+                                  View Document
+                                </a>
+                              )}
                             </div>
                           )}
                         </div>

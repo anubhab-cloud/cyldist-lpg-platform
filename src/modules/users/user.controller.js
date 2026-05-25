@@ -44,7 +44,15 @@ const addWalletFunds = asyncHandler(async (req, res) => {
 });
 
 const submitKyc = asyncHandler(async (req, res) => {
-  const user = await userService.submitKyc(req.user.id, req.body);
+  let documentImageUrl = '';
+  if (req.file) {
+    documentImageUrl = req.file.location || `/uploads/${req.file.filename}`;
+  } else {
+    return response.error(res, 400, 'Document image is required.');
+  }
+
+  const payload = { ...req.body, documentImageUrl };
+  const user = await userService.submitKyc(req.user.id, payload);
   return response.success(res, 200, 'KYC submitted successfully.', user);
 });
 
