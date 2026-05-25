@@ -93,6 +93,8 @@ function AppRoutes() {
   );
 }
 
+import { WhatsAppWidget } from './components/WhatsAppWidget';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -100,6 +102,7 @@ export default function App() {
         <ToastProvider>
           <SocketProvider>
             <AppRoutes />
+            <WhatsAppWidget />
           </SocketProvider>
         </ToastProvider>
       </AuthProvider>

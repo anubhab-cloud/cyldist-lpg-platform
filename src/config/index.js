@@ -119,7 +119,12 @@ const config = {
     region: optional('AWS_REGION', 'ap-south-1'),
     s3BucketName: optional('AWS_S3_BUCKET_NAME', ''),
   },
-};
 
+  whatsapp: {
+    token: optional('WHATSAPP_TOKEN', ''),
+    phoneNumberId: optional('WHATSAPP_PHONE_ID', ''),
+    verifyToken: optional('WEBHOOK_VERIFY_TOKEN', 'gasflow_secret_token_123'),
+  },
+};
 
 module.exports = config;

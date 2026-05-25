@@ -27,6 +27,7 @@ const supportRoutes = require('./modules/support/support.routes');
 const notificationRoutes = require('./modules/notifications/notification.routes');
 const productRoutes = require('./modules/products/product.routes');
 const couponRoutes = require('./modules/coupons/coupon.routes');
+const whatsappRoutes = require('./modules/whatsapp/whatsapp.routes');
 
 const app = express();
 
@@ -159,6 +160,7 @@ app.use(`${apiPrefix}/support`, supportRoutes);
 app.use(`${apiPrefix}/notifications`, notificationRoutes);
 app.use(`${apiPrefix}/products`, productRoutes);
 app.use(`${apiPrefix}/coupons`, couponRoutes);
+app.use(`${apiPrefix}/whatsapp`, whatsappRoutes);
 
 // ============================================================
 // Error Handling (must be last)
