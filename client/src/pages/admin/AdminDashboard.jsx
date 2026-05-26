@@ -145,11 +145,25 @@ export default function AdminDashboard() {
         <div className="ambient-glow" style={{ width: 400, height: 400, top: -100, right: -100, background: 'var(--primary)', opacity: 0.12 }} />
         <div className="ambient-glow" style={{ width: 300, height: 300, bottom: 100, left: -80, background: 'var(--accent)', opacity: 0.08 }} />
 
-        {/* Page header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', marginBottom: '1.75rem', position: 'relative', zIndex: 1 }}>
+        {/* Page header + 3D Model */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.75rem', position: 'relative', zIndex: 1 }}>
           <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <h1 className="page-title gradient-text">Overview</h1>
             <p className="page-subtitle">Real-time platform metrics & analytics</p>
+          </motion.div>
+          
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2 }} style={{ width: 150, height: 150, position: 'relative', marginTop: '-1rem', marginRight: '-1rem' }}>
+              <model-viewer
+              src="/models/cylinder.glb"
+              auto-rotate
+              rotation-per-second="30deg"
+              camera-controls
+              tone-mapping="commerce"
+              exposure="1.2"
+              shadow-intensity="1.5"
+              disable-zoom
+              style={{ width: '100%', height: '100%', background: 'transparent' }}
+            ></model-viewer>
           </motion.div>
         </div>
 

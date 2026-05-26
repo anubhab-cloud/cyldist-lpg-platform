@@ -94,6 +94,7 @@ export function AdminSidebar() {
       { to: '/admin/users', icon: '◔', label: 'Users' },
       { to: '/admin/broadcast', icon: '📣', label: 'Broadcasts' },
       { to: '/admin/notifications', icon: '🔔', label: 'Notifications' },
+      { to: '/admin/support', icon: '📞', label: 'Support Tickets' },
     ]},
   ]} />;
 }
@@ -101,22 +102,50 @@ export function AdminSidebar() {
 export function AgentSidebar() {
   return <SidebarBase role="agent" navItems={[
     { items: [
-      { to: '/agent', icon: '⬡', label: 'Dashboard', end: true },
-      { to: '/agent/orders', icon: '▷', label: 'My Deliveries' },
+      { to: '/agent', icon: '🏠', label: 'Dashboard', end: true },
+      { to: '/agent/deliveries', icon: '🚚', label: 'My Deliveries' },
+      { to: '/agent/route', icon: '🗺️', label: 'Route / Navigation' },
+      { to: '/agent/queue', icon: '📦', label: 'Orders Queue' },
+      { to: '/agent/earnings', icon: '💰', label: 'Earnings / Cash' },
+      { to: '/agent/performance', icon: '📊', label: 'Performance' },
+      { to: '/agent/notifications', icon: '🔔', label: 'Notifications' },
+      { to: '/agent/profile', icon: '👤', label: 'Profile / Docs' },
     ]},
   ]} />;
 }
 
+import { useCart } from '../context/CartContext';
+import CartSidebar from './customer/CartSidebar';
+import { ShoppingCart } from 'lucide-react';
+
 export function Topbar({ title, children }) {
   const toggleSidebar = () => window.dispatchEvent(new CustomEvent('toggle-sidebar'));
+  const { user } = useAuth();
+  const { cartCount } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
-    <div className="topbar">
-      <div className="flex-center">
-        <button className="mobile-menu-btn" onClick={toggleSidebar}>☰</button>
-        <span className="topbar-title">{title}</span>
+    <>
+      <div className="topbar">
+        <div className="flex-center">
+          <button className="mobile-menu-btn" onClick={toggleSidebar}>☰</button>
+          <span className="topbar-title">{title}</span>
+        </div>
+        <div className="topbar-actions">
+          {children}
+          {user?.role === 'customer' && (
+            <button className="btn btn-ghost" style={{ position: 'relative', padding: '0.5rem' }} onClick={() => setIsCartOpen(true)}>
+              <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--primary)', color: 'white', borderRadius: '50%', width: 16, height: 16, fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
       </div>
-      <div className="topbar-actions">{children}</div>
-    </div>
+      {user?.role === 'customer' && <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />}
+    </>
   );
 }

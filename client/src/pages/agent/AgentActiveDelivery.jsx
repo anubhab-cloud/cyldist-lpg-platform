@@ -195,14 +195,15 @@ export default function AgentActiveDelivery() {
     return () => stopTracking();
   }, [orderId]);
 
-  // Join Chat Room
+  // Join Chat Room — chatRoomId defaults to orderId on the server
+  const chatRoomId = order?.chatRoomId || order?.orderId || orderId;
   useEffect(() => {
-    if (!socket || !order?.chatRoomId) return;
-    socket.emit('chat:join', { chatRoomId: order.chatRoomId });
+    if (!socket || !chatRoomId) return;
+    socket.emit('chat:join', { chatRoomId });
     return () => {
-      socket.emit('chat:leave', { chatRoomId: order.chatRoomId });
+      socket.emit('chat:leave', { chatRoomId });
     };
-  }, [socket, order?.chatRoomId]);
+  }, [socket, chatRoomId]);
 
   // ── GPS Tracking ──
   const startTracking = () => {
@@ -289,12 +290,13 @@ export default function AgentActiveDelivery() {
 
   // ── Quick messages ──
   const sendQuickMsg = async (text) => {
-    if (!order?.chatRoomId || !socket) {
-      toast('No chat room', 'Chat not available for this order', 'error'); return;
+    if (!socket) {
+      toast('No socket', 'Real-time connection not available', 'error'); return;
     }
+    const room = order?.chatRoomId || order?.orderId || orderId;
     setSendingQuick(true);
-    socket.emit('chat:send', { chatRoomId: order.chatRoomId, content: text });
-    toast('Message sent ✓', text.slice(0, 40) + '...', 'success');
+    socket.emit('chat:send', { chatRoomId: room, content: text });
+    toast('Message sent ✓', text.slice(0, 40), 'success');
     setTimeout(() => setSendingQuick(false), 600);
   };
 
@@ -319,8 +321,8 @@ export default function AgentActiveDelivery() {
     <div>
       <Topbar title="Active Delivery">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {order.chatRoomId && (
-            <Link to={`/agent/chat/${order.chatRoomId}`} className="call-btn call-btn-chat">
+          {(order.chatRoomId || order.orderId) && (
+            <Link to={`/agent/chat/${order.chatRoomId || order.orderId}`} className="call-btn call-btn-chat">
               💬 Chat
             </Link>
           )}
@@ -467,8 +469,8 @@ export default function AgentActiveDelivery() {
                   📞 Call
                 </a>
               )}
-              {order.chatRoomId && (
-                <Link to={`/agent/chat/${order.chatRoomId}`} className="call-btn call-btn-chat">
+              {(order.chatRoomId || order.orderId) && (
+                <Link to={`/agent/chat/${order.chatRoomId || order.orderId}`} className="call-btn call-btn-chat">
                   💬 Chat
                 </Link>
               )}
@@ -513,7 +515,7 @@ export default function AgentActiveDelivery() {
         </div>
 
         {/* ── Quick Messages ── */}
-        {!isDelivered && order.chatRoomId && (
+        {!isDelivered && (order.chatRoomId || order.orderId) && (
           <div className="card stagger-3 animate-in" style={{ marginBottom: '1.25rem' }}>
             <div className="section-title">⚡ Quick Messages</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>

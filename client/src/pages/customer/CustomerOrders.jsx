@@ -57,7 +57,7 @@ export default function CustomerOrders() {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button onClick={() => setInvoiceOrder(o)} className="btn btn-ghost btn-sm" title="View Invoice">📄</button>
                           {o.status === 'out_for_delivery' && <Link to={`/customer/track/${o.orderId}`} className="btn btn-primary btn-sm" title="Track Live">📍</Link>}
-                          {o.chatRoomId && ['assigned','out_for_delivery'].includes(o.status) && <Link to={`/customer/chat/${o.chatRoomId}`} className="btn btn-ghost btn-sm" title="Chat with Agent">💬</Link>}
+                          {['assigned','out_for_delivery'].includes(o.status) && <Link to={`/customer/chat/${o.chatRoomId || o.orderId}`} className="btn btn-ghost btn-sm" title="Chat with Agent">💬 Chat</Link>}
                           {['created'].includes(o.status) && <button className="btn btn-danger btn-sm" disabled={cancelling === o.orderId} onClick={() => handleCancel(o.orderId)} title="Cancel Order">{cancelling === o.orderId ? '...' : '✕'}</button>}
                         </div>
                       </td>

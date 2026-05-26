@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { productsAPI } from '../../api';
 import { Topbar } from '../../components/Sidebar';
 import { useToast } from '../../context/ToastContext';
+import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
 
 export default function CustomerProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     productsAPI.list()
@@ -16,8 +18,9 @@ export default function CustomerProducts() {
       .finally(() => setLoading(false));
   }, [showToast]);
 
-  const handleAddToCart = (productName) => {
-    showToast(`Added ${productName} to your cart!`, 'success');
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    showToast(`Added ${product.name} to your cart!`, 'success');
   };
 
   return (
@@ -42,10 +45,10 @@ export default function CustomerProducts() {
                 initial={{ opacity: 0, scale: 0.95 }} 
                 animate={{ opacity: 1, scale: 1 }} 
                 transition={{ delay: i * 0.05 }}
-                style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', padding: '2rem 1.5rem' }}
+                style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', padding: '2rem 1.5rem', overflow: 'hidden' }}
               >
-                <div style={{ fontSize: '3.5rem', marginBottom: '1rem', background: 'var(--bg-base)', width: '80px', height: '80px', margin: '0 auto 1.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
-                  🔧
+                <div style={{ marginBottom: '1rem', width: '100%', height: '180px', margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={prod.imageUrl || '/images/product-placeholder.png'} alt={prod.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.1))' }} />
                 </div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                   {prod.name}
@@ -56,7 +59,7 @@ export default function CustomerProducts() {
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)', marginBottom: '1.5rem' }}>
                   ₹{prod.price}
                 </div>
-                <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleAddToCart(prod.name)}>
+                <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleAddToCart(prod)}>
                   Add to Cart
                 </button>
               </motion.div>

@@ -1,138 +1,222 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function InvoiceModal({ order, onClose }) {
+  const printRef = useRef(null);
   if (!order) return null;
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    const html2pdf = (await import('html2pdf.js')).default;
+    const element = printRef.current;
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `Invoice-${order.orderId?.split('-')[0]?.toUpperCase() || 'CYL'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    };
+    html2pdf().set(opt).from(element).save();
   };
+
+  const subtotal     = (order.pricePerCylinder || 0) * (order.cylinderCount || 0);
+  const delivery     = order.deliveryCharge || 0;
+  const tax          = order.taxAmount || Math.round(subtotal * 0.05);
+  const discount     = order.discountAmount || 0;
+  const total        = order.totalAmount || (subtotal + delivery + tax - discount);
 
   return (
     <AnimatePresence>
-      <div className="modal-overlay no-print" onClick={onClose} style={{ zIndex: 1000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <motion.div 
-          className="modal-content invoice-modal"
-          onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1rem',
+        }}
+      >
+        <motion.div
+          onClick={e => e.stopPropagation()}
+          initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
+          exit={{ opacity: 0, y: 24, scale: 0.96 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: '#fff', borderRadius: 16, width: '100%', maxWidth: 760,
+            maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.35)',
+            position: 'relative',
+          }}
         >
-          <button className="no-print" onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#666' }}>✕</button>
-          
-          <div className="print-area">
-            {/* Invoice Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f0f0f0', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
+          {/* Action Bar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem 1.5rem', borderBottom: '1px solid #f0f0f0', background: '#fafafa',
+            borderRadius: '16px 16px 0 0',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>📄</div>
               <div>
-                <h1 style={{ margin: 0, color: 'var(--primary)', fontSize: '2rem', fontWeight: 800 }}>INVOICE</h1>
-                <p style={{ color: '#666', marginTop: '0.5rem' }}>Invoice ID: <strong>{order.orderId.split('-')[0].toUpperCase()}</strong></p>
-                <p style={{ color: '#666', margin: 0 }}>Date: {new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#111' }}>Tax Invoice</div>
+                <div style={{ fontSize: '0.75rem', color: '#888' }}>#{order.orderId?.split('-')[0]?.toUpperCase()}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <button
+                onClick={handleDownloadPDF}
+                style={{
+                  padding: '0.5rem 1.25rem', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff',
+                  fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
+                }}
+              >
+                ⬇ Download PDF
+              </button>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#999', lineHeight: 1, padding: '0.25rem' }}>×</button>
+            </div>
+          </div>
+
+          {/* Invoice Content */}
+          <div ref={printRef} style={{ padding: '2.5rem', background: '#fff', color: '#111' }}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', paddingBottom: '2rem', borderBottom: '2px solid #f1f5f9' }}>
+              <div>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-1px', color: '#1e293b' }}>
+                  Cyl<span style={{ color: '#6366f1' }}>Dist</span>
+                </div>
+                <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                  123 Energy Park, Sector 45<br />
+                  Gurugram, Haryana 122003<br />
+                  support@cyldist.com | 1800-CYL-DIST<br />
+                  GSTIN: 06AAACL1234Z1Z5
+                </p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#333' }}>Cyl<span style={{ color: 'var(--primary)' }}>Dist</span></div>
-                <p style={{ color: '#666', margin: 0 }}>123 Energy Park, Sector 45</p>
-                <p style={{ color: '#666', margin: 0 }}>Gurugram, Haryana 122003</p>
-                <p style={{ color: '#666', margin: 0 }}>support@cyldist.com | 1800-CYL-DIST</p>
+                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#6366f1', letterSpacing: '-1px', lineHeight: 1 }}>INVOICE</div>
+                <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'flex-end' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.82rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Invoice No:</span>
+                    <span style={{ fontWeight: 700, color: '#111', fontFamily: 'monospace' }}>
+                      INV-{order.orderId?.split('-')[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.82rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Date:</span>
+                    <span style={{ fontWeight: 600, color: '#333' }}>
+                      {new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <span style={{
+                      padding: '0.3rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
+                      background: order.paymentStatus === 'paid' || order.paymentStatus === 'completed' ? '#dcfce7' : '#fef3c7',
+                      color: order.paymentStatus === 'paid' || order.paymentStatus === 'completed' ? '#16a34a' : '#b45309',
+                    }}>
+                      {(order.paymentStatus || 'Pending').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Bill To & Delivery Details */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+            {/* Billed To & Delivery */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
               <div>
-                <h3 style={{ color: '#333', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Billed To:</h3>
-                <p style={{ margin: 0, fontWeight: 600, color: '#444' }}>{order.customerId?.name || 'Customer'}</p>
-                <p style={{ margin: 0, color: '#666' }}>{order.customerId?.email}</p>
-                <p style={{ margin: 0, color: '#666' }}>{order.customerId?.phone}</p>
+                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8', fontWeight: 700, marginBottom: '0.75rem' }}>Billed To</div>
+                <div style={{ fontWeight: 700, color: '#111', fontSize: '1rem', marginBottom: '0.25rem' }}>{order.customerId?.name || 'Customer'}</div>
+                <div style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: 1.7 }}>
+                  {order.customerId?.email}<br />
+                  {order.customerId?.phone}
+                </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <h3 style={{ color: '#333', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Delivery Address:</h3>
-                <p style={{ margin: 0, color: '#666' }}>{order.deliveryAddress?.line1}</p>
-                {order.deliveryAddress?.line2 && <p style={{ margin: 0, color: '#666' }}>{order.deliveryAddress.line2}</p>}
-                <p style={{ margin: 0, color: '#666' }}>{order.deliveryAddress?.city}, {order.deliveryAddress?.state} {order.deliveryAddress?.pincode}</p>
+              <div>
+                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8', fontWeight: 700, marginBottom: '0.75rem' }}>Delivery Address</div>
+                <div style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: 1.7 }}>
+                  {order.deliveryAddress?.line1}{order.deliveryAddress?.line2 && `, ${order.deliveryAddress.line2}`}<br />
+                  {order.deliveryAddress?.city}, {order.deliveryAddress?.state} {order.deliveryAddress?.pincode}
+                </div>
               </div>
             </div>
 
-            {/* Line Items Table */}
+            {/* Line Items */}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
               <thead>
-                <tr style={{ background: '#f8fafc', color: '#334155', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                  <th style={{ padding: '12px' }}>Description</th>
-                  <th style={{ padding: '12px' }}>Type</th>
-                  <th style={{ padding: '12px', textAlign: 'center' }}>Qty</th>
-                  <th style={{ padding: '12px', textAlign: 'right' }}>Unit Price</th>
-                  <th style={{ padding: '12px', textAlign: 'right' }}>Total</th>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['Description', 'Type', 'Qty', 'Unit Price', 'Total'].map((h, i) => (
+                    <th key={h} style={{
+                      padding: '12px 14px', fontSize: '0.75rem', textTransform: 'uppercase',
+                      letterSpacing: '0.06em', color: '#475569', fontWeight: 700,
+                      textAlign: i >= 2 ? 'center' : 'left',
+                      borderTop: '2px solid #e2e8f0', borderBottom: '2px solid #e2e8f0',
+                    }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '16px 12px', fontWeight: 500 }}>LPG Cylinder Refill</td>
-                  <td style={{ padding: '16px 12px', color: '#64748b' }}>{order.cylinderType || 'Domestic (14.2 kg)'}</td>
-                  <td style={{ padding: '16px 12px', textAlign: 'center' }}>{order.cylinderCount}</td>
-                  <td style={{ padding: '16px 12px', textAlign: 'right' }}>₹{order.pricePerCylinder?.toLocaleString()}</td>
-                  <td style={{ padding: '16px 12px', textAlign: 'right', fontWeight: 600 }}>₹{((order.pricePerCylinder || 0) * (order.cylinderCount || 0)).toLocaleString()}</td>
+                  <td style={{ padding: '16px 14px', fontWeight: 600, color: '#1e293b' }}>LPG Cylinder Refill</td>
+                  <td style={{ padding: '16px 14px', color: '#64748b', fontSize: '0.85rem' }}>{order.cylinderType || 'Domestic (14.2 kg)'}</td>
+                  <td style={{ padding: '16px 14px', textAlign: 'center', fontWeight: 600 }}>{order.cylinderCount}</td>
+                  <td style={{ padding: '16px 14px', textAlign: 'center', color: '#475569' }}>₹{order.pricePerCylinder?.toLocaleString('en-IN')}</td>
+                  <td style={{ padding: '16px 14px', textAlign: 'center', fontWeight: 700, color: '#1e293b' }}>₹{subtotal.toLocaleString('en-IN')}</td>
                 </tr>
+                {order.notes && (
+                  <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#fafafa' }}>
+                    <td style={{ padding: '12px 14px', color: '#64748b', fontSize: '0.82rem' }} colSpan={4}>Additional items: {order.notes}</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>—</td>
+                  </tr>
+                )}
               </tbody>
             </table>
 
-            {/* Billing Summary */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div style={{ flex: 1, paddingRight: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', color: '#333', marginBottom: '0.5rem' }}>Payment Info</h3>
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
-                  <p style={{ margin: '0 0 0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Payment Method:</span>
-                    <span style={{ fontWeight: 600, textTransform: 'uppercase' }}>{order.paymentMode}</span>
-                  </p>
-                  <p style={{ margin: '0', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Payment Status:</span>
-                    <span style={{ 
-                      fontWeight: 600, 
-                      color: order.paymentStatus === 'paid' || order.paymentStatus === 'completed' ? '#10b981' : 
-                             order.paymentStatus === 'pending' ? '#f59e0b' : '#ef4444',
-                      textTransform: 'capitalize'
-                    }}>
-                      {order.paymentStatus}
-                    </span>
-                  </p>
+            {/* Summary + Payment */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94a3b8', fontWeight: 700, marginBottom: '0.75rem' }}>Payment Info</div>
+                <div style={{ background: '#f8fafc', borderRadius: 10, padding: '1rem', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#64748b' }}>Method</span>
+                    <span style={{ fontWeight: 700, textTransform: 'uppercase', color: '#1e293b' }}>{order.paymentMode}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#64748b' }}>Status</span>
+                    <span style={{ fontWeight: 700, color: order.paymentStatus === 'paid' || order.paymentStatus === 'completed' ? '#16a34a' : '#b45309', textTransform: 'capitalize' }}>{order.paymentStatus}</span>
+                  </div>
+                  {order.razorpayPaymentId && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                      TXN: {order.razorpayPaymentId}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div style={{ width: '300px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#64748b' }}>
-                  <span>Subtotal:</span>
-                  <span>₹{(order.subTotal || (order.pricePerCylinder * order.cylinderCount)).toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#64748b' }}>
-                  <span>Delivery Charge:</span>
-                  <span>₹{order.deliveryCharge || 0}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#64748b' }}>
-                  <span>Tax (5% GST):</span>
-                  <span>₹{order.taxAmount || 0}</span>
-                </div>
-                {order.discountAmount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: '#10b981' }}>
-                    <span>Discount applied:</span>
-                    <span>-₹{order.discountAmount}</span>
+
+              <div style={{ minWidth: 280, background: '#f8fafc', borderRadius: 12, padding: '1.25rem', border: '1px solid #e2e8f0' }}>
+                {[
+                  ['Subtotal', `₹${subtotal.toLocaleString('en-IN')}`],
+                  ['Delivery Charge', `₹${delivery.toLocaleString('en-IN')}`],
+                  ['GST (5%)', `₹${tax.toLocaleString('en-IN')}`],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                    <span>{label}</span><span>{value}</span>
+                  </div>
+                ))}
+                {discount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#16a34a', marginBottom: '0.5rem' }}>
+                    <span>Discount</span><span>−₹{discount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #e2e8f0', fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>
-                  <span>Total Amount:</span>
-                  <span>₹{order.totalAmount?.toLocaleString()}</span>
+                <div style={{ borderTop: '2px solid #e2e8f0', marginTop: '0.75rem', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '1.1rem', color: '#6366f1' }}>
+                  <span>Total</span><span>₹{total.toLocaleString('en-IN')}</span>
                 </div>
               </div>
             </div>
 
             {/* Footer */}
-            <div style={{ marginTop: '3rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem' }}>
-              <p>Thank you for choosing CylDist!</p>
-              <p>This is a computer-generated invoice and does not require a physical signature.</p>
+            <div style={{ marginTop: '3rem', textAlign: 'center', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
+              <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0 }}>Thank you for choosing CylDist!</p>
+              <p style={{ color: '#cbd5e1', fontSize: '0.72rem', margin: '0.25rem 0 0' }}>This is a computer-generated invoice and does not require a physical signature.</p>
             </div>
-          </div>
-
-          <div className="no-print flex-center" style={{ marginTop: '2rem', gap: '1rem', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
-            <button className="btn btn-ghost" onClick={onClose}>Close</button>
-            <button className="btn btn-primary" onClick={handlePrint}>🖨 Download PDF / Print</button>
           </div>
         </motion.div>
       </div>

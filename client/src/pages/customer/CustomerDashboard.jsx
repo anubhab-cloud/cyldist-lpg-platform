@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { ordersAPI, productsAPI, couponsAPI, usersAPI } from '../../api';
 import { StatusBadge } from '../../components';
 import { Topbar } from '../../components/Sidebar';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
 import { SkeletonStatGrid, SkeletonTable } from '../../components/ui/Skeletons';
 import { EmptyIllustration } from '../../components/ui/EmptyIllustration';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,6 +58,8 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
   const [coupons, setCoupons] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -326,14 +330,28 @@ export default function CustomerDashboard() {
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
               >
-                <div style={{ background: 'var(--bg-elevated)', height: '100px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative' }}>
-                  <ShieldCheck size={32} color="var(--text-muted)" opacity={0.3} />
+                <div style={{ background: 'var(--bg-elevated)', height: '100px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
+                  {prod.imageUrl ? (
+                    <img src={prod.imageUrl} alt={prod.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <ShieldCheck size={32} color="var(--text-muted)" opacity={0.3} />
+                  )}
                   <span style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'var(--success-subtle)', color: 'var(--success)', fontSize: '0.6rem', padding: '0.15rem 0.4rem', borderRadius: '10px', fontWeight: 700, border: '1px solid var(--success)' }}>ISI MARKED</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>⭐⭐⭐⭐⭐ 5.0</div>
                 <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '1rem' }}>₹{prod.price}</div>
-                <button className="btn btn-ghost btn-sm" style={{ width: '100%', fontSize: '0.75rem', borderRadius: '20px', marginTop: 'auto' }}>+ Add to Cart</button>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ width: '100%', fontSize: '0.75rem', borderRadius: '20px', marginTop: 'auto' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart(prod);
+                    showToast(`Added ${prod.name} to cart!`, 'success');
+                  }}
+                >
+                  + Add to Cart
+                </button>
               </div>
             )) : (
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', padding: '1rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', width: '100%', textAlign: 'center' }}>Loading products...</div>

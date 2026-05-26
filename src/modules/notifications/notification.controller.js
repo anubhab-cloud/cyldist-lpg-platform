@@ -44,6 +44,16 @@ const broadcastMessage = asyncHandler(async (req, res) => {
     }
   });
 
+  // Save the broadcast log in the database
+  await notificationRepository.create({
+    type: 'system',
+    priority: 'medium',
+    icon: '📣',
+    title: `Broadcast to ${target.toUpperCase()}`,
+    body: `Message: "${message}". Sent successfully to ${successCount}/${recipients.length} recipients.`,
+    actions: [`Audience: ${target}`, `Success: ${successCount}`, `Fail: ${failureCount}`],
+  });
+
   return response.success(res, 200, `Broadcast completed.`, {
     totalAttempted: recipients.length,
     successCount,

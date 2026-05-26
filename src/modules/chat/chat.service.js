@@ -19,14 +19,21 @@ class ChatService {
     const order = await orderRepository.findByOrderId(chatRoomId);
     if (!order) throw new AppError('Chat room not found.', 404);
 
+    // Admin can access any chat room
+    if (user.role === 'admin') return order;
+
     if (user.role === 'customer') {
       const customerId = order.customerId?._id?.toString() || order.customerId?.toString();
       if (customerId !== user.id) throw new AppError('Access denied.', 403);
     }
 
     if (user.role === 'agent') {
-      const agentId = order.agentId?._id?.toString() || order.agentId?.toString();
-      if (agentId !== user.id) throw new AppError('Access denied.', 403);
+      // Allow access if assigned, or if order has no agent yet (open chat during assignment)
+      if (order.agentId) {
+        const agentId = order.agentId?._id?.toString() || order.agentId?.toString();
+        if (agentId !== user.id) throw new AppError('You are not assigned to this order.', 403);
+      }
+      // If no agent assigned yet, still allow joining (read-only essentially)
     }
 
     return order;

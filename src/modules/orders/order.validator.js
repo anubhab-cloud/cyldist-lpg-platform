@@ -24,6 +24,8 @@ const createOrderSchema = z.object({
   paymentMode: z.enum(['cod', 'upi', 'card', 'netbanking', 'wallet', 'online']).default('cod'),
   notes: z.string().max(500).optional().default(''),
   pricePerCylinder: z.number().min(0).optional().default(850),
+  priority: z.enum(['urgent', 'medium', 'normal']).optional().default('normal'),
+  cylinderType: z.string().max(100).optional().default('Domestic (14.2 kg)'),
 });
 
 const assignAgentSchema = z.object({
@@ -34,8 +36,9 @@ const assignAgentSchema = z.object({
 const updateStatusSchema = z.object({
   status: z.enum(['out_for_delivery', 'delivered', 'cancelled']),
   note: z.string().max(200).optional().default(''),
-  deliveryOtp: z.string().length(4).optional(),
+  deliveryOtp: z.string().min(4).max(6).optional(),
   deliveredCount: z.number().int().min(1).max(10).optional(),
+  notes: z.string().max(500).optional(),
 });
 
 const cancelOrderSchema = z.object({

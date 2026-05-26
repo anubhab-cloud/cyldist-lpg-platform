@@ -13,6 +13,7 @@
     "@react-leaflet/core": "^3.0.0",
     "axios": "^1.15.2",
     "framer-motion": "^12.39.0",
+    "html2pdf.js": "^0.14.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",
     "react": "^19.2.5",

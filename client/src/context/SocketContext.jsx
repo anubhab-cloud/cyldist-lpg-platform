@@ -22,22 +22,26 @@ export function SocketProvider({ children }) {
     }
 
     const token = localStorage.getItem('accessToken');
-    const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:5000' : 'https://cyldist-lpg-platform.onrender.com';
     
-    console.log('Connecting socket to:', SOCKET_URL);
+    // Always connect to the same host the frontend is running on.
+    // In dev (Vite), /socket.io is proxied to :5000 via vite.config.js
+    // In production build served by Express, it connects directly.
+    const SOCKET_URL = window.location.origin;
+    
+    console.log('[Socket] Connecting to:', SOCKET_URL);
     const s = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnectionDelay: 2000,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
     });
 
     socketRef.current = s;
+    setSocket(s); // Set immediately so components can attach listeners before connect
 
     s.on('connect', () => { 
-      console.log('Socket connected successfully!', s.id);
+      console.log('[Socket] Connected:', s.id);
       setConnected(true); 
-      setSocket(s); 
     });
     s.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);

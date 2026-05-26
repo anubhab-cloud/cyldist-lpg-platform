@@ -26,7 +26,11 @@ async function registerAndLogin(role = 'customer') {
   }
 
   const res = await request(app).post('/api/v1/auth/register').send(userData);
-  return { user: res.body.data?.user, token: res.body.data?.accessToken };
+  const user = res.body.data?.user;
+  if (user) {
+    await User.findByIdAndUpdate(user.id || user._id, { kycStatus: 'verified' });
+  }
+  return { user, token: res.body.data?.accessToken };
 }
 
 async function createWarehouse(adminToken, overrides = {}) {

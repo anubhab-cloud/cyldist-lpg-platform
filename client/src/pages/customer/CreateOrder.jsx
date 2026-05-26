@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Topbar } from '../../components/Sidebar';
 import { PageLoader } from '../../components';
+import { useCart } from '../../context/CartContext';
 
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -21,10 +22,16 @@ export default function CreateOrder() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [warehouses, setWarehouses] = useState([]);
+  const { cart, cylinderCount: cartCylinderCount, clearCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ warehouseId: '', cylinderCount: 1, paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: '', priority: 'normal' });
+
+  const initialNotes = cart.filter(i => i.type !== 'filled_cylinder' && i.type !== 'empty_cylinder' && !i.name.toLowerCase().includes('cylinder'))
+                           .map(i => `${i.quantity}x ${i.name}`)
+                           .join(', ');
+
+  const [form, setForm] = useState({ warehouseId: '', cylinderCount: Math.max(1, cartCylinderCount), paymentMode: 'cod', line1: '', line2: '', city: '', state: '', pincode: '', notes: initialNotes ? `Accessories requested: ${initialNotes}` : '', priority: 'normal' });
 
   useEffect(() => {
     if (user && user.kycStatus !== 'verified') {
@@ -98,6 +105,7 @@ export default function CreateOrder() {
                 razorpaySignature: response.razorpay_signature,
               });
               toast('Payment Successful!', `Order ${orderData.orderId} confirmed`, 'success');
+              clearCart();
               navigate('/customer/orders');
             } catch (verr) {
               toast('Payment Verification Failed', verr.response?.data?.message || 'Contact support', 'error');
@@ -117,6 +125,7 @@ export default function CreateOrder() {
         paymentObject.open();
       } else {
         toast('Order placed!', `Order ${orderData.orderId} confirmed`, 'success'); 
+        clearCart();
         navigate('/customer/orders');
       }
     } catch (err) {

@@ -30,10 +30,18 @@ import AdminInventory from './pages/admin/AdminInventory';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminNotifications from './pages/admin/AdminNotifications';
 import BroadcastCenter from './pages/admin/BroadcastCenter';
+import AdminSupport from './pages/admin/AdminSupport';
 
 // Agent
 import AgentDashboard from './pages/agent/AgentDashboard';
 import AgentActiveDelivery from './pages/agent/AgentActiveDelivery';
+import AgentDeliveries from './pages/agent/AgentDeliveries';
+import AgentRoute from './pages/agent/AgentRoute';
+import AgentQueue from './pages/agent/AgentQueue';
+import AgentEarnings from './pages/agent/AgentEarnings';
+import AgentPerformance from './pages/agent/AgentPerformance';
+import AgentNotifications from './pages/agent/AgentNotifications';
+import AgentProfile from './pages/agent/AgentProfile';
 
 function AppRoutes() {
   return (
@@ -73,6 +81,7 @@ function AppRoutes() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="broadcast" element={<BroadcastCenter />} />
+        <Route path="support" element={<AdminSupport />} />
       </Route>
 
       {/* Agent routes */}
@@ -82,6 +91,13 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route index element={<AgentDashboard />} />
+        <Route path="deliveries" element={<AgentDeliveries />} />
+        <Route path="route" element={<AgentRoute />} />
+        <Route path="queue" element={<AgentQueue />} />
+        <Route path="earnings" element={<AgentEarnings />} />
+        <Route path="performance" element={<AgentPerformance />} />
+        <Route path="notifications" element={<AgentNotifications />} />
+        <Route path="profile" element={<AgentProfile />} />
         <Route path="orders" element={<AgentDashboard />} />
         <Route path="delivery/:orderId" element={<AgentActiveDelivery />} />
         <Route path="chat/:roomId" element={<ChatPage />} />
@@ -94,17 +110,20 @@ function AppRoutes() {
 }
 
 import { WhatsAppWidget } from './components/WhatsAppWidget';
+import { CartProvider } from './context/CartContext';
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ToastProvider>
-          <SocketProvider>
-            <AppRoutes />
-            <WhatsAppWidget />
-          </SocketProvider>
-        </ToastProvider>
+        <CartProvider>
+          <ToastProvider>
+            <SocketProvider>
+              <AppRoutes />
+              <WhatsAppWidget />
+            </SocketProvider>
+          </ToastProvider>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );
