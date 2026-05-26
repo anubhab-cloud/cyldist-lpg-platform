@@ -161,6 +161,10 @@ const userSchema = new mongoose.Schema(
       submittedAt: { type: Date },
       verifiedAt: { type: Date },
     },
+    processedPayments: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

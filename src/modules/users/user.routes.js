@@ -26,6 +26,8 @@ router.patch('/me/password', validate({ body: changePasswordSchema }), controlle
 router.post('/me/addresses', validate({ body: addressSchema }), controller.addMyAddress);
 router.delete('/me/addresses/:addressId', controller.removeMyAddress);
 router.post('/me/wallet/add', validate({ body: z.object({ amount: z.number().positive() }) }), controller.addWalletFunds);
+router.post('/me/wallet/deposit', validate({ body: z.object({ amount: z.number().positive() }) }), controller.initiateWalletDeposit);
+router.post('/me/wallet/verify', validate({ body: z.object({ razorpayPaymentId: z.string(), razorpayOrderId: z.string(), razorpaySignature: z.string() }) }), controller.verifyWalletDeposit);
 const upload = require('../../shared/middleware/upload.middleware');
 
 router.post('/me/kyc', upload.single('documentImage'), validate({ body: z.object({ documentType: z.enum(['Aadhar', 'PAN', 'VoterID']), documentNumber: z.string().min(5) }) }), controller.submitKyc);

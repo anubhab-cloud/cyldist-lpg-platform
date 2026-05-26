@@ -4,6 +4,17 @@ const userRepository = require('./user.repository');
 const AppError = require('../../shared/utils/AppError');
 const User = require('./user.model');
 const Order = require('../orders/order.model');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const config = require('../../config');
+
+let razorpayInstance = null;
+if (config.razorpay.keyId && config.razorpay.keySecret) {
+  razorpayInstance = new Razorpay({
+    key_id: config.razorpay.keyId,
+    key_secret: config.razorpay.keySecret,
+  });
+}
 
 /**
  * User management service.
@@ -172,6 +183,83 @@ class UserService {
     );
     
     return performanceData;
+  }
+
+  async initiateWalletDeposit(userId, amount) {
+    if (amount <= 0) throw new AppError('Amount must be greater than zero.', 400);
+    
+    if (!razorpayInstance) {
+      throw new AppError('Razorpay is not configured on the server.', 500);
+    }
+    
+    try {
+      const rpOrder = await razorpayInstance.orders.create({
+        amount: amount * 100, // in paise
+        currency: 'INR',
+        receipt: `deposit_${Date.now()}`,
+      });
+      
+      return {
+        razorpayOrderId: rpOrder.id,
+        amount,
+        currency: 'INR',
+      };
+    } catch (err) {
+      const errorMsg = err.error?.description || err.message || JSON.stringify(err);
+      throw new AppError('Failed to create Razorpay deposit order. ' + errorMsg, 500);
+    }
+  }
+
+  async verifyWalletDeposit(userId, payload) {
+    const { razorpayPaymentId, razorpayOrderId, razorpaySignature } = payload;
+    
+    if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+      throw new AppError('Missing payment verification metadata.', 400);
+    }
+    
+    if (!razorpayInstance) {
+      throw new AppError('Razorpay is not configured on the server.', 500);
+    }
+    
+    // 1. Verify Signature
+    const body = razorpayOrderId + "|" + razorpayPaymentId;
+    const expectedSignature = crypto
+      .createHmac('sha256', config.razorpay.keySecret)
+      .update(body.toString())
+      .digest('hex');
+      
+    if (expectedSignature !== razorpaySignature) {
+      throw new AppError('Payment signature verification failed.', 400);
+    }
+    
+    // 2. Prevent Double Deposit Replays
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found.', 404);
+    
+    if (user.processedPayments.includes(razorpayPaymentId)) {
+      throw new AppError('This payment has already been credited to your wallet.', 400);
+    }
+    
+    // 3. Fetch from Razorpay to guarantee correct amount
+    let rpOrder;
+    try {
+      rpOrder = await razorpayInstance.orders.fetch(razorpayOrderId);
+    } catch (err) {
+      throw new AppError('Failed to fetch and verify deposit order: ' + err.message, 500);
+    }
+    
+    if (rpOrder.status !== 'paid') {
+      throw new AppError('This deposit order has not been paid on Razorpay.', 400);
+    }
+    
+    const creditedAmount = rpOrder.amount / 100; // convert back to rupees
+    
+    // 4. Atomically credit funds and add signature to processed list
+    user.walletBalance += creditedAmount;
+    user.processedPayments.push(razorpayPaymentId);
+    await user.save();
+    
+    return user;
   }
 }
 

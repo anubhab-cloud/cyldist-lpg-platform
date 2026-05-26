@@ -117,9 +117,21 @@ const getAgentsPerformance = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Agents performance analytics fetched.', performance);
 });
 
+const initiateWalletDeposit = asyncHandler(async (req, res) => {
+  const { amount } = req.body;
+  const deposit = await userService.initiateWalletDeposit(req.user.id, Number(amount));
+  return response.success(res, 201, 'Wallet deposit order initiated.', deposit);
+});
+
+const verifyWalletDeposit = asyncHandler(async (req, res) => {
+  const user = await userService.verifyWalletDeposit(req.user.id, req.body);
+  return response.success(res, 200, 'Wallet deposit verified and credited successfully.', user);
+});
+
 module.exports = {
   getMyProfile, updateMyProfile, changeMyPassword,
   addMyAddress, removeMyAddress, addWalletFunds, submitKyc, updateDutyStatus,
   listUsers, getUserById, changeUserRole, toggleUserActive, getAvailableAgents,
-  listPendingKyc, updateKycStatus, getAgentsPerformance,
+  listPendingKyc, updateKycStatus, getAgentsPerformance, initiateWalletDeposit,
+  verifyWalletDeposit,
 };
