@@ -112,9 +112,14 @@ const getAvailableAgents = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Available agents fetched.', agents);
 });
 
+const getAgentsPerformance = asyncHandler(async (req, res) => {
+  const performance = await userService.getAgentsPerformance();
+  return response.success(res, 200, 'Agents performance analytics fetched.', performance);
+});
+
 module.exports = {
   getMyProfile, updateMyProfile, changeMyPassword,
   addMyAddress, removeMyAddress, addWalletFunds, submitKyc, updateDutyStatus,
   listUsers, getUserById, changeUserRole, toggleUserActive, getAvailableAgents,
-  listPendingKyc, updateKycStatus,
+  listPendingKyc, updateKycStatus, getAgentsPerformance,
 };

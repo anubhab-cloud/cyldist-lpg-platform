@@ -40,6 +40,7 @@ router.patch(
 
 // --- Admin routes ---
 router.get('/kyc/pending', authorize('admin'), controller.listPendingKyc);
+router.get('/agents/performance', authorize('admin'), controller.getAgentsPerformance);
 router.get('/', authorize('admin'), validate({ query: listUsersQuerySchema }), controller.listUsers);
 router.get('/available-agents', authorize('admin'), controller.getAvailableAgents);
 router.get('/:id', authorize('admin'), controller.getUserById);

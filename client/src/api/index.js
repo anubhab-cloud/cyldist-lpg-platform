@@ -24,6 +24,7 @@ export const usersAPI = {
   getAvailableAgents: () => api.get('/users/available-agents'),
   getPendingKyc: () => api.get('/users/kyc/pending'),
   updateKycStatus: (id, status) => api.patch(`/users/${id}/kyc-status`, { status }),
+  getAgentsPerformance: () => api.get('/users/agents/performance'),
 };
 
 export const ordersAPI = {

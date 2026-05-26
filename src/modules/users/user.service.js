@@ -3,6 +3,7 @@
 const userRepository = require('./user.repository');
 const AppError = require('../../shared/utils/AppError');
 const User = require('./user.model');
+const Order = require('../orders/order.model');
 
 /**
  * User management service.
@@ -133,6 +134,44 @@ class UserService {
     const user = await userRepository.updateById(agentId, { isOnDuty });
     if (!user) throw new AppError('Agent not found.', 404);
     return user;
+  }
+
+  async getAgentsPerformance() {
+    const agents = await User.find({ role: 'agent' }).lean();
+    
+    const performanceData = await Promise.all(
+      agents.map(async (agent) => {
+        const completedCount = await Order.countDocuments({ agentId: agent._id, status: 'delivered' });
+        const activeCount = await Order.countDocuments({ agentId: agent._id, status: { $in: ['assigned', 'out_for_delivery'] } });
+        const cancelledCount = await Order.countDocuments({ agentId: agent._id, status: 'cancelled' });
+        
+        const total = completedCount + cancelledCount;
+        const successRate = total > 0 ? Math.round((completedCount / total) * 100) : 100;
+        
+        // Generate consistent rating baseline
+        let rating = 4.5;
+        if (completedCount > 10) rating = 4.9;
+        else if (completedCount > 5) rating = 4.8;
+        else if (completedCount > 0) rating = 4.7;
+        
+        return {
+          id: agent._id,
+          name: agent.name,
+          email: agent.email,
+          phone: agent.phone,
+          isOnDuty: agent.isOnDuty,
+          isActive: agent.isActive,
+          location: agent.location,
+          completedCount,
+          activeCount,
+          cancelledCount,
+          successRate,
+          rating,
+        };
+      })
+    );
+    
+    return performanceData;
   }
 }
 

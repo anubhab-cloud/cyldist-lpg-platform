@@ -93,6 +93,7 @@ export function AdminSidebar() {
       { to: '/admin/orders', icon: '◫', label: 'Orders' },
       { to: '/admin/inventory', icon: '⊞', label: 'Inventory' },
       { to: '/admin/users', icon: '◔', label: 'Users' },
+      { to: '/admin/agents', icon: '📊', label: 'Agent Performance' },
       { to: '/admin/broadcast', icon: '📣', label: 'Broadcasts' },
       { to: '/admin/crisis', icon: '🚨', label: 'Crisis Queue' },
       { to: '/admin/notifications', icon: '🔔', label: 'Notifications' },

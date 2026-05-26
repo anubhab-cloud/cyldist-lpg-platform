@@ -33,6 +33,7 @@ import AdminNotifications from './pages/admin/AdminNotifications';
 import BroadcastCenter from './pages/admin/BroadcastCenter';
 import AdminSupport from './pages/admin/AdminSupport';
 import CrisisDashboard from './pages/admin/CrisisDashboard';
+import AdminAgents from './pages/admin/AdminAgents';
 
 // Agent
 import AgentDashboard from './pages/agent/AgentDashboard';
@@ -86,6 +87,7 @@ function AppRoutes() {
         <Route path="broadcast" element={<BroadcastCenter />} />
         <Route path="support" element={<AdminSupport />} />
         <Route path="crisis" element={<CrisisDashboard />} />
+        <Route path="agents" element={<AdminAgents />} />
       </Route>
 
       {/* Agent routes */}
