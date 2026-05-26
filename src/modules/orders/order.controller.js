@@ -86,6 +86,12 @@ const assignAgent = asyncHandler(async (req, res) => {
   const order = await orderService.assignAgent(
     req.params.orderId, agentId, estimatedDeliveryTime, req.user.id
   );
+  
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`order:${order.orderId}`).emit('order:status_updated', order);
+  }
+
   return response.success(res, 200, 'Agent assigned successfully.', order);
 });
 
@@ -95,6 +101,12 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await orderService.updateStatus(
     req.params.orderId, status, note, req.user.id, req.user.role, deliveryOtp, extraData
   );
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`order:${order.orderId}`).emit('order:status_updated', order);
+  }
+
   return response.success(res, 200, `Order status updated to '${status}'.`, order);
 });
 
@@ -105,6 +117,12 @@ const rejectOrder = asyncHandler(async (req, res) => {
   const order = await orderService.updateStatus(
     req.params.orderId, 'cancelled', reason, req.user.id, req.user.role, undefined, extraData
   );
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`order:${order.orderId}`).emit('order:status_updated', order);
+  }
+
   return response.success(res, 200, 'Order rejected successfully.', order);
 });
 
@@ -117,6 +135,12 @@ const cancelOrder = asyncHandler(async (req, res) => {
   const order = await orderService.cancelOrder(
     req.params.orderId, req.body.reason, req.user.id, req.user.role
   );
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`order:${order.orderId}`).emit('order:status_updated', order);
+  }
+
   return response.success(res, 200, 'Order cancelled.', order);
 });
 

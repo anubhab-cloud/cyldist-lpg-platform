@@ -51,15 +51,24 @@ export default function TrackOrder() {
     deliveryAPI.getLocation(orderId).then(r => setLocation(r.data.data)).catch(() => {});
   }, [order, orderId]);
 
-  // Subscribe to real-time location updates once socket is ready
+  // Subscribe to real-time location and status updates once socket is ready
   useEffect(() => {
     if (!socket || !connected || !orderId) return;
     socket.emit('subscribe:order_tracking', { orderId });
+    
     socket.on('location:updated', (data) => {
       if (data.orderId === orderId) setLocation(data);
     });
+    
+    socket.on('order:status_updated', (updatedOrder) => {
+      if (updatedOrder.orderId === orderId) {
+        setOrder(updatedOrder);
+      }
+    });
+    
     return () => {
       socket.off('location:updated');
+      socket.off('order:status_updated');
       socket.emit('unsubscribe:order_tracking', { orderId });
     };
   }, [socket, connected, orderId]);

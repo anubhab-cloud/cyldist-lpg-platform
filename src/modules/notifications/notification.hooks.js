@@ -42,9 +42,10 @@ async function sendOutForDeliveryNotification({ order, customer }) {
     orderId: order?.orderId,
   });
   if (customer?.phone) {
+    const otpText = order?.deliveryOtp ? ` Your delivery verification OTP is *${order.deliveryOtp}*. Please share this code with the agent upon arrival to confirm delivery.` : '';
     await whatsappService.sendTextMessage(
       customer.phone,
-      `Your cylinder delivery #${order?.orderId} is OUT FOR DELIVERY. Keep your empty cylinder ready.`
+      `Your cylinder delivery #${order?.orderId} is OUT FOR DELIVERY. Keep your empty cylinder ready.${otpText}`
     );
   }
 }

@@ -329,7 +329,7 @@ class OrderService {
       extraFields.deliveryOtp = otp;
       const customer = await userRepository.findById(order.customerId._id || order.customerId);
       if (customer?.email) {
-        emailService.send2FAEmail(customer.email, otp).catch(() => {});
+        emailService.sendDeliveryOtpEmail(customer.email, otp, order.orderId).catch(() => {});
       }
     }
 

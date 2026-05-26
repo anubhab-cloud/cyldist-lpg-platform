@@ -59,7 +59,31 @@ const send2FAEmail = async (to, otp) => {
   return sendEmail(to, subject, text, html);
 };
 
+/**
+ * Send a Cylinder Delivery Verification OTP Email
+ * @param {string} to - Recipient email address
+ * @param {string} otp - The 4-digit OTP
+ * @param {string} orderId - The order ID
+ */
+const sendDeliveryOtpEmail = async (to, otp, orderId) => {
+  const subject = `Delivery Verification Code for Order #${orderId}`;
+  const text = `Your cylinder delivery verification code is ${otp}. Please share this with the agent to confirm delivery.`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+      <h2 style="color: #6366f1; text-align: center;">Cylinder Delivery OTP</h2>
+      <p style="font-size: 16px; color: #333;">Hello,</p>
+      <p style="font-size: 16px; color: #333;">Your cylinder delivery for Order <strong>#${orderId}</strong> is on the way! Please share the following verification code with your delivery agent to receive your cylinders:</p>
+      <div style="background: #f4f3ec; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #08060d;">${otp}</span>
+      </div>
+      <p style="font-size: 14px; color: #666; text-align: center;">For security, only share this code once the agent arrives with your cylinders.</p>
+    </div>
+  `;
+  return sendEmail(to, subject, text, html);
+};
+
 module.exports = {
   sendEmail,
   send2FAEmail,
+  sendDeliveryOtpEmail,
 };
