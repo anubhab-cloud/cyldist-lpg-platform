@@ -11,7 +11,7 @@ export default function ChatPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { socket } = useSocket() || {};
+  const { socket, connected } = useSocket() || {};
 
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState('');
@@ -53,28 +53,64 @@ export default function ChatPage() {
   // Socket
   useEffect(() => {
     if (!socket) return;
-    socket.emit('chat:join', { chatRoomId: roomId });
+
+    const joinRoom = () => {
+      console.log('[Socket] Emitting chat:join for room:', roomId);
+      socket.emit('chat:join', { chatRoomId: roomId });
+    };
+
+    // Join room immediately if already connected
+    if (socket.connected) {
+      joinRoom();
+    }
+
+    // Join room upon connection / reconnection events
+    socket.on('connect', joinRoom);
+
     socket.on('chat:history', ({ messages: hist }) => setMessages(hist || []));
     socket.on('chat:message',  (msg) => setMessages(prev => [...prev, msg]));
     socket.on('chat:typing',   ({ userId }) => { if (userId !== user.id) setOtherTyping(true); });
     socket.on('chat:stop_typing', ({ userId }) => { if (userId !== user.id) setOtherTyping(false); });
     socket.on('chat:read_receipt', () => {});
+    
     return () => {
       socket.emit('chat:leave', { chatRoomId: roomId });
+      socket.off('connect', joinRoom);
       ['chat:history','chat:message','chat:typing','chat:stop_typing','chat:read_receipt']
         .forEach(ev => socket.off(ev));
     };
   }, [socket, roomId, user?.id]);
 
-  const sendMessage = useCallback(() => {
-    if (!input.trim() || !socket) return;
-    socket.emit('chat:send', { chatRoomId: roomId, content: input.trim() });
+  const sendMessage = useCallback(async () => {
+    if (!input.trim()) return;
+    const content = input.trim();
     setInput('');
-    socket.emit('chat:stop_typing', { chatRoomId: roomId });
     clearTimeout(typingTimeout.current);
     setTyping(false);
     textareaRef.current?.focus();
-  }, [input, socket, roomId]);
+
+    try {
+      if (socket && connected) {
+        socket.emit('chat:stop_typing', { chatRoomId: roomId });
+      }
+      const res = await chatAPI.sendMessage(roomId, content);
+      
+      // If socket is disconnected, append the message locally so the sender sees it immediately
+      if (!connected) {
+        const newMsg = res.data?.data;
+        if (newMsg) {
+          setMessages(prev => {
+            if (prev.some(m => m._id === newMsg._id || m.messageId === newMsg.messageId)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Chat] Failed to send message:', err);
+      setInput(content);
+      alert(err.response?.data?.message || 'Failed to send message. Please try again.');
+    }
+  }, [input, socket, connected, roomId]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -135,8 +171,14 @@ export default function ChatPage() {
             {otherUser?.name || (user.role === 'customer' ? 'Delivery Agent' : 'Customer')}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
-            Order: <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{roomId?.split('-')[0]?.toUpperCase()}</span>
+            <span style={{
+              width: 7, height: 7, borderRadius: '50%',
+              background: connected ? '#10b981' : '#ef4444',
+              display: 'inline-block',
+              boxShadow: connected ? '0 0 8px rgba(16,185,129,0.5)' : '0 0 8px rgba(239,68,68,0.5)',
+              transition: 'all 0.3s'
+            }}></span>
+            {connected ? 'Live' : 'Connecting...'} · Order: <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{roomId?.split('-')[0]?.toUpperCase()}</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use strict';
 
+const mongoose = require('mongoose');
 const chatRepository = require('./chat.repository');
 const orderRepository = require('../orders/order.repository');
 const AppError = require('../../shared/utils/AppError');
@@ -16,7 +17,13 @@ class ChatService {
    * @param {object} user
    */
   async _assertAccess(chatRoomId, user) {
-    const order = await orderRepository.findByOrderId(chatRoomId);
+    let order = await orderRepository.findByOrderId(chatRoomId);
+
+    // Fallback: If not found by UUID orderId, try querying by MongoDB ObjectId
+    if (!order && mongoose.Types.ObjectId.isValid(chatRoomId)) {
+      order = await orderRepository.findById(chatRoomId);
+    }
+
     if (!order) throw new AppError('Chat room not found.', 404);
 
     // Admin can access any chat room

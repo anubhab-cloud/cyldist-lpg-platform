@@ -30,7 +30,9 @@ export function SocketProvider({ children }) {
     
     console.log('[Socket] Connecting to:', SOCKET_URL);
     const s = io(SOCKET_URL, {
-      auth: { token },
+      auth: (cb) => {
+        cb({ token: localStorage.getItem('accessToken') });
+      },
       transports: ['websocket', 'polling'],
       reconnectionDelay: 2000,
       reconnectionAttempts: 10,
@@ -45,6 +47,12 @@ export function SocketProvider({ children }) {
     });
     s.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);
+      if (err.message.includes('expired') || err.message.includes('Authentication')) {
+        // Force update the auth token and retry connection with fresh credentials
+        const freshToken = localStorage.getItem('accessToken');
+        s.auth = { token: freshToken };
+        s.connect();
+      }
     });
     s.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);

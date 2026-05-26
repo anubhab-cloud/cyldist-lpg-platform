@@ -21,6 +21,7 @@ export default function Login() {
   const [error, setError]         = useState('');
   const [loginMode, setLoginMode] = useState('password');
   const [otpSent, setOtpSent]     = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -122,7 +123,7 @@ export default function Login() {
 
       {/* ── TOP NAV BAR ── */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
         padding: '1.25rem 2.5rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: 'linear-gradient(to bottom, rgba(10,11,15,0.7), transparent)',
@@ -141,6 +142,27 @@ export default function Login() {
           <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
             Cyl<span style={{ color: '#818cf8' }}>Dist</span>
           </span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
+          style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}
+        >
+          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 600 }}>Access Portal?</span>
+          <motion.button
+            whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(99,102,241,0.45)', background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowModal(true)}
+            style={{
+              padding: '0.6rem 1.35rem', borderRadius: '30px',
+              background: 'linear-gradient(135deg, #6366f1, #a855f7)', border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(99,102,241,0.25)',
+              backdropFilter: 'blur(10px)', transition: 'all 0.2s',
+            }}
+          >
+            🔓 Sign In
+          </motion.button>
         </motion.div>
       </div>
 
@@ -201,190 +223,217 @@ export default function Login() {
       </motion.div>
 
       {/* ── CENTERED LOGIN FORM (floating over 3D) ── */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        pointerEvents: 'none',
-      }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          style={{ pointerEvents: 'auto' }}
-        >
+      <AnimatePresence>
+        {showModal && (
           <div style={{
-            width: 400,
-            background: 'rgba(15, 16, 22, 0.75)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 24,
-            padding: '2rem',
-            boxShadow: '0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1)',
-          }}>
-            {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+            position: 'absolute', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(5, 5, 8, 0.45)',
+            backdropFilter: 'blur(5px)',
+            pointerEvents: 'auto',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.92 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div style={{
-                width: 52, height: 52, borderRadius: 16,
-                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.6rem', margin: '0 auto 1rem',
-                boxShadow: '0 8px 25px rgba(99,102,241,0.4)',
-              }}>🛢</div>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>Welcome back</h1>
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', margin: '0.35rem 0 0' }}>Sign in to CylDist Platform</p>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div style={{
-                padding: '0.625rem 0.875rem', borderRadius: 10, marginBottom: '1rem',
-                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
-                color: '#f87171', fontSize: '0.82rem',
-              }}>{error}</div>
-            )}
-
-            {/* Mode toggle */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4 }}>
-              {['password', 'otp'].map(mode => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => switchMode(mode)}
+                width: 400,
+                background: 'rgba(15, 16, 22, 0.82)',
+                backdropFilter: 'blur(28px)',
+                WebkitBackdropFilter: 'blur(28px)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '24px',
+                padding: '2.5rem 2rem 2rem',
+                position: 'relative',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15)',
+              }}>
+                {/* Close Button inside Card */}
+                <button 
+                  onClick={() => setShowModal(false)}
                   style={{
-                    flex: 1, padding: '0.5rem', borderRadius: 9, border: 'none', cursor: 'pointer',
-                    fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s',
-                    background: loginMode === mode ? 'rgba(99,102,241,0.8)' : 'transparent',
-                    color: loginMode === mode ? '#fff' : 'rgba(255,255,255,0.4)',
-                    backdropFilter: loginMode === mode ? 'blur(8px)' : 'none',
+                    position: 'absolute', top: '1.25rem', right: '1.25rem',
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '50%', width: '32px', height: '32px', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    color: 'rgba(255,255,255,0.4)', transition: 'all 0.2s', fontSize: '1rem',
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                 >
-                  {mode === 'password' ? '🔑 Password' : '📱 OTP'}
+                  ×
                 </button>
-              ))}
-            </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-
-              {loginMode === 'password' && (
-                <>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Email Address</label>
-                    <input
-                      type="email" placeholder="you@example.com"
-                      value={form.email} onChange={set('email')} required
-                      style={{
-                        width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
-                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#fff', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Password</label>
-                    <input
-                      type="password" placeholder="••••••••"
-                      value={form.password} onChange={set('password')} required
-                      style={{
-                        width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
-                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#fff', fontSize: '0.9rem', outline: 'none',
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {loginMode === 'otp' && !otpSent && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Email or Phone</label>
-                  <input
-                    type="text" placeholder="you@example.com or +919876543210"
-                    value={form.email || form.phone}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val.includes('@')) setForm(p => ({ ...p, email: val, phone: '' }));
-                      else setForm(p => ({ ...p, phone: val, email: '' }));
-                    }}
-                    required
-                    style={{
-                      width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff', fontSize: '0.9rem', outline: 'none',
-                    }}
-                  />
-                </div>
-              )}
-
-              {loginMode === 'otp' && otpSent && (
-                <>
+                {/* Header */}
+                <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
                   <div style={{
-                    padding: '0.6rem 0.875rem', borderRadius: 10,
-                    background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-                    color: '#34d399', fontSize: '0.78rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  }}>
-                    <span>✅ OTP sent to <b>{form.email || form.phone}</b></span>
-                    <button type="button" onClick={() => setOtpSent(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.72rem' }}>← Change</button>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>6-digit OTP</label>
-                    <input
-                      type="text" placeholder="123456" value={form.otp} onChange={set('otp')} maxLength={6} required autoFocus
+                    width: 52, height: 52, borderRadius: 16,
+                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.6rem', margin: '0 auto 1rem',
+                    boxShadow: '0 8px 25px rgba(99,102,241,0.4)',
+                  }}>🛢</div>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.5px' }}>Welcome back</h1>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', margin: '0.35rem 0 0' }}>Sign in to CylDist Platform</p>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div style={{
+                    padding: '0.625rem 0.875rem', borderRadius: 10, marginBottom: '1rem',
+                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                    color: '#f87171', fontSize: '0.82rem',
+                  }}>{error}</div>
+                )}
+
+                {/* Mode toggle */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4 }}>
+                  {['password', 'otp'].map(mode => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => switchMode(mode)}
                       style={{
-                        width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
-                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#fff', fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'monospace',
+                        flex: 1, padding: '0.5rem', borderRadius: 9, border: 'none', cursor: 'pointer',
+                        fontWeight: 600, fontSize: '0.8rem', transition: 'all 0.2s',
+                        background: loginMode === mode ? 'rgba(99,102,241,0.8)' : 'transparent',
+                        color: loginMode === mode ? '#fff' : 'rgba(255,255,255,0.4)',
+                        backdropFilter: loginMode === mode ? 'blur(8px)' : 'none',
                       }}
-                    />
+                    >
+                      {mode === 'password' ? '🔑 Password' : '📱 OTP'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+
+                  {loginMode === 'password' && (
+                    <>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Email Address</label>
+                        <input
+                          type="email" placeholder="you@example.com"
+                          value={form.email} onChange={set('email')} required
+                          style={{
+                            width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
+                            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff', fontSize: '0.9rem', outline: 'none', transition: 'border 0.2s',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Password</label>
+                        <input
+                          type="password" placeholder="••••••••"
+                          value={form.password} onChange={set('password')} required
+                          style={{
+                            width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
+                            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff', fontSize: '0.9rem', outline: 'none',
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {loginMode === 'otp' && !otpSent && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>Email or Phone</label>
+                      <input
+                        type="text" placeholder="you@example.com or +919876543210"
+                        value={form.email || form.phone}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val.includes('@')) setForm(p => ({ ...p, email: val, phone: '' }));
+                          else setForm(p => ({ ...p, phone: val, email: '' }));
+                        }}
+                        required
+                        style={{
+                          width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
+                          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#fff', fontSize: '0.9rem', outline: 'none',
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {loginMode === 'otp' && otpSent && (
+                    <>
+                      <div style={{
+                        padding: '0.6rem 0.875rem', borderRadius: 10,
+                        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                        color: '#34d399', fontSize: '0.78rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      }}>
+                        <span>✅ OTP sent to <b>{form.email || form.phone}</b></span>
+                        <button type="button" onClick={() => setOtpSent(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.72rem' }}>← Change</button>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>6-digit OTP</label>
+                        <input
+                          type="text" placeholder="123456" value={form.otp} onChange={set('otp')} maxLength={6} required autoFocus
+                          style={{
+                            width: '100%', padding: '0.7rem 0.875rem', borderRadius: 10, boxSizing: 'border-box',
+                            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff', fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'monospace',
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    type="submit" disabled={loading}
+                    style={{
+                      width: '100%', padding: '0.875rem', borderRadius: 12, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                      background: loading ? 'rgba(99,102,241,0.5)' : 'linear-gradient(135deg, #6366f1, #a855f7)',
+                      color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+                      boxShadow: loading ? 'none' : '0 8px 25px rgba(99,102,241,0.4)',
+                      transition: 'all 0.2s', marginTop: '0.25rem',
+                    }}
+                  >
+                    {loading ? '⏳ Please wait...' : loginMode === 'otp' && otpSent ? '✅ Verify OTP →' : loginMode === 'otp' ? '📨 Send OTP →' : '🔓 Sign In →'}
+                  </button>
+                </form>
+
+                {/* Dev Quick Login */}
+                <div style={{ marginTop: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                  <div style={{ padding: '0.4rem 0.875rem', borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+                    🔧 Dev Quick Login
                   </div>
-                </>
-              )}
+                  {DEV_ACCOUNTS.map(({ label, email, password, role }, i) => (
+                    <button
+                      key={label} type="button" onClick={() => quickFill(email, password)}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.5rem 0.875rem', background: 'none', border: 'none', cursor: 'pointer',
+                        borderBottom: i < DEV_ACCOUNTS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                        textAlign: 'left', transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', minWidth: 72 }}>{role}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
+                      <code style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 5, color: '#818cf8', flexShrink: 0 }}>{password}</code>
+                    </button>
+                  ))}
+                </div>
 
-              <button
-                type="submit" disabled={loading}
-                style={{
-                  width: '100%', padding: '0.875rem', borderRadius: 12, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                  background: loading ? 'rgba(99,102,241,0.5)' : 'linear-gradient(135deg, #6366f1, #a855f7)',
-                  color: '#fff', fontWeight: 700, fontSize: '0.95rem',
-                  boxShadow: loading ? 'none' : '0 8px 25px rgba(99,102,241,0.4)',
-                  transition: 'all 0.2s', marginTop: '0.25rem',
-                }}
-              >
-                {loading ? '⏳ Please wait...' : loginMode === 'otp' && otpSent ? '✅ Verify OTP →' : loginMode === 'otp' ? '📨 Send OTP →' : '🔓 Sign In →'}
-              </button>
-            </form>
-
-            {/* Dev Quick Login */}
-            <div style={{ marginTop: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-              <div style={{ padding: '0.4rem 0.875rem', borderBottom: '1px solid rgba(255,255,255,0.07)', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-                🔧 Dev Quick Login
+                <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)' }}>
+                  New customer? <Link to="/register" style={{ color: '#818cf8', fontWeight: 600, textDecoration: 'none' }}>Create account</Link>
+                </div>
               </div>
-              {DEV_ACCOUNTS.map(({ label, email, password, role }, i) => (
-                <button
-                  key={label} type="button" onClick={() => quickFill(email, password)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    padding: '0.5rem 0.875rem', background: 'none', border: 'none', cursor: 'pointer',
-                    borderBottom: i < DEV_ACCOUNTS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                    textAlign: 'left', transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                >
-                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', minWidth: 72 }}>{role}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
-                  <code style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 5, color: '#818cf8', flexShrink: 0 }}>{password}</code>
-                </button>
-              ))}
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)' }}>
-              New customer? <Link to="/register" style={{ color: '#818cf8', fontWeight: 600, textDecoration: 'none' }}>Create account</Link>
-            </div>
+            </motion.div>
           </div>
-        </motion.div>
-      </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

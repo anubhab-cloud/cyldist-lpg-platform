@@ -60,7 +60,7 @@ export default function CustomerTrackingHub() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <Link to={`/customer/chat/${order.chatRoomId}`} className="btn btn-ghost">
+                    <Link to={`/customer/chat/${order.chatRoomId || order.orderId}`} className="btn btn-ghost">
                       💬 Chat
                     </Link>
                     {order.status === 'out_for_delivery' ? (

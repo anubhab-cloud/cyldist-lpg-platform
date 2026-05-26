@@ -199,9 +199,21 @@ export default function AgentActiveDelivery() {
   const chatRoomId = order?.chatRoomId || order?.orderId || orderId;
   useEffect(() => {
     if (!socket || !chatRoomId) return;
-    socket.emit('chat:join', { chatRoomId });
+
+    const joinRoom = () => {
+      console.log('[Socket] Emitting chat:join for agent, room:', chatRoomId);
+      socket.emit('chat:join', { chatRoomId });
+    };
+
+    if (socket.connected) {
+      joinRoom();
+    }
+
+    socket.on('connect', joinRoom);
+
     return () => {
       socket.emit('chat:leave', { chatRoomId });
+      socket.off('connect', joinRoom);
     };
   }, [socket, chatRoomId]);
 
@@ -290,14 +302,16 @@ export default function AgentActiveDelivery() {
 
   // ── Quick messages ──
   const sendQuickMsg = async (text) => {
-    if (!socket) {
-      toast('No socket', 'Real-time connection not available', 'error'); return;
-    }
     const room = order?.chatRoomId || order?.orderId || orderId;
     setSendingQuick(true);
-    socket.emit('chat:send', { chatRoomId: room, content: text });
-    toast('Message sent ✓', text.slice(0, 40), 'success');
-    setTimeout(() => setSendingQuick(false), 600);
+    try {
+      await chatAPI.sendMessage(room, text);
+      toast('Message sent ✓', text.slice(0, 40), 'success');
+    } catch (err) {
+      toast('Error', err.response?.data?.message || 'Failed to send quick message', 'error');
+    } finally {
+      setTimeout(() => setSendingQuick(false), 600);
+    }
   };
 
   // ── Computed ──

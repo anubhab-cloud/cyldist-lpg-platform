@@ -272,7 +272,7 @@ export default function CustomerDashboard() {
                   <Link to={`/customer/track/${activeOrder.orderId}`} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'var(--primary)' }}>
                     📍 Track Live Map
                   </Link>
-                  <Link to={`/customer/chat/${activeOrder.chatRoomId}`} className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>
+                  <Link to={`/customer/chat/${activeOrder.chatRoomId || activeOrder.orderId}`} className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>
                     💬 Contact Agent
                   </Link>
                 </div>

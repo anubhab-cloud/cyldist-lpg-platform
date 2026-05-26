@@ -16,9 +16,19 @@ async function test() {
 
   const agentToken = await loginAndGetToken('rajesh.agent@cylinderplatform.com', 'Agent@123456');
   const customerToken = await loginAndGetToken('amit@example.com', 'Customer@123');
-  const roomId = 'f7d51973-6f08-43ac-a7ae-46407a3ed285';
+  
+  // Dynamically fetch the customer's active order to get a valid roomId
+  const ordersRes = await fetch('http://localhost:5000/api/v1/orders?limit=1', {
+    headers: { 'Authorization': `Bearer ${customerToken}` }
+  });
+  const ordersData = await ordersRes.json();
+  if (!ordersData.success || !ordersData.data || ordersData.data.length === 0) {
+    throw new Error('No orders found in database to test chat on. Please run "npm run seed" first.');
+  }
+  const order = ordersData.data[0];
+  const roomId = order.chatRoomId || order.orderId;
 
-  console.log('✓ Tokens obtained');
+  console.log(`✓ Tokens obtained. Dynamically selected order/room ID: ${roomId}`);
 
   // Connect both sockets
   const agentSocket = io('http://localhost:5000', { auth: { token: agentToken } });

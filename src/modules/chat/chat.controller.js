@@ -26,6 +26,14 @@ const sendMessage = asyncHandler(async (req, res) => {
   const message = await chatService.sendMessage(
     req.params.chatRoomId, req.user, req.body
   );
+
+  // Real-time broadcast to Socket.IO room
+  const io = req.app.get('io');
+  if (io) {
+    const room = `chat:${req.params.chatRoomId}`;
+    io.to(room).emit('chat:message', message);
+  }
+
   return response.success(res, 201, 'Message sent.', message);
 });
 
