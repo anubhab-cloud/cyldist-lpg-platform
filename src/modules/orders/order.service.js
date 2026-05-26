@@ -44,6 +44,55 @@ class OrderService {
       throw new AppError('KYC not verified. Please complete your KYC verification to book a cylinder.', 403);
     }
 
+    // 25-Day Booking Limit Check: Max 1 cylinder per 25 days (Configurable)
+    const maxCylinders = parseInt(process.env.MAX_CYLINDERS_PER_PERIOD !== undefined ? process.env.MAX_CYLINDERS_PER_PERIOD : config.booking.maxCylinders, 10);
+    const periodDays = parseInt(process.env.BOOKING_PERIOD_DAYS !== undefined ? process.env.BOOKING_PERIOD_DAYS : config.booking.periodDays, 10);
+
+    if (periodDays > 0) {
+      if (cylinderCount > maxCylinders) {
+        throw new AppError(`Cylinder booking limit exceeded. You can only book a maximum of ${maxCylinders} cylinder${maxCylinders > 1 ? 's' : ''} per ${periodDays} days.`, 400);
+      }
+
+      const mongoose = require('mongoose');
+      const limitStartDate = new Date();
+      limitStartDate.setDate(limitStartDate.getDate() - periodDays);
+
+      const recentCylindersCount = await Order.aggregate([
+        {
+          $match: {
+            customerId: new mongoose.Types.ObjectId(customerId),
+            status: { $ne: 'cancelled' },
+            createdAt: { $gte: limitStartDate },
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$cylinderCount' }
+          }
+        }
+      ]);
+
+      const currentCount = recentCylindersCount.length > 0 ? recentCylindersCount[0].total : 0;
+      if (currentCount + cylinderCount > maxCylinders) {
+        // Calculate remaining days for user feedback
+        const lastOrder = await Order.findOne({
+          customerId,
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: limitStartDate }
+        }).sort({ createdAt: -1 }).lean();
+
+        let daysRemaining = periodDays;
+        if (lastOrder) {
+          const diffTime = Math.abs(new Date() - new Date(lastOrder.createdAt));
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          daysRemaining = Math.max(1, periodDays - diffDays);
+        }
+
+        throw new AppError(`Booking limit exceeded. You have already booked a cylinder in the last ${periodDays} days. You can book your next cylinder in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}.`, 400);
+      }
+    }
+
     // Billing calculations
     const subTotal = pricePerCylinder * cylinderCount;
     const taxAmount = Math.round(subTotal * 0.05); // 5% GST

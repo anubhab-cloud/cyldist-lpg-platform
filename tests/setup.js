@@ -18,6 +18,8 @@ process.env.JWT_REFRESH_SECRET = 'test_refresh_secret_min_32_characters_long';
 process.env.MONGO_URI = 'mongodb://localhost/test'; // Will be overridden below
 process.env.PORT = '5001';
 process.env.LOG_LEVEL = 'error'; // Silence logs during tests
+process.env.MAX_CYLINDERS_PER_PERIOD = '10';
+process.env.BOOKING_PERIOD_DAYS = '0';
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();

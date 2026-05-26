@@ -233,4 +233,97 @@ describe('Orders API', () => {
       expect(res.status).toBe(403);
     });
   });
+
+  // ============================================
+  // Booking Period Limits (Max 1 Cyl / 25 Days)
+  // ============================================
+  describe('Booking Period Limits', () => {
+    let originalPeriod, originalMax;
+
+    beforeAll(() => {
+      originalPeriod = process.env.BOOKING_PERIOD_DAYS;
+      originalMax = process.env.MAX_CYLINDERS_PER_PERIOD;
+      
+      process.env.BOOKING_PERIOD_DAYS = '25';
+      process.env.MAX_CYLINDERS_PER_PERIOD = '1';
+    });
+
+    afterAll(() => {
+      process.env.BOOKING_PERIOD_DAYS = originalPeriod;
+      process.env.MAX_CYLINDERS_PER_PERIOD = originalMax;
+    });
+
+    it('should reject booking a single order with cylinderCount > 1', async () => {
+      const res = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress: { line1: '123 CP', city: 'Delhi', state: 'Delhi', pincode: '110001' },
+          cylinderCount: 2,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/limit exceeded/i);
+    });
+
+    it('should block placing a new order if one was placed in the last 25 days', async () => {
+      // 1. Place a successful order
+      const firstRes = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress: { line1: '123 CP', city: 'Delhi', state: 'Delhi', pincode: '110001' },
+          cylinderCount: 1,
+        });
+      expect(firstRes.status).toBe(201);
+
+      // 2. Place a second order
+      const secondRes = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress: { line1: '123 CP', city: 'Delhi', state: 'Delhi', pincode: '110001' },
+          cylinderCount: 1,
+        });
+
+      expect(secondRes.status).toBe(400);
+      expect(secondRes.body.message).toMatch(/already booked a cylinder/i);
+    });
+
+    it('should allow placing a new order if the previous order in the last 25 days was cancelled', async () => {
+      // 1. Place an order
+      const firstRes = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress: { line1: '123 CP', city: 'Delhi', state: 'Delhi', pincode: '110001' },
+          cylinderCount: 1,
+        });
+      expect(firstRes.status).toBe(201);
+      const orderId = firstRes.body.data.orderId;
+
+      // 2. Cancel the order
+      const cancelRes = await request(app)
+        .delete(`/api/v1/orders/${orderId}`)
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({ reason: 'Customer cancel' });
+      expect(cancelRes.status).toBe(200);
+
+      // 3. Place a new order — should be allowed now
+      const secondRes = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress: { line1: '123 CP', city: 'Delhi', state: 'Delhi', pincode: '110001' },
+          cylinderCount: 1,
+        });
+
+      expect(secondRes.status).toBe(201);
+    });
+  });
 });

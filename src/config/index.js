@@ -72,6 +72,11 @@ const config = {
     lowStockThreshold: parseInt(optional('LOW_STOCK_THRESHOLD', '10'), 10),
   },
 
+  booking: {
+    maxCylinders: parseInt(optional('MAX_CYLINDERS_PER_PERIOD', '1'), 10),
+    periodDays: parseInt(optional('BOOKING_PERIOD_DAYS', '25'), 10),
+  },
+
   notification: {
     smtp: {
       host: optional('SMTP_HOST', ''),
