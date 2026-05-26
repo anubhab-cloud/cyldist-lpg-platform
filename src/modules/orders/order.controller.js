@@ -109,7 +109,7 @@ const rejectOrder = asyncHandler(async (req, res) => {
 });
 
 const setPriority = asyncHandler(async (req, res) => {
-  const order = await orderService.setPriority(req.params.orderId, req.body.priority);
+  const order = await orderService.setPriority(req.params.orderId, req.body);
   return response.success(res, 200, 'Priority updated.', order);
 });
 

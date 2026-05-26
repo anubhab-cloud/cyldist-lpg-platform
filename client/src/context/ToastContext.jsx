@@ -13,8 +13,10 @@ export function ToastProvider({ children }) {
 
   const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
 
+  const showToast = useCallback((msg, type = 'info') => toast(msg, '', type), [toast]);
+
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={{ toast, showToast }}>
       {children}
       <div className="toast-container">
         {toasts.map(t => (

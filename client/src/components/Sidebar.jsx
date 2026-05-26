@@ -76,6 +76,7 @@ export function CustomerSidebar() {
       { to: '/customer/products', icon: '🛍', label: 'Products' },
       { to: '/customer/invoices', icon: '📄', label: 'Invoices' },
       { to: '/customer/track', icon: '📍', label: 'Tracking' },
+      { to: '/customer/crisis-status', icon: '⚠️', label: 'Crisis Status' },
       { to: '/customer/wallet', icon: '💳', label: 'Wallet' },
     ]},
     { label: 'HELP & SETTINGS', items: [
@@ -93,6 +94,7 @@ export function AdminSidebar() {
       { to: '/admin/inventory', icon: '⊞', label: 'Inventory' },
       { to: '/admin/users', icon: '◔', label: 'Users' },
       { to: '/admin/broadcast', icon: '📣', label: 'Broadcasts' },
+      { to: '/admin/crisis', icon: '🚨', label: 'Crisis Queue' },
       { to: '/admin/notifications', icon: '🔔', label: 'Notifications' },
       { to: '/admin/support', icon: '📞', label: 'Support Tickets' },
     ]},

@@ -78,14 +78,85 @@ class OrderService {
       }
     }
 
+    // Dynamic calculations for Crisis Mode / Emergency bookings
+    let isEmergency = false;
+    let emergencyCategory = null;
+    let emergencyDependents = 0;
+    let emergencyPurpose = '';
+    let gasRemainingPercent = null;
+    let lastRefillDate = null;
+    let averageMonthlyUsage = null;
+    let priorityScore = 0;
+    let hoardingPenaltyApplied = false;
+    let isFlaggedForManualReview = false;
+
+    if (data.isEmergency) {
+      isEmergency = true;
+      emergencyCategory = data.emergencyCategory || 'Other';
+      emergencyDependents = Number(data.emergencyDependents) || 0;
+      emergencyPurpose = data.emergencyPurpose || '';
+      gasRemainingPercent = Number(data.gasRemainingPercent) || 0;
+      averageMonthlyUsage = data.averageMonthlyUsage || '1 cyl';
+
+      // 1. Anti-Hoarding Check: Check orders count/volume in last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const ordersIn30Days = await Order.find({
+        customerId,
+        createdAt: { $gte: thirtyDaysAgo },
+        status: { $ne: 'cancelled' },
+      }).lean();
+      
+      const totalCylinders30Days = ordersIn30Days.reduce((sum, o) => sum + (o.cylinderCount || 0), 0);
+
+      // Check last refill recency within 7 days
+      let daysSinceLastRefill = 30; // Default fallback to safe distance
+      if (data.lastRefillDate) {
+        lastRefillDate = new Date(data.lastRefillDate);
+        const diffTime = Math.abs(new Date() - lastRefillDate);
+        daysSinceLastRefill = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      }
+
+      if (totalCylinders30Days > 2 || daysSinceLastRefill < 7) {
+        hoardingPenaltyApplied = true;
+        isFlaggedForManualReview = true;
+      }
+
+      // 2. Score breakdown calculations
+      // Category Weight: Hospital/Ambulance = 60, Old Age/Relief = 45, Hostel/Household = 30, Restaurant/Hotel = 15
+      let categoryWeight = 0;
+      if (['Hospital', 'Ambulance'].includes(emergencyCategory)) categoryWeight = 60;
+      else if (['Relief Center', 'Old Age Home'].includes(emergencyCategory)) categoryWeight = 45;
+      else if (['Hostel', 'Household'].includes(emergencyCategory)) categoryWeight = 30;
+      else if (['Restaurant', 'Hotel'].includes(emergencyCategory)) categoryWeight = 15;
+
+      // Dependents Weight: dependents * 2, capped at 20
+      const dependentsWeight = Math.min(20, emergencyDependents * 2);
+
+      // Gas Remaining Weight: (100 - gasRemaining) * 0.4
+      const gasWeight = Math.round((100 - gasRemainingPercent) * 0.4);
+
+      // Days Since Refill Weight: Math.min(30, daysSinceLastRefill)
+      const refillDaysWeight = Math.min(30, daysSinceLastRefill);
+
+      // Hoarding Penalty Weight: -25 if hoarding detected
+      const penaltyWeight = hoardingPenaltyApplied ? -25 : 0;
+
+      priorityScore = categoryWeight + dependentsWeight + gasWeight + refillDaysWeight + penaltyWeight;
+    }
+
     const orderData = {
       customerId,
       warehouseId,
       deliveryAddress,
       cylinderCount,
       cylinderType,
-      notes,
-      priority,
+      notes: isFlaggedForManualReview 
+        ? `[FLAGGED: Suspicious demand pattern detected. Flagged for manual review.] ${notes || ''}`
+        : notes,
+      priority: isEmergency 
+        ? (priorityScore >= 75 ? 'urgent' : priorityScore >= 45 ? 'medium' : 'normal')
+        : priority,
       pricePerCylinder,
       subTotal,
       taxAmount,
@@ -95,6 +166,16 @@ class OrderService {
       paymentMode,
       paymentStatus,
       razorpayOrderId,
+      // Crisis emergency fields
+      isEmergency,
+      emergencyCategory,
+      emergencyDependents,
+      emergencyPurpose,
+      gasRemainingPercent,
+      lastRefillDate,
+      averageMonthlyUsage,
+      priorityScore,
+      hoardingPenaltyApplied,
     };
 
     const order = await orderRepository.create(orderData);
@@ -123,7 +204,22 @@ class OrderService {
     }
     // admin: no filter by user — sees all
 
-    return orderRepository.findAll(filter);
+    const { orders, total } = await orderRepository.findAll(filter);
+
+    // Enrich active emergency bookings with dynamic queue position ranks
+    const enrichedOrders = await Promise.all(orders.map(async (o) => {
+      if (o.isEmergency && ['created', 'assigned', 'out_for_delivery'].includes(o.status)) {
+        const higherScoreCount = await Order.countDocuments({
+          isEmergency: true,
+          status: { $in: ['created', 'assigned', 'out_for_delivery'] },
+          priorityScore: { $gt: o.priorityScore }
+        });
+        return { ...o, queuePosition: higherScoreCount + 1 };
+      }
+      return o;
+    }));
+
+    return { orders: enrichedOrders, total };
   }
 
   async getOrder(orderId, user) {
@@ -145,6 +241,15 @@ class OrderService {
       order.agentId._id.toString() !== user.id
     ) {
       throw new AppError('Access denied.', 403);
+    }
+
+    if (order.isEmergency && ['created', 'assigned', 'out_for_delivery'].includes(order.status)) {
+      const higherScoreCount = await Order.countDocuments({
+        isEmergency: true,
+        status: { $in: ['created', 'assigned', 'out_for_delivery'] },
+        priorityScore: { $gt: order.priorityScore }
+      });
+      order.queuePosition = higherScoreCount + 1;
     }
 
     return order;
@@ -307,12 +412,26 @@ class OrderService {
   /**
    * Set order priority (Admin only).
    */
-  async setPriority(orderId, priority) {
+  async setPriority(orderId, fields) {
     const order = await orderRepository.findByOrderId(orderId);
     if (!order) throw new AppError('Order not found.', 404);
+    
+    const updateData = {};
+    if (typeof fields === 'string') {
+      updateData.priority = fields;
+    } else {
+      if (fields.priority) updateData.priority = fields.priority;
+      if (fields.priorityScore !== undefined) {
+        updateData.priorityScore = fields.priorityScore;
+        if (order.isEmergency) {
+          updateData.priority = fields.priorityScore >= 75 ? 'urgent' : fields.priorityScore >= 45 ? 'medium' : 'normal';
+        }
+      }
+    }
+
     const updated = await Order.findOneAndUpdate(
       { orderId },
-      { priority },
+      updateData,
       { new: true }
     ).populate('customerId', 'name email phone').lean({ virtuals: true });
     return updated;

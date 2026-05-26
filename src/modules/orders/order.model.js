@@ -197,6 +197,44 @@ const orderSchema = new mongoose.Schema(
       enum: ['urgent', 'medium', 'normal'],
       default: 'normal',
     },
+    // --- Emergency Crisis Mode parameters ---
+    isEmergency: {
+      type: Boolean,
+      default: false,
+    },
+    emergencyCategory: {
+      type: String,
+      enum: ['Hospital', 'Ambulance', 'Relief Center', 'Household', 'Hostel', 'Old Age Home', 'Restaurant', 'Hotel', 'Other'],
+      default: null,
+    },
+    emergencyDependents: {
+      type: Number,
+      default: 0,
+    },
+    emergencyPurpose: {
+      type: String,
+      default: '',
+    },
+    gasRemainingPercent: {
+      type: Number,
+      default: null,
+    },
+    lastRefillDate: {
+      type: Date,
+      default: null,
+    },
+    averageMonthlyUsage: {
+      type: String,
+      default: null,
+    },
+    priorityScore: {
+      type: Number,
+      default: 0,
+    },
+    hoardingPenaltyApplied: {
+      type: Boolean,
+      default: false,
+    },
     // For partial delivery — actual cylinders delivered (may differ from cylinderCount)
     deliveredCount: {
       type: Number,

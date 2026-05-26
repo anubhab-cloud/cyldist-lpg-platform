@@ -22,6 +22,7 @@ import CustomerInvoices from './pages/customer/CustomerInvoices';
 import CustomerTrackingHub from './pages/customer/CustomerTrackingHub';
 import CustomerProducts from './pages/customer/CustomerProducts';
 import CustomerSettings from './pages/customer/CustomerSettings';
+import CrisisStatus from './pages/customer/CrisisStatus';
 
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -31,6 +32,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminNotifications from './pages/admin/AdminNotifications';
 import BroadcastCenter from './pages/admin/BroadcastCenter';
 import AdminSupport from './pages/admin/AdminSupport';
+import CrisisDashboard from './pages/admin/CrisisDashboard';
 
 // Agent
 import AgentDashboard from './pages/agent/AgentDashboard';
@@ -67,6 +69,7 @@ function AppRoutes() {
         <Route path="chat/:roomId" element={<ChatPage />} />
         <Route path="support" element={<CustomerSupport />} />
         <Route path="support/raise" element={<RaiseComplaint />} />
+        <Route path="crisis-status" element={<CrisisStatus />} />
       </Route>
 
       {/* Admin routes */}
@@ -82,6 +85,7 @@ function AppRoutes() {
         <Route path="notifications" element={<AdminNotifications />} />
         <Route path="broadcast" element={<BroadcastCenter />} />
         <Route path="support" element={<AdminSupport />} />
+        <Route path="crisis" element={<CrisisDashboard />} />
       </Route>
 
       {/* Agent routes */}

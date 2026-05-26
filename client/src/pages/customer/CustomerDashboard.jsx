@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ordersAPI, productsAPI, couponsAPI, usersAPI } from '../../api';
+import { ordersAPI, productsAPI, couponsAPI, usersAPI, inventoryAPI } from '../../api';
+import EmergencyBookingModal from '../../components/customer/EmergencyBookingModal';
 import { StatusBadge } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import { useCart } from '../../context/CartContext';
@@ -62,6 +63,9 @@ export default function CustomerDashboard() {
   const { showToast } = useToast();
   const [coupons, setCoupons] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [warehouses, setWarehouses] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showCrisisBanner, setShowCrisisBanner] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,12 +73,14 @@ export default function CustomerDashboard() {
       ordersAPI.list({ limit: 20 }).catch(() => ({ data: { data: [] } })),
       productsAPI.list().catch(() => ({ data: { data: [] } })),
       couponsAPI.getActive().catch(() => ({ data: { data: [] } })),
-      usersAPI.getMe().catch(() => ({ data: { data: user } }))
-    ]).then(([oRes, pRes, cRes, uRes]) => {
+      usersAPI.getMe().catch(() => ({ data: { data: user } })),
+      inventoryAPI.list().catch(() => ({ data: { data: [] } }))
+    ]).then(([oRes, pRes, cRes, uRes, wRes]) => {
       setOrders(oRes.data?.data || []);
       setProducts(pRes.data?.data || []);
       setCoupons(cRes.data?.data || []);
       setProfile(uRes.data?.data || user);
+      setWarehouses(wRes.data?.data || []);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -84,6 +90,8 @@ export default function CustomerDashboard() {
     pending: orders.filter(o => ['created', 'assigned', 'out_for_delivery'].includes(o.status)).length,
     delivered: orders.filter(o => o.status === 'delivered').length,
   };
+
+  const isCrisisMode = warehouses.some(w => w.availableCylinders < w.lowStockThreshold || w.availableCylinders < 5);
 
   const recent = orders.slice(0, 4);
   const activeOrder = orders.find(o => o.status === 'out_for_delivery' || o.status === 'assigned');
@@ -132,6 +140,90 @@ export default function CustomerDashboard() {
       <Topbar title="Dashboard" />
 
       <div className="page bg-grid" style={{ position: 'relative' }}>
+        
+        {/* ─── CRISIS BANNER ─── */}
+        <AnimatePresence>
+          {isCrisisMode && showCrisisBanner && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, y: -10 }} 
+              animate={{ opacity: 1, height: 'auto', y: 0 }} 
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              style={{
+                marginBottom: '1.5rem',
+                padding: '1rem 1.5rem',
+                background: 'linear-gradient(135deg, #d97706, #b45309)',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                borderRadius: 'var(--radius)',
+                color: '#fff',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                boxShadow: '0 4px 15px rgba(217, 119, 6, 0.2)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              <motion.div 
+                animate={{ opacity: [0.15, 0.3, 0.15] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                style={{
+                  position: 'absolute', width: '200px', height: '200px',
+                  borderRadius: '50%', top: '-50px', left: '-50px',
+                  background: '#f59e0b', filter: 'blur(30px)',
+                  pointerEvents: 'none'
+                }}
+              />
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>LPG Crisis Mode Active</h4>
+                  <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.85)' }}>Priority allocation is currently in effect due to high demand and low depot stocks.</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
+                <Link 
+                  to="/customer/crisis-status" 
+                  className="btn btn-sm" 
+                  style={{
+                    background: '#fff',
+                    color: '#b45309',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    padding: '0.4rem 0.85rem',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  View My Priority Score
+                </Link>
+                <button 
+                  onClick={() => setShowCrisisBanner(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '1.1rem',
+                    cursor: 'pointer',
+                    padding: '0.2rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={e => e.target.style.color = '#fff'}
+                  onMouseLeave={e => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+                  title="Dismiss banner"
+                >
+                  ✕
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         {/* ─── KYC ALERT ─── */}
         {profile?.kycStatus !== 'verified' && (
@@ -201,7 +293,7 @@ export default function CustomerDashboard() {
             </button>
             <button 
               style={{ flex: 1, padding: '0.8rem 1.5rem', background: 'var(--danger)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(239,68,68,0.3)', transition: 'all 0.2s' }}
-              onClick={() => profile?.kycStatus === 'verified' ? navigate('/customer/orders/new?priority=high') : alert('Please complete KYC verification first.')}
+              onClick={() => profile?.kycStatus === 'verified' ? setModalOpen(true) : showToast('Please complete KYC verification first.', 'error')}
               onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}
             >
@@ -397,6 +489,17 @@ export default function CustomerDashboard() {
         </motion.div>
 
       </div>
+
+      <EmergencyBookingModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        onSuccess={() => {
+          showToast('Emergency request submitted successfully!', 'success');
+          ordersAPI.list({ limit: 20 })
+            .then(res => setOrders(res.data?.data || []))
+            .catch(() => {});
+        }}
+      />
     </div>
   );
 }

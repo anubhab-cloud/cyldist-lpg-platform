@@ -34,7 +34,7 @@ export const ordersAPI = {
   updateStatus: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
   cancel: (orderId, reason) => api.delete(`/orders/${orderId}`, { data: { reason } }),
   reject: (orderId, reason) => api.delete(`/orders/${orderId}/reject`, { data: { reason } }),
-  setPriority: (orderId, priority) => api.patch(`/orders/${orderId}/priority`, { priority }),
+  setPriority: (orderId, data) => api.patch(`/orders/${orderId}/priority`, typeof data === 'string' ? { priority: data } : data),
   partialDeliver: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
   verifyPayment: (orderId, data) => api.post(`/orders/${orderId}/verify-payment`, data),
 };

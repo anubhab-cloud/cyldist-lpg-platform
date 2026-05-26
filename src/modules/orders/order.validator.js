@@ -26,6 +26,14 @@ const createOrderSchema = z.object({
   pricePerCylinder: z.number().min(0).optional().default(850),
   priority: z.enum(['urgent', 'medium', 'normal']).optional().default('normal'),
   cylinderType: z.string().max(100).optional().default('Domestic (14.2 kg)'),
+  // Emergency parameters
+  isEmergency: z.boolean().optional().default(false),
+  emergencyCategory: z.string().optional(),
+  emergencyDependents: z.number().optional().default(0),
+  emergencyPurpose: z.string().optional().default(''),
+  gasRemainingPercent: z.number().optional(),
+  lastRefillDate: z.string().optional().nullable(),
+  averageMonthlyUsage: z.string().optional(),
 });
 
 const assignAgentSchema = z.object({
@@ -50,7 +58,8 @@ const rejectOrderSchema = z.object({
 });
 
 const setPrioritySchema = z.object({
-  priority: z.enum(['urgent', 'medium', 'normal']),
+  priority: z.enum(['urgent', 'medium', 'normal']).optional(),
+  priorityScore: z.coerce.number().int().min(0).max(200).optional(),
 });
 
 const listOrdersQuerySchema = z.object({
