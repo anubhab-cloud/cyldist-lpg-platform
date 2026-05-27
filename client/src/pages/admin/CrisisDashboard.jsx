@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ordersAPI, usersAPI } from '../../api';
+import { ordersAPI, usersAPI, crisisAPI } from '../../api';
 import { Topbar } from '../../components/Sidebar';
 import { Modal } from '../../components';
 import { useToast } from '../../context/ToastContext';
+import { useSocket } from '../../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, ShieldAlert, Award, Clock, ArrowRight, Activity, AlertTriangle, CheckCircle, ChevronRight, Edit3, UserCheck, XOctagon } from 'lucide-react';
+import { Flame, ShieldAlert, Award, Clock, ArrowRight, Activity, AlertTriangle, CheckCircle, ChevronRight, Edit3, UserCheck, XOctagon, Zap, BarChart2, TrendingUp, Users, Play, ShieldCheck, HelpCircle } from 'lucide-react';
 import { SkeletonTable, SkeletonStatGrid } from '../../components/ui/Skeletons';
+
 
 // Premium Stat Card Component
 function PremiumStatCard({ icon, label, value, color, delay = 0 }) {
@@ -37,6 +39,52 @@ export default function CrisisDashboard() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ─── Crisis Mode Settings ─────────────────────────────────────────
+  const [crisisSettings, setCrisisSettings] = useState(null);
+  const [crisisLoading, setCrisisLoading] = useState(true);
+  const [toggleSaving, setToggleSaving] = useState(false);
+  const [severity, setSeverity] = useState('moderate');
+  const [customMessage, setCustomMessage] = useState('');
+  const [showMessageEdit, setShowMessageEdit] = useState(false);
+
+  const fetchCrisisSettings = useCallback(async () => {
+    try {
+      const { inventoryAPI } = await import('../../api');
+      const r = await inventoryAPI.getCrisisMode();
+      const d = r.data?.data;
+      setCrisisSettings(d || null);
+      if (d?.severity) setSeverity(d.severity);
+      if (d?.message) setCustomMessage(d.message);
+    } catch {}
+    finally { setCrisisLoading(false); }
+  }, []);
+
+  const handleCrisisToggle = async (enable) => {
+    setToggleSaving(true);
+    try {
+      const { inventoryAPI } = await import('../../api');
+      const r = await inventoryAPI.setCrisisMode({ enabled: enable, severity, message: customMessage || undefined });
+      setCrisisSettings(r.data?.data);
+      showToast(`Crisis Mode ${enable ? 'ENABLED' : 'DISABLED'} — customers will ${enable ? 'now' : 'no longer'} see the crisis banner.`, enable ? 'warning' : 'success');
+    } catch (e) {
+      showToast(e.response?.data?.message || 'Failed to update crisis mode', 'error');
+    } finally { setToggleSaving(false); }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!crisisSettings?.enabled) return;
+    setToggleSaving(true);
+    try {
+      const { inventoryAPI } = await import('../../api');
+      const r = await inventoryAPI.setCrisisMode({ enabled: true, severity, message: customMessage });
+      setCrisisSettings(r.data?.data);
+      setShowMessageEdit(false);
+      showToast('Crisis mode settings updated and broadcast to customers.', 'success');
+    } catch (e) {
+      showToast(e.response?.data?.message || 'Failed to save settings', 'error');
+    } finally { setToggleSaving(false); }
+  };
+
   // Modals state
   const [assignModal, setAssignModal] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState('');
@@ -59,7 +107,6 @@ export default function CrisisDashboard() {
     ])
       .then(([oRes, uRes]) => {
         const allOrders = oRes.data?.data || [];
-        // Filter orders that are isEmergency === true and in active state
         setOrders(allOrders.filter(o => o.isEmergency));
         setAgents((uRes.data?.data || []).filter(a => a.role === 'agent' && a.isOnDuty && a.isActive));
       })
@@ -69,7 +116,8 @@ export default function CrisisDashboard() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    fetchCrisisSettings();
+  }, [loadData, fetchCrisisSettings]);
 
   // Statistics formulations
   const activeEmergencies = orders.filter(o => ['created', 'assigned', 'out_for_delivery'].includes(o.status));
@@ -176,6 +224,116 @@ export default function CrisisDashboard() {
             🔄 Refresh Queue
           </button>
         </div>
+
+        {/* ─── CRISIS MODE MASTER TOGGLE CARD ─── */}
+        <div style={{
+          marginBottom: '2rem', padding: '1.5rem 2rem',
+          background: crisisSettings?.enabled
+            ? 'linear-gradient(135deg, rgba(220,38,38,0.08), rgba(124,58,237,0.05))'
+            : 'var(--bg-elevated)',
+          border: crisisSettings?.enabled
+            ? '1px solid rgba(220,38,38,0.3)'
+            : '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          boxShadow: crisisSettings?.enabled ? '0 4px 20px rgba(220,38,38,0.1)' : 'none',
+          transition: 'all 0.3s',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+                <span style={{ fontSize: '1.1rem' }}>🚨</span>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800 }}>LPG Crisis Mode Control</h3>
+                {crisisSettings?.enabled && (
+                  <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: 20, background: 'rgba(220,38,38,0.12)', color: 'var(--danger)', border: '1px solid rgba(220,38,38,0.2)', textTransform: 'uppercase', letterSpacing: '0.06em', animation: 'pulse 2s infinite' }}>
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                {crisisSettings?.enabled
+                  ? `Crisis mode is ON. Customers see the banner + Crisis Status in their sidebar. Enabled ${crisisSettings.enabledAt ? new Date(crisisSettings.enabledAt).toLocaleString() : 'recently'}.`
+                  : 'Crisis mode is OFF. The crisis banner and sidebar link are hidden from all customers.'}
+              </p>
+
+              {/* Severity + message controls (show when enabled or editing) */}
+              {(crisisSettings?.enabled || showMessageEdit) && (
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Severity selector */}
+                  <div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Severity Level</div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {[{ k: 'moderate', label: '🟡 Moderate', color: '#d97706' }, { k: 'severe', label: '🔴 Severe', color: '#dc2626' }, { k: 'critical', label: '🚨 Critical', color: '#7c3aed' }].map(s => (
+                        <button key={s.k} type="button"
+                          onClick={() => setSeverity(s.k)}
+                          style={{
+                            padding: '0.35rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                            background: severity === s.k ? `${s.color}22` : 'var(--bg-base)',
+                            border: severity === s.k ? `1.5px solid ${s.color}` : '1px solid var(--border)',
+                            color: severity === s.k ? s.color : 'var(--text-muted)',
+                            transition: 'all 0.2s',
+                          }}
+                        >{s.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Custom message */}
+                  <div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Customer Message</div>
+                    <textarea
+                      value={customMessage}
+                      onChange={e => setCustomMessage(e.target.value)}
+                      rows={2}
+                      maxLength={300}
+                      placeholder="Message shown to customers in the crisis banner..."
+                      style={{ width: '100%', resize: 'vertical', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                    />
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'right' }}>{customMessage.length}/300</div>
+                  </div>
+                  {crisisSettings?.enabled && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className="btn btn-primary btn-sm" onClick={handleSaveSettings} disabled={toggleSaving} style={{ fontSize: '0.8rem' }}>
+                        {toggleSaving ? '⏳ Saving...' : '💾 Update & Broadcast'}
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setShowMessageEdit(false)} style={{ fontSize: '0.8rem' }}>Cancel</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Toggle button */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
+              {crisisSettings?.enabled ? (
+                <>
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => handleCrisisToggle(false)}
+                    disabled={toggleSaving}
+                    style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', color: 'var(--danger)', fontWeight: 700, fontSize: '0.85rem', padding: '0.6rem 1.25rem' }}
+                  >
+                    {toggleSaving ? '⏳ Saving...' : '⏹ Disable Crisis Mode'}
+                  </button>
+                  {!showMessageEdit && (
+                    <button className="btn btn-ghost btn-sm" onClick={() => setShowMessageEdit(true)} style={{ fontSize: '0.75rem' }}>✏️ Edit message / severity</button>
+                  )}
+                </>
+              ) : (
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleCrisisToggle(true)}
+                  disabled={toggleSaving || crisisLoading}
+                  style={{ background: 'linear-gradient(135deg, #dc2626, #7c3aed)', border: 'none', fontWeight: 700, fontSize: '0.85rem', padding: '0.6rem 1.25rem', boxShadow: '0 4px 15px rgba(220,38,38,0.3)' }}
+                >
+                  {toggleSaving ? '⏳ Enabling...' : '🚨 Enable Crisis Mode'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        {/* END CRISIS TOGGLE CARD */}
+
+        {/* ─── BATCH ALLOCATION SECTION ─── */}
+        <BatchAllocationSection crisisSettings={crisisSettings} showToast={showToast} />
 
         {/* 1. Statistics Row */}
         <div className="grid-5" style={{ marginBottom: '2rem' }}>
@@ -608,3 +766,392 @@ export default function CrisisDashboard() {
     </div>
   );
 }
+
+// ─── BATCH ALLOCATION SECTION COMPONENT ────────────────────────────────────
+const SECTOR_COLORS = {
+  medical:      { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: '🏥 Medical' },
+  household:    { color: '#6366f1', bg: 'rgba(99,102,241,0.1)', label: '🏠 Household' },
+  institutional:{ color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', label: '📦 Institutional' },
+  commercial:   { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: '🏨 Hotel/Comm' },
+};
+
+function BatchAllocationSection({ crisisSettings, showToast }) {
+  const { socket } = useSocket();
+  const [activeTab, setActiveTab] = useState('pool'); // 'pool' | 'leaderboard'
+  const [pool, setPool] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [lastBatchSummary, setLastBatchSummary] = useState(null);
+  const [lastBatchRunAt, setLastBatchRunAt] = useState(null);
+  const [currentBatchId, setCurrentBatchId] = useState('');
+  
+  const [loading, setLoading] = useState(false);
+  const [runningBatch, setRunningBatch] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(false);
+
+  const loadPool = useCallback(async () => {
+    try {
+      const res = await crisisAPI.getPool();
+      setPool(res.data?.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const loadLeaderboard = useCallback(async () => {
+    try {
+      const res = await crisisAPI.getLeaderboard();
+      setLeaderboard(res.data?.data || []);
+      setLastBatchSummary(res.data?.lastBatchSummary || null);
+      setLastBatchRunAt(res.data?.lastBatchRunAt || null);
+      setCurrentBatchId(res.data?.currentBatchId || '');
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const initData = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([loadPool(), loadLeaderboard()]);
+    setLoading(false);
+  }, [loadPool, loadLeaderboard]);
+
+  useEffect(() => {
+    if (crisisSettings?.enabled) {
+      initData();
+    }
+  }, [crisisSettings, initData]);
+
+  // Real-time socket sync
+  useEffect(() => {
+    if (socket) {
+      socket.on('crisis:batch_complete', (data) => {
+        showToast(`📢 Real-time sync: Crisis batch allocation ${data.batchId} processed!`, 'info');
+        loadPool();
+        loadLeaderboard();
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off('crisis:batch_complete');
+      }
+    };
+  }, [socket, loadPool, loadLeaderboard, showToast]);
+
+  const handleRunBatch = async () => {
+    setConfirmModal(false);
+    setRunningBatch(true);
+    try {
+      const res = await crisisAPI.runBatch();
+      showToast('🎉 Crisis batch allocation completed successfully!', 'success');
+      await Promise.all([loadPool(), loadLeaderboard()]);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to execute batch allocation.', 'error');
+    } finally {
+      setRunningBatch(false);
+    }
+  };
+
+  if (!crisisSettings?.enabled) return null;
+
+  return (
+    <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem' }}>
+            ⚙️ Crisis Allocation Leaderboard Console
+          </h2>
+          <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            Monitor and execute priority score batch processing allocations.
+          </p>
+        </div>
+
+        {activeTab === 'pool' && pool.length > 0 && (
+          <button 
+            className="btn btn-primary"
+            onClick={() => setConfirmModal(true)}
+            disabled={runningBatch}
+            style={{ 
+              background: 'linear-gradient(135deg, var(--danger), var(--accent))', 
+              border: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              boxShadow: '0 4px 15px rgba(229,57,53,0.3)',
+              fontWeight: 700,
+              padding: '0.65rem 1.5rem'
+            }}
+          >
+            <Play size={15} fill="white" /> Run Batch Allocation
+          </button>
+        )}
+      </div>
+
+      {/* Tabs Row */}
+      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+        <button 
+          className={`btn btn-sm ${activeTab === 'pool' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setActiveTab('pool')}
+          style={{ fontSize: '0.8rem', fontWeight: 700 }}
+        >
+          📥 Awaiting Pool ({pool.length})
+        </button>
+        <button 
+          className={`btn btn-sm ${activeTab === 'leaderboard' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setActiveTab('leaderboard')}
+          style={{ fontSize: '0.8rem', fontWeight: 700 }}
+        >
+          🏆 Last Batch Leaderboard
+        </button>
+      </div>
+
+      {loading ? (
+        <SkeletonTable rows={5} cols={5} />
+      ) : activeTab === 'pool' ? (
+        <div>
+          {pool.length === 0 ? (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', border: '1px dashed var(--border)' }}>
+              <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem' }}>📥</span>
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Holding Pool Empty</h4>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                There are currently no pending orders in the crisis allocation holding pool.
+              </p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table" style={{ margin: 0, width: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '1rem' }}>Rank</th>
+                      <th>Score</th>
+                      <th>Sector</th>
+                      <th>Customer Name</th>
+                      <th>Cylinder Qty</th>
+                      <th>Recency / Cooldown Check</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pool.map((o) => {
+                      const cfg = SECTOR_COLORS[o.facilityType] || SECTOR_COLORS.household;
+                      return (
+                        <tr key={o.orderId} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 800 }}>
+                            {o.rank === 1 ? '🥇 #1' : o.rank === 2 ? '🥈 #2' : o.rank === 3 ? '🥉 #3' : `#${o.rank}`}
+                          </td>
+                          <td style={{ fontWeight: 800, color: o.previewScore < 0 ? 'var(--danger)' : 'var(--primary)' }}>
+                            {o.previewScore} pts
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '0.25rem 0.6rem', 
+                              borderRadius: 20, 
+                              fontSize: '0.72rem', 
+                              fontWeight: 700, 
+                              color: cfg.color, 
+                              background: cfg.bg,
+                              border: `1px solid ${cfg.color}25`
+                            }}>
+                              {cfg.label}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 600 }}>{o.customerName}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{o.email}</div>
+                          </td>
+                          <td style={{ fontWeight: 700 }}>
+                            {o.cylinders} cylinders
+                          </td>
+                          <td>
+                            {o.hoarding ? (
+                              <span style={{ color: 'var(--danger)', fontSize: '0.75rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                ⚠️ HOARDING PENALTY (-200 pts)
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--success)', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <ShieldCheck size={13} /> Cooldown Clean
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--warning)', background: 'rgba(245,158,11,0.08)', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
+                              Awaiting Run ⏳
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Leaderboard Tab */
+        <div>
+          {/* Batch Summary Stats */}
+          {lastBatchSummary && (
+            <div className="grid-5" style={{ marginBottom: '1.5rem', gap: '1rem' }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Batch ID</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, fontFamily: 'monospace' }}>{currentBatchId}</div>
+              </div>
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Processed</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>{lastBatchSummary.totalProcessed}</div>
+              </div>
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Allocated Count</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>{lastBatchSummary.totalAllocated}</div>
+              </div>
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Waitlisted Rollover</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warning)' }}>{lastBatchSummary.totalWaitlisted}</div>
+              </div>
+              <div style={{ background: 'var(--bg-elevated)', padding: '0.85rem 1.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Stock Used</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)' }}>
+                  {lastBatchSummary.emergencyAllocated + lastBatchSummary.publicAllocated} cyl
+                </div>
+              </div>
+            </div>
+          )}
+
+          {leaderboard.length === 0 ? (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', border: '1px dashed var(--border)' }}>
+              <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '1rem' }}>🏆</span>
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>No Leaderboard Data</h4>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                No batch run history has been generated yet for this crisis window.
+              </p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table" style={{ margin: 0, width: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '1rem' }}>Rank</th>
+                      <th>Final Score</th>
+                      <th>Sector</th>
+                      <th>Customer Name</th>
+                      <th>Cylinder Allocation</th>
+                      <th>Recency Cooldown</th>
+                      <th>Status</th>
+                      <th>Fulfillment Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leaderboard.map((o) => {
+                      const cfg = SECTOR_COLORS[o.facilityType] || SECTOR_COLORS.household;
+                      const isAllocated = o.crisisStatus === 'allocated';
+                      return (
+                        <tr key={o.orderId} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 800 }}>
+                            {o.rank === 1 ? '🥇 #1' : o.rank === 2 ? '🥈 #2' : o.rank === 3 ? '🥉 #3' : `#${o.rank}`}
+                          </td>
+                          <td style={{ fontWeight: 800, color: o.score < 0 ? 'var(--danger)' : 'var(--primary)' }}>
+                            {o.score} pts
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '0.25rem 0.6rem', 
+                              borderRadius: 20, 
+                              fontSize: '0.72rem', 
+                              fontWeight: 700, 
+                              color: cfg.color, 
+                              background: cfg.bg,
+                              border: `1px solid ${cfg.color}25`
+                            }}>
+                              {cfg.label}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 600 }}>{o.customerName}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{o.email}</div>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 700 }}>{o.cylinders} cylinders</div>
+                            {o.capApplied && (
+                              <div style={{ fontSize: '0.65rem', color: 'var(--danger)', fontWeight: 600 }}>
+                                ⚠️ Capped from {o.originalCount} (70% Reduction)
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {o.hoarding ? (
+                              <span style={{ color: 'var(--danger)', fontSize: '0.75rem', fontWeight: 700 }}>
+                                ⚠️ HOARDING (-200 pts)
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--success)', fontSize: '0.75rem', fontWeight: 600 }}>
+                                ✅ Clear Recency
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              fontWeight: 700, 
+                              color: isAllocated ? 'var(--success)' : 'var(--danger)', 
+                              background: isAllocated ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', 
+                              padding: '0.2rem 0.5rem', 
+                              borderRadius: 4 
+                            }}>
+                              {isAllocated ? 'Allocated ✅' : 'Waitlisted ⏳'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '0.72rem', color: 'var(--text-muted)', maxWidth: 220 }}>
+                            {o.allocationNotes || 'Calculated score allocation'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Double Confirmation modal for running batch */}
+      <Modal
+        open={confirmModal}
+        onClose={() => setConfirmModal(false)}
+        title="⚠️ Execute Crisis Batch Allocation?"
+        footer={(
+          <>
+            <button className="btn btn-ghost" onClick={() => setConfirmModal(false)}>Cancel</button>
+            <button 
+              className="btn btn-primary"
+              onClick={handleRunBatch}
+              disabled={runningBatch}
+              style={{ background: 'linear-gradient(135deg, var(--danger), var(--accent))', border: 'none' }}
+            >
+              {runningBatch ? '⏳ Processing Batch...' : '▶ Confirm & Execute Allocation'}
+            </button>
+          </>
+        )}
+      >
+        <div style={{ padding: '0.5rem' }}>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '1rem' }}>
+            You are about to execute the **Unified Time-Windowed Crisis Allocation Engine**. 
+          </p>
+          <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.03)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 800, color: 'var(--danger)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <AlertTriangle size={15} /> CRITICAL ENGINE NOTIFICATION
+            </div>
+            1. Instantly locks and subtracts **15% emergency reserve stock** for Medical facilities. <br />
+            2. Runs the heuristic necessity score formula for all pending bookings in the holding pool. <br />
+            3. Sorts rank positions using a Max-Heap array, allocating available cylinders from high to low priority. <br />
+            4. Automatically waitlists low-priority panic buyers (negative scores) and rolls them over to the next batch window.
+          </div>
+        </div>
+      </Modal>
+
+    </div>
+  );
+}
+

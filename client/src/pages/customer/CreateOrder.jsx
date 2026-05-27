@@ -170,8 +170,62 @@ export default function CreateOrder() {
 
           <div className="card">
             <h2 className="section-title">2. Quantity & Delivery Speed</h2>
+
+            {/* ─── Facility-type booking policy badge ─── */}
+            {(() => {
+              const facilityType = user?.facilityType || 'household';
+              const isUnlimited = ['commercial', 'medical', 'institutional'].includes(facilityType);
+              if (!isUnlimited) {
+                return (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.6rem',
+                    padding: '0.625rem 0.875rem', borderRadius: 'var(--radius)',
+                    background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)',
+                    marginBottom: '1rem', fontSize: '0.78rem',
+                  }}>
+                    <span style={{ fontSize: '1rem' }}>🏠</span>
+                    <div>
+                      <span style={{ fontWeight: 700, color: 'var(--warning)' }}>Household Policy: </span>
+                      <span style={{ color: 'var(--text-secondary)' }}>Household customers can book <b>1 cylinder per 25 days</b> as per government regulation.</span>
+                    </div>
+                  </div>
+                );
+              }
+              const facilityLabels = { commercial: '🏨 Hotel / Restaurant', medical: '🏥 Hospital / Nursing Home', institutional: '📦 Institutional' };
+              return (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.625rem 0.875rem', borderRadius: 'var(--radius)',
+                  background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)',
+                  marginBottom: '1rem', fontSize: '0.78rem',
+                }}>
+                  <span style={{ fontSize: '1rem' }}>✅</span>
+                  <div>
+                    <span style={{ fontWeight: 700, color: 'var(--success)' }}>{facilityLabels[facilityType] || 'Commercial Account'}: </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>No per-period limit — book as many cylinders as your operations require.</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="form-row">
-              <div className="form-group"><label className="form-label">Cylinders (1–10)</label><input type="number" min={1} max={Math.min(10, selectedWh?.availableCylinders || 10)} value={form.cylinderCount} onChange={set('cylinderCount')} required /></div>
+              {(() => {
+                const facilityType = user?.facilityType || 'household';
+                const isUnlimited = ['commercial', 'medical', 'institutional'].includes(facilityType);
+                const maxQty = isUnlimited ? Math.min(50, selectedWh?.availableCylinders || 50) : 1;
+                const label = isUnlimited ? `Cylinders (1–${maxQty})` : 'Cylinders (Household limit: 1)';
+                return (
+                  <div className="form-group">
+                    <label className="form-label">{label}</label>
+                    <input
+                      type="number" min={1} max={maxQty}
+                      value={form.cylinderCount}
+                      onChange={set('cylinderCount')}
+                      required
+                    />
+                  </div>
+                );
+              })()}
               <div className="form-group">
                 <label className="form-label">Delivery Speed</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>

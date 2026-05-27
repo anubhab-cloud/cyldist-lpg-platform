@@ -66,6 +66,7 @@ export default function CustomerDashboard() {
   const [warehouses, setWarehouses] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [showCrisisBanner, setShowCrisisBanner] = useState(true);
+  const [crisisMode, setCrisisMode] = useState(null); // admin-controlled
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,13 +75,15 @@ export default function CustomerDashboard() {
       productsAPI.list().catch(() => ({ data: { data: [] } })),
       couponsAPI.getActive().catch(() => ({ data: { data: [] } })),
       usersAPI.getMe().catch(() => ({ data: { data: user } })),
-      inventoryAPI.list().catch(() => ({ data: { data: [] } }))
-    ]).then(([oRes, pRes, cRes, uRes, wRes]) => {
+      inventoryAPI.list().catch(() => ({ data: { data: [] } })),
+      inventoryAPI.getCrisisMode().catch(() => ({ data: { data: null } })),
+    ]).then(([oRes, pRes, cRes, uRes, wRes, crisisRes]) => {
       setOrders(oRes.data?.data || []);
       setProducts(pRes.data?.data || []);
       setCoupons(cRes.data?.data || []);
       setProfile(uRes.data?.data || user);
       setWarehouses(wRes.data?.data || []);
+      setCrisisMode(crisisRes.data?.data || null);
     }).finally(() => setLoading(false));
   }, [user]);
 
@@ -91,7 +94,11 @@ export default function CustomerDashboard() {
     delivered: orders.filter(o => o.status === 'delivered').length,
   };
 
-  const isCrisisMode = warehouses.some(w => w.availableCylinders < w.lowStockThreshold || w.availableCylinders < 5);
+  const isCrisisMode = crisisMode?.enabled === true;
+  const crisisMessage = crisisMode?.message || 'Priority allocation is currently in effect due to high demand and low depot stocks.';
+  const crisisSeverity = crisisMode?.severity || 'moderate';
+  const SEVERITY_COLORS = { moderate: { bg: 'linear-gradient(135deg, #d97706, #b45309)', border: 'rgba(245,158,11,0.4)', glow: 'rgba(217,119,6,0.2)' }, severe: { bg: 'linear-gradient(135deg, #dc2626, #b91c1c)', border: 'rgba(239,68,68,0.4)', glow: 'rgba(220,38,38,0.2)' }, critical: { bg: 'linear-gradient(135deg, #7c3aed, #b91c1c)', border: 'rgba(168,85,247,0.5)', glow: 'rgba(124,58,237,0.25)' } };
+  const severityStyle = SEVERITY_COLORS[crisisSeverity] || SEVERITY_COLORS.moderate;
 
   const recent = orders.slice(0, 4);
   const activeOrder = orders.find(o => o.status === 'out_for_delivery' || o.status === 'assigned');
@@ -151,8 +158,8 @@ export default function CustomerDashboard() {
               style={{
                 marginBottom: '1.5rem',
                 padding: '1rem 1.5rem',
-                background: 'linear-gradient(135deg, #d97706, #b45309)',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
+                background: severityStyle.bg,
+                border: `1px solid ${severityStyle.border}`,
                 borderRadius: 'var(--radius)',
                 color: '#fff',
                 display: 'flex',
@@ -160,7 +167,7 @@ export default function CustomerDashboard() {
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: '1rem',
-                boxShadow: '0 4px 15px rgba(217, 119, 6, 0.2)',
+                boxShadow: `0 4px 15px ${severityStyle.glow}`,
                 position: 'relative',
                 overflow: 'hidden'
               }}
@@ -171,16 +178,23 @@ export default function CustomerDashboard() {
                 style={{
                   position: 'absolute', width: '200px', height: '200px',
                   borderRadius: '50%', top: '-50px', left: '-50px',
-                  background: '#f59e0b', filter: 'blur(30px)',
+                  background: 'rgba(255,255,255,0.2)', filter: 'blur(30px)',
                   pointerEvents: 'none'
                 }}
               />
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
-                <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                <span style={{ fontSize: '1.5rem' }}>
+                  {crisisSeverity === 'critical' ? '🚨' : crisisSeverity === 'severe' ? '⛔' : '⚠️'}
+                </span>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>LPG Crisis Mode Active</h4>
-                  <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.85)' }}>Priority allocation is currently in effect due to high demand and low depot stocks.</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>LPG Crisis Mode Active</h4>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '0.1rem 0.45rem', borderRadius: 20, background: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {crisisSeverity}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.85)' }}>{crisisMessage}</p>
                 </div>
               </div>
 
@@ -248,14 +262,43 @@ export default function CustomerDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-            <div>
-              <h1 style={{ fontSize: '2.25rem', fontWeight: 800, margin: '0 0 0.5rem 0', letterSpacing: '-0.03em' }}>
-                {greeting}, <span style={{ color: '#FFB8B5' }}>{firstName}</span>
-              </h1>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', margin: 0, maxWidth: '400px' }}>
-                Your LPG dashboard is ready. Everything you need to manage your energy supply is right here.
-              </p>
-            </div>
+            <div style={{ flex: 1 }}>
+            {/* ── Facility type identity badge ── */}
+            {(() => {
+              const FACILITY_CONFIG = {
+                household:    { icon: '🏠', label: 'Household Customer',    color: '#a5b4fc', bg: 'rgba(165,180,252,0.15)', border: 'rgba(165,180,252,0.3)',  subtitle: 'Your LPG dashboard is ready. Manage your home energy supply from here.' },
+                commercial:   { icon: '🏨', label: 'Hotel / Restaurant',    color: '#fcd34d', bg: 'rgba(252,211,77,0.12)',  border: 'rgba(252,211,77,0.3)',   subtitle: 'Commercial account active. No per-period booking limits apply to your account.' },
+                medical:      { icon: '🏥', label: 'Hospital / Medical',    color: '#6ee7b7', bg: 'rgba(110,231,183,0.12)', border: 'rgba(110,231,183,0.3)',  subtitle: 'Medical facility account. Priority allocation and unlimited bookings are active.' },
+                institutional:{ icon: '📦', label: 'Institutional Account', color: '#c4b5fd', bg: 'rgba(196,181,253,0.12)', border: 'rgba(196,181,253,0.3)',  subtitle: 'Institutional account. Bulk orders and priority dispatch are available for you.' },
+              };
+              const facilityType = profile?.facilityType || user?.facilityType;
+              const f = FACILITY_CONFIG[facilityType] || FACILITY_CONFIG.household;
+              return (
+                <div>
+                  {/* Badge */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                    padding: '0.28rem 0.75rem 0.28rem 0.5rem',
+                    background: f.bg, border: `1px solid ${f.border}`,
+                    borderRadius: 20, marginBottom: '0.75rem',
+                  }}>
+                    <span style={{ fontSize: '0.85rem' }}>{f.icon}</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: f.color, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      {f.label}
+                    </span>
+                  </div>
+
+                  {/* Greeting */}
+                  <h1 style={{ fontSize: '2.25rem', fontWeight: 800, margin: '0 0 0.5rem 0', letterSpacing: '-0.03em' }}>
+                    {greeting}, <span style={{ color: '#FFB8B5' }}>{firstName}</span>
+                  </h1>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem', margin: 0, maxWidth: '420px', lineHeight: 1.55 }}>
+                    {f.subtitle}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
 
             <div style={{ display: 'flex', gap: '1.5rem', background: 'rgba(0,0,0,0.2)', padding: '1rem 1.5rem', borderRadius: 'var(--radius-lg)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>

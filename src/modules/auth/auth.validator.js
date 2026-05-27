@@ -18,6 +18,7 @@ const registerSchema = z.object({
     .string()
     .regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number format')
     .optional(),
+  facilityType: z.enum(['household', 'commercial', 'medical', 'institutional']).optional().default('household'),
   // Role is accepted but always sanitized to 'customer' in the service
   role: z.string().optional(),
 });

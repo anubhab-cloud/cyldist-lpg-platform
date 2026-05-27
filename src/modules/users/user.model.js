@@ -165,6 +165,11 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    facilityType: {
+      type: String,
+      enum: ['household', 'commercial', 'medical', 'institutional'],
+      default: 'household',
+    },
   },
   {
     timestamps: true,

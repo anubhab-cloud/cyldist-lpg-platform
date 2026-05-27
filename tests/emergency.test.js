@@ -332,4 +332,109 @@ describe('Emergency Crisis Management System', () => {
       expect(overrideRes.status).toBe(403);
     });
   });
+
+  describe('Crisis Mode Sector Cooldown & Limit Rules', () => {
+    beforeEach(async () => {
+      await request(app)
+        .patch('/api/v1/inventory/crisis-mode')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ enabled: true, severity: 'severe', message: 'Crisis Active' });
+    });
+
+    afterEach(async () => {
+      await request(app)
+        .patch('/api/v1/inventory/crisis-mode')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ enabled: false });
+    });
+
+    it('should lock household customers to a strict 30-day cooldown during crisis', async () => {
+      // First booking should succeed
+      const res1 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 1,
+        });
+      expect(res1.status).toBe(201);
+      expect(res1.body.data.status).toBe('awaiting_allocation');
+
+      // Second booking should fail due to 30-day lock period
+      const res2 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 1,
+        });
+      expect(res2.status).toBe(400);
+      expect(res2.body.message).toContain('strict 30-day lock period');
+    });
+
+    it('should lock hotels / commercial connections to a strict 7-day cooldown and apply 70% quantity reduction', async () => {
+      // Register commercial user
+      const commercialData = await registerAndLogin('customer');
+      await User.findByIdAndUpdate(commercialData.user.id || commercialData.user._id, { facilityType: 'commercial' });
+
+      // First booking should succeed but undergo 70% quantity cap reduction (10 -> 3 cylinders)
+      const res1 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${commercialData.token}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 10,
+        });
+      expect(res1.status).toBe(201);
+      expect(res1.body.data.cylinderCount).toBe(3); // 10 * 0.3 = 3 cylinders
+      expect(res1.body.data.status).toBe('awaiting_allocation');
+
+      // Second booking should fail due to 7-day lock period
+      const res2 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${commercialData.token}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 5,
+        });
+      expect(res2.status).toBe(400);
+      expect(res2.body.message).toContain('mandatory 7-day lock period');
+    });
+
+    it('should allow hospital / medical facilities to book with no lockouts and no quantity caps', async () => {
+      // Register medical user
+      const medicalData = await registerAndLogin('customer');
+      await User.findByIdAndUpdate(medicalData.user.id || medicalData.user._id, { facilityType: 'medical' });
+
+      // First booking of 50 cylinders should succeed completely without any reduction
+      const res1 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${medicalData.token}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 50,
+        });
+      expect(res1.status).toBe(201);
+      expect(res1.body.data.cylinderCount).toBe(50); // No reduction
+      expect(res1.body.data.status).toBe('awaiting_allocation');
+
+      // Second booking of 30 cylinders should also succeed completely with no cooldown block
+      const res2 = await request(app)
+        .post('/api/v1/orders')
+        .set('Authorization', `Bearer ${medicalData.token}`)
+        .send({
+          warehouseId: warehouse._id,
+          deliveryAddress,
+          cylinderCount: 30,
+        });
+      expect(res2.status).toBe(201);
+      expect(res2.body.data.cylinderCount).toBe(30); // No reduction
+      expect(res2.body.data.status).toBe('awaiting_allocation');
+    });
+  });
 });

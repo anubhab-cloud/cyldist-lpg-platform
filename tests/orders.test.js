@@ -139,11 +139,11 @@ describe('Orders API', () => {
       expect(res.status).toBe(409);
     });
 
-    it('should return 422 for cylinderCount > 10', async () => {
+    it('should return 422 for cylinderCount > 100', async () => {
       const res = await request(app)
         .post('/api/v1/orders')
         .set('Authorization', `Bearer ${customerToken}`)
-        .send({ warehouseId: warehouse._id, deliveryAddress, cylinderCount: 11 });
+        .send({ warehouseId: warehouse._id, deliveryAddress, cylinderCount: 101 });
 
       expect(res.status).toBe(422);
     });
@@ -290,7 +290,7 @@ describe('Orders API', () => {
         });
 
       expect(secondRes.status).toBe(400);
-      expect(secondRes.body.message).toMatch(/already booked a cylinder/i);
+      expect(secondRes.body.message).toMatch(/limit exceeded/i);
     });
 
     it('should allow placing a new order if the previous order in the last 25 days was cancelled', async () => {

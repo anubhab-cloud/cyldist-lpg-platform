@@ -65,7 +65,7 @@ class AuthService {
    * @param {{ name, email, password, phone, role? }} data
    */
   async register(data) {
-    const { name, email, password, phone, role = 'customer' } = data;
+    const { name, email, password, phone, facilityType = 'household', role = 'customer' } = data;
 
     // Prevent customers from self-assigning admin/agent roles
     const allowedRole = ['customer'].includes(role) ? role : 'customer';
@@ -76,7 +76,7 @@ class AuthService {
     }
 
     const passwordHash = await User.hashPassword(password);
-    const user = await userRepository.create({ name, email, passwordHash, phone, role: allowedRole });
+    const user = await userRepository.create({ name, email, passwordHash, phone, facilityType, role: allowedRole });
 
     const tokens = await this.buildTokenPair(user);
 

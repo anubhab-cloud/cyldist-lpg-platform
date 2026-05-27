@@ -18,6 +18,17 @@ function SidebarBase({ navItems, role }) {
   const handleLogout = async () => { await logout(); navigate('/login'); };
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
+  // Facility type display config (customer-only)
+  const FACILITY_MAP = {
+    household:    { icon: '🏠', label: 'Household',         color: '#6366f1', bg: 'rgba(99,102,241,0.12)'  },
+    commercial:   { icon: '🏨', label: 'Hotel / Restaurant', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    medical:      { icon: '🏥', label: 'Hospital / Medical', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+    institutional:{ icon: '📦', label: 'Institutional',      color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)' },
+  };
+  const facilityInfo = user?.role === 'customer' && user?.facilityType
+    ? (FACILITY_MAP[user.facilityType] || { icon: '🏠', label: user.facilityType, color: '#6366f1', bg: 'rgba(99,102,241,0.1)' })
+    : null;
+
   return (
     <>
       <div className={`sidebar-overlay ${isOpen ? 'show' : ''}`} onClick={() => setIsOpen(false)} />
@@ -62,28 +73,72 @@ function SidebarBase({ navItems, role }) {
             onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
           >⏻</button>
         </div>
+
+        {/* ── Facility type pill — customer only ── */}
+        {facilityInfo && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+            marginTop: '0.45rem',
+            padding: '0.25rem 0.6rem 0.25rem 0.45rem',
+            background: facilityInfo.bg,
+            border: `1px solid ${facilityInfo.color}35`,
+            borderRadius: 20,
+            maxWidth: '100%',
+          }}>
+            <span style={{ fontSize: '0.72rem' }}>{facilityInfo.icon}</span>
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 700,
+              color: facilityInfo.color,
+              letterSpacing: '0.02em',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {facilityInfo.label}
+            </span>
+          </div>
+        )}
       </div>
       </aside>
     </>
   );
 }
 
+// Lightweight hook — fetches crisis mode state once on mount
+function useCrisisMode() {
+  const [crisisMode, setCrisisMode] = useState(null);
+  useEffect(() => {
+    import('../api').then(({ inventoryAPI }) => {
+      inventoryAPI.getCrisisMode()
+        .then(r => setCrisisMode(r.data?.data || null))
+        .catch(() => setCrisisMode(null));
+    });
+  }, []);
+  return crisisMode;
+}
+
 export function CustomerSidebar() {
-  return <SidebarBase role="customer" navItems={[
+  const crisisMode = useCrisisMode();
+  const isCrisisActive = crisisMode?.enabled === true;
+
+  const navItems = [
     { items: [
       { to: '/customer', icon: '⬡', label: 'Dashboard', end: true },
       { to: '/customer/orders', icon: '◫', label: 'My Orders' },
       { to: '/customer/products', icon: '🛍', label: 'Products' },
       { to: '/customer/invoices', icon: '📄', label: 'Invoices' },
       { to: '/customer/track', icon: '📍', label: 'Tracking' },
-      { to: '/customer/crisis-status', icon: '⚠️', label: 'Crisis Status' },
+      // ← Only show when admin has enabled crisis mode
+      ...(isCrisisActive
+        ? [{ to: '/customer/crisis-status', icon: '⚠️', label: 'Crisis Status', badge: '●' }]
+        : []),
       { to: '/customer/wallet', icon: '💳', label: 'Wallet' },
     ]},
     { label: 'HELP & SETTINGS', items: [
       { to: '/customer/support', icon: '📞', label: 'Support' },
       { to: '/customer/settings', icon: '⚙️', label: 'Settings' },
     ]}
-  ]} />;
+  ];
+
+  return <SidebarBase role="customer" navItems={navItems} />;
 }
 
 export function AdminSidebar() {

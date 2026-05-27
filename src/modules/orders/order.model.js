@@ -59,7 +59,9 @@ const STATUS_TRANSITIONS = {
   out_for_delivery: ['delivered', 'cancelled'],
   delivered: [],
   cancelled: [],
+  awaiting_allocation: ['created', 'cancelled'], // crisis mode holding state
 };
+
 
 // Priority levels
 const PRIORITY_LEVELS = ['urgent', 'medium', 'normal'];
@@ -124,11 +126,11 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: [1, 'Must order at least 1 cylinder'],
-      max: [10, 'Cannot order more than 10 cylinders at once'],
+      max: [100, 'Cannot order more than 100 cylinders at once'],
     },
     status: {
       type: String,
-      enum: ['created', 'assigned', 'out_for_delivery', 'delivered', 'cancelled'],
+      enum: ['created', 'assigned', 'out_for_delivery', 'delivered', 'cancelled', 'awaiting_allocation'],
       default: 'created',
     },
     // Chat room ID — same as orderId for simplicity
@@ -234,6 +236,51 @@ const orderSchema = new mongoose.Schema(
     hoardingPenaltyApplied: {
       type: Boolean,
       default: false,
+    },
+    // ─── Crisis Batch Engine Fields ──────────────────────────────────────────
+    // Tracks where this order sits in the crisis allocation lifecycle
+    crisisStatus: {
+      type: String,
+      enum: ['none', 'awaiting_allocation', 'allocated', 'waitlisted_crisis_batch'],
+      default: 'none',
+      index: true,
+    },
+    // Which batch window this order belongs to (format: YYYY-MM-DD)
+    crisisBatchId: {
+      type: String,
+      default: null,
+    },
+    // Final computed Priority Score P from the heuristic formula
+    crisisPriorityScore: {
+      type: Number,
+      default: null,
+    },
+    // Score breakdown for admin transparency
+    crisisScoreBreakdown: {
+      sectorScore:    { type: Number },
+      urgencyScore:   { type: Number },
+      hoardingPenalty:{ type: Number },
+      daysSinceRefill:{ type: Number },
+      avgCycleDays:   { type: Number },
+    },
+    // Whether the hoarding penalty was applied to this order
+    crisisHoardingPenaltyApplied: {
+      type: Boolean,
+      default: false,
+    },
+    // Readable reason for waitlist / allocation decision
+    crisisAllocationNotes: {
+      type: String,
+      default: '',
+    },
+    // Whether hotel 70% cap was applied (reduces cylinderCount)
+    crisisCapApplied: {
+      type: Boolean,
+      default: false,
+    },
+    crisisOriginalCount: {
+      type: Number,
+      default: null, // original cylinderCount before cap
     },
     // For partial delivery — actual cylinders delivered (may differ from cylinderCount)
     deliveredCount: {

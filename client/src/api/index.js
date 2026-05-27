@@ -48,6 +48,9 @@ export const inventoryAPI = {
   create: (data) => api.post('/inventory', data),
   update: (id, data) => api.patch(`/inventory/${id}`, data),
   getLowStock: () => api.get('/inventory/low-stock'),
+  // Crisis mode (admin-controlled)
+  getCrisisMode: () => api.get('/inventory/crisis-mode'),
+  setCrisisMode: (data) => api.patch('/inventory/crisis-mode', data),
 };
 
 export const deliveryAPI = {
@@ -83,3 +86,15 @@ export const productsAPI = {
 export const couponsAPI = {
   getActive: () => api.get('/coupons/active'),
 };
+
+export const crisisAPI = {
+  // Admin
+  getPool:      ()         => api.get('/crisis/pool'),
+  getLeaderboard: (batchId) => api.get('/crisis/leaderboard', { params: batchId ? { batchId } : {} }),
+  runBatch:     ()         => api.post('/crisis/batch/run'),
+  getBatchStatus: ()       => api.get('/crisis/batch/status'),
+  updateConfig: (data)     => api.patch('/crisis/batch/config', data),
+  // Customer
+  getMyStatus:  ()         => api.get('/crisis/my-status'),
+};
+

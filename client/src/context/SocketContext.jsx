@@ -1,11 +1,15 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext';
+import { AuthContext } from './AuthContext';
 
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
-  const { user, updateUser } = useAuth();
+  // Use useContext directly (not useAuth) so we never throw if AuthProvider
+  // hasn't mounted yet (e.g. during HMR React tree remount ordering)
+  const authCtx = useContext(AuthContext);
+  const user = authCtx?.user ?? null;
+  const updateUser = authCtx?.updateUser ?? (() => {});
   const socketRef = useRef(null);
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);

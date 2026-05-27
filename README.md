@@ -198,6 +198,36 @@ Authorization: Bearer <access_token>
 
 ---
 
+## 🚨 Zonal Crisis Prioritization & Heuristic Allocation Engine
+
+To manage severe gas shortages and prioritize allocations based on necessity rather than speed during stock crises, the platform features a complete Zonal Crisis Prioritization and Priority Score engine:
+
+### 1. Heuristic Priority Score Formula
+When active, standard Real-Time FCFS (First-Come, First-Served) is suspended. Orders enter a zonal holding pool and are allocated periodically using a Max-Heap descending priority rank:
+$$P = (1.5 \times S_{\text{sector}}) + (1.0 \times S_{\text{urgency}}) - (1.0 \times S_{\text{hoarding}})$$
+
+* **Sector Base Score ($S_{\text{sector}}$)**: 
+  * **Hospitals/Emergency Services**: 100 points ($100 \times 1.5 = 150$ priority weight contribution)
+  * **Domestic Households**: 50 points ($50 \times 1.5 = 75$ priority weight contribution)
+  * **Hostels/Institutional**: 30 points ($30 \times 1.5 = 45$ priority weight contribution)
+  * **Commercial (Hotels/Restaurants)**: 10 points ($10 \times 1.5 = 15$ priority weight contribution)
+* **Necessity Index ($S_{\text{urgency}}$)**: $(\text{DaysSinceLastRefill} / \text{AverageMonthlyConsumptionCycle}) \times 100$, capped at 200 points to prevent outlier anomalies.
+* **Hoarding Penalty Shield ($S_{\text{hoarding}}$)**: Subtracts a massive **-200 points** from panic buyers refilling within 21 days (Hospitals fully exempt).
+
+### 2. Strict Sector Cooldown Lockouts
+* **🏥 Hospital / Medical Services**: Exempt from all rolling limits and cooldown checks. Hospitals can book multiple bulk orders in succession with absolutely **"no problem"**. Orders draw from a dedicated **15% emergency reserve stock** immediately.
+* **🏠 Domestic Households**: Strict **30-day lock period** during crisis mode. Subsequent bookings within 30 days of any previous non-cancelled order are hard-rejected with a friendly countdown countdown feedback error showing exactly when they can book next.
+* **🏨 Hotels & Commercial Connections**: Strict **7-day lock period** and an automated **70% quantity reduction cap** on all ordered cylinders.
+
+### 3. Live Browser E2E Automation Testing
+* Automated end-to-end browser tests are available in `test-e2e/emergency-test.js` using Puppeteer.
+* Execute the automated E2E browser tests locally:
+  ```bash
+  node test-e2e/emergency-test.js
+  ```
+
+---
+
 ## 🔌 Socket.IO Events
 
 ### Connection

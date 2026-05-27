@@ -1,6 +1,7 @@
 'use strict';
 
 const orderRepository = require('./order.repository');
+const logger = require('../../config/logger');
 const inventoryService = require('../inventory/inventory.service');
 const userRepository = require('../users/user.repository');
 const notificationService = require('../notifications/notification.service');
@@ -44,56 +45,211 @@ class OrderService {
       throw new AppError('KYC not verified. Please complete your KYC verification to book a cylinder.', 403);
     }
 
-    // 25-Day Booking Limit Check: Max 1 cylinder per 25 days (Configurable)
-    const maxCylinders = parseInt(process.env.MAX_CYLINDERS_PER_PERIOD !== undefined ? process.env.MAX_CYLINDERS_PER_PERIOD : config.booking.maxCylinders, 10);
-    const periodDays = parseInt(process.env.BOOKING_PERIOD_DAYS !== undefined ? process.env.BOOKING_PERIOD_DAYS : config.booking.periodDays, 10);
+    // ─── FACILITY-TYPE-AWARE BOOKING LIMIT ───────────────────────────────────
+    // Household: max 1 cylinder per 25 days (government regulation)
+    // Commercial (Hotel/Restaurant), Medical (Hospital/Nursing Home),
+    // Institutional (Other): unlimited — they have high operational needs
+    const UNLIMITED_FACILITY_TYPES = ['commercial', 'medical', 'institutional'];
+    const isUnlimited = UNLIMITED_FACILITY_TYPES.includes(user.facilityType);
 
-    if (periodDays > 0) {
-      if (cylinderCount > maxCylinders) {
-        throw new AppError(`Cylinder booking limit exceeded. You can only book a maximum of ${maxCylinders} cylinder${maxCylinders > 1 ? 's' : ''} per ${periodDays} days.`, 400);
-      }
+    if (!isUnlimited) {
+      const maxCylinders = parseInt(
+        process.env.MAX_CYLINDERS_PER_PERIOD !== undefined
+          ? process.env.MAX_CYLINDERS_PER_PERIOD
+          : config.booking.maxCylinders,
+        10
+      );
+      const periodDays = parseInt(
+        process.env.BOOKING_PERIOD_DAYS !== undefined
+          ? process.env.BOOKING_PERIOD_DAYS
+          : config.booking.periodDays,
+        10
+      );
 
-      const mongoose = require('mongoose');
-      const limitStartDate = new Date();
-      limitStartDate.setDate(limitStartDate.getDate() - periodDays);
+      if (periodDays > 0) {
+        // Single-order quantity check
+        if (cylinderCount > maxCylinders) {
+          throw new AppError(
+            `Cylinder booking limit exceeded. Household customers can only book a maximum of ${maxCylinders} cylinder${maxCylinders > 1 ? 's' : ''} per ${periodDays} days.`,
+            400
+          );
+        }
 
-      const recentCylindersCount = await Order.aggregate([
-        {
-          $match: {
-            customerId: new mongoose.Types.ObjectId(customerId),
+        const mongoose = require('mongoose');
+        const limitStartDate = new Date();
+        limitStartDate.setDate(limitStartDate.getDate() - periodDays);
+
+        const recentCylindersCount = await Order.aggregate([
+          {
+            $match: {
+              customerId: new mongoose.Types.ObjectId(customerId),
+              status: { $ne: 'cancelled' },
+              createdAt: { $gte: limitStartDate },
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$cylinderCount' } } },
+        ]);
+
+        const currentCount = recentCylindersCount.length > 0 ? recentCylindersCount[0].total : 0;
+        if (currentCount + cylinderCount > maxCylinders) {
+          // Find the oldest qualifying order to compute days remaining
+          const lastOrder = await Order.findOne({
+            customerId,
             status: { $ne: 'cancelled' },
             createdAt: { $gte: limitStartDate },
+          })
+            .sort({ createdAt: -1 })
+            .lean();
+
+          let daysRemaining = periodDays;
+          if (lastOrder) {
+            const diffTime = Math.abs(new Date() - new Date(lastOrder.createdAt));
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            daysRemaining = Math.max(1, periodDays - diffDays);
           }
-        },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: '$cylinderCount' }
-          }
+
+          throw new AppError(
+            `Booking limit exceeded. Household customers can only book 1 cylinder per ${periodDays} days. ` +
+              `You can book your next cylinder in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}.`,
+            400
+          );
         }
-      ]);
-
-      const currentCount = recentCylindersCount.length > 0 ? recentCylindersCount[0].total : 0;
-      if (currentCount + cylinderCount > maxCylinders) {
-        // Calculate remaining days for user feedback
-        const lastOrder = await Order.findOne({
-          customerId,
-          status: { $ne: 'cancelled' },
-          createdAt: { $gte: limitStartDate }
-        }).sort({ createdAt: -1 }).lean();
-
-        let daysRemaining = periodDays;
-        if (lastOrder) {
-          const diffTime = Math.abs(new Date() - new Date(lastOrder.createdAt));
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          daysRemaining = Math.max(1, periodDays - diffDays);
-        }
-
-        throw new AppError(`Booking limit exceeded. You have already booked a cylinder in the last ${periodDays} days. You can book your next cylinder in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}.`, 400);
       }
     }
+    // Commercial / Medical / Institutional: no per-period limit applied ──────
+
+    // ─── CRISIS MODE INTERCEPT ────────────────────────────────────────────────
+    // When admin has enabled Crisis Mode, orders are NOT processed normally.
+    // Instead they enter a holding pool (awaiting_allocation) and wait for the
+    // batch engine to allocate based on the Priority Score formula.
+    const AppSettings = require('../inventory/appsettings.model');
+    const settings    = await AppSettings.getSingleton();
+
+    if (settings.crisisMode?.enabled) {
+      const cm           = settings.crisisMode;
+      const facilityType = user.facilityType ?? 'household';
+
+      // ── Apply sector-specific crisis constraints ─────────────────────────
+      let effectiveCylinderCount = cylinderCount;
+      let crisisCapApplied       = false;
+      let crisisOriginalCount    = null;
+      let crisisNotes            = '';
+
+      // 1. Hotels / Commercial: 70% reduction cap + 7-day cooldown
+      if (facilityType === 'commercial') {
+        const cooldownDays = cm.hotelCrisisCooldownDays ?? 7;
+        const cooldownStart = new Date();
+        cooldownStart.setDate(cooldownStart.getDate() - cooldownDays);
+        const recentHotelOrder = await Order.findOne({
+          customerId,
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: cooldownStart },
+        }).sort({ createdAt: -1 }).lean();
+
+        if (recentHotelOrder) {
+          const diffTime = Math.abs(new Date() - new Date(recentHotelOrder.createdAt));
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          const daysRemaining = Math.max(1, cooldownDays - diffDays);
+
+          throw new AppError(
+            `During crisis mode, commercial accounts have a mandatory ${cooldownDays}-day lock period. ` +
+            `You can place your next booking in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}.`,
+            400
+          );
+        }
+        // Apply 70% capacity reduction
+        const capPct = (cm.hotelCapReductionPercent ?? 70) / 100;
+        const maxAllowed = Math.max(1, Math.floor(cylinderCount * (1 - capPct)));
+        if (cylinderCount > maxAllowed) {
+          crisisOriginalCount    = cylinderCount;
+          effectiveCylinderCount = maxAllowed;
+          crisisCapApplied       = true;
+          crisisNotes = `Crisis cap applied: order reduced from ${crisisOriginalCount} → ${effectiveCylinderCount} cylinders (${cm.hotelCapReductionPercent}% reduction).`;
+        }
+      }
+
+      // 2. Households: strict 30-day lock period check during crisis mode
+      if (facilityType === 'household') {
+        const cooldownDays  = cm.householdCrisisCooldownDays ?? 30;
+        const cooldownStart = new Date();
+        cooldownStart.setDate(cooldownStart.getDate() - cooldownDays);
+        const recentOrder = await Order.findOne({
+          customerId,
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: cooldownStart },
+        }).sort({ createdAt: -1 }).lean();
+        
+        if (recentOrder) {
+          const diffTime = Math.abs(new Date() - new Date(recentOrder.createdAt));
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          const daysRemaining = Math.max(1, cooldownDays - diffDays);
+          
+          throw new AppError(
+            `During crisis mode, household connections have a strict ${cooldownDays}-day lock period. ` +
+            `You can place your next booking in ${daysRemaining} day${daysRemaining > 1 ? 's' : ''}.`,
+            400
+          );
+        }
+      }
+
+      // 3. Medical / Hospital: No limits. No penalty. Accept immediately.
+      if (facilityType === 'medical') {
+        crisisNotes = 'Medical facility order. Emergency reserve access at batch run.';
+      }
+
+      // ── Billing (same as normal) ─────────────────────────────────────────
+      const subTotal       = pricePerCylinder * effectiveCylinderCount;
+      const taxAmount      = Math.round(subTotal * 0.05);
+      let   deliveryCharge = 0;
+      if (priority === 'medium') deliveryCharge = 50;
+      if (priority === 'urgent') deliveryCharge = 100;
+      const discountAmount = paymentMode === 'online' ? Math.round(subTotal * 0.05) : 0;
+      const totalAmount    = subTotal + taxAmount + deliveryCharge - discountAmount;
+
+      // ── Generate batch ID (today's date) ────────────────────────────────
+      const batchId = new Date().toISOString().split('T')[0];
+
+      // ── Create order in holding pool — NO inventory deduction ────────────
+      const orderData = {
+        customerId,
+        warehouseId,
+        deliveryAddress,
+        cylinderCount:      effectiveCylinderCount,
+        cylinderType,
+        notes:              crisisNotes || notes,
+        priority,
+        pricePerCylinder,
+        subTotal,
+        taxAmount,
+        deliveryCharge,
+        discountAmount,
+        totalAmount,
+        paymentMode,
+        paymentStatus: 'pending',
+        // Crisis batch fields
+        status:              'awaiting_allocation',
+        crisisStatus:        'awaiting_allocation',
+        crisisBatchId:       batchId,
+        crisisCapApplied,
+        crisisOriginalCount,
+        crisisAllocationNotes: crisisNotes,
+      };
+
+      const order    = await orderRepository.create(orderData);
+      const customer = await userRepository.findById(customerId);
+      notificationService.emit('order.created', { order, customer });
+      await cache.set(`order:${order.orderId}`, order, ACTIVE_ORDER_CACHE_TTL);
+
+      logger.info(`[CrisisMode] Order ${order.orderId} entered batch pool.`, {
+        facilityType, effectiveCylinderCount, crisisCapApplied, batchId,
+      });
+
+      return order;
+    }
+    // ─── END CRISIS MODE INTERCEPT ────────────────────────────────────────
 
     // Billing calculations
+
     const subTotal = pricePerCylinder * cylinderCount;
     const taxAmount = Math.round(subTotal * 0.05); // 5% GST
     
