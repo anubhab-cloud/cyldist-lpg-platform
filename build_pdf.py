@@ -142,6 +142,221 @@ class PDF:
         w = len(s) * char_w
         self.text(cx - w/2, y, s, size, color, font)
 
+    # ============================================================
+    # 3D ILLUSTRATIONS
+    # ============================================================
+    def ellipse(self, cx, cy, rx, ry, fill):
+        """Filled ellipse."""
+        py = self._y(cy)
+        kx, ky = 0.5523 * rx, 0.5523 * ry
+        cmds = [self._fill(fill)]
+        cmds.append(f"{cx+rx:.2f} {py:.2f} m")
+        cmds.append(f"{cx+rx:.2f} {py+ky:.2f} {cx+kx:.2f} {py+ry:.2f} {cx:.2f} {py+ry:.2f} c")
+        cmds.append(f"{cx-kx:.2f} {py+ry:.2f} {cx-rx:.2f} {py+ky:.2f} {cx-rx:.2f} {py:.2f} c")
+        cmds.append(f"{cx-rx:.2f} {py-ky:.2f} {cx-kx:.2f} {py-ry:.2f} {cx:.2f} {py-ry:.2f} c")
+        cmds.append(f"{cx+kx:.2f} {py-ry:.2f} {cx+rx:.2f} {py-ky:.2f} {cx+rx:.2f} {py:.2f} c")
+        cmds.append("f")
+        self.cur.append('\n'.join(cmds))
+
+    def cylinder_3d(self, cx, cy, w, h, color, top_lighter=None, label=""):
+        """3D cylinder for LPG/database. cy = vertical center."""
+        if top_lighter is None:
+            top_lighter = tuple(min(1.0, c + 0.15) for c in color)
+        rx = w / 2
+        ry_top = w / 6  # ellipse flatness for top/bottom
+        # Bottom ellipse (darker)
+        self.ellipse(cx, cy + h/2, rx, ry_top, tuple(c * 0.7 for c in color))
+        # Body rectangle
+        self.rect(cx - rx, cy - h/2, w, h, color)
+        # Top ellipse (lighter for highlight)
+        self.ellipse(cx, cy - h/2, rx, ry_top, top_lighter)
+        # Vertical highlight strip
+        self.rect(cx - rx + 3, cy - h/2 + ry_top, w * 0.15, h - 2*ry_top, top_lighter)
+        if label:
+            self.text_center(cx, cy + 4, label, size=10, color=(1,1,1), font='bold')
+
+    def lpg_cylinder_full(self, cx, cy, w, h, body=(0.97, 0.45, 0.09), label="LPG"):
+        """Full LPG cylinder illustration with valve cap & base ring."""
+        # Cap/valve on top
+        cap_w = w * 0.5
+        cap_h = h * 0.06
+        self.rect(cx - cap_w/2, cy - h/2 - cap_h, cap_w, cap_h, (0.35, 0.40, 0.50))
+        # Valve handle
+        valve_w = w * 0.25
+        valve_h = h * 0.04
+        self.rect(cx - valve_w/2, cy - h/2 - cap_h - valve_h, valve_w, valve_h, (0.94, 0.27, 0.27))
+        # Top button
+        self.ellipse(cx, cy - h/2 - cap_h - valve_h - 2, 4, 3, (0.25, 0.25, 0.25))
+        # Main body cylinder (3D)
+        self.cylinder_3d(cx, cy, w, h, body)
+        # White label band
+        band_h = h * 0.18
+        self.rect(cx - w*0.45, cy - band_h/2, w * 0.9, band_h, (1, 1, 1))
+        self.text_center(cx, cy - band_h/2 + band_h*0.7, label, size=11, color=body, font='bold')
+        # Base ring
+        self.rect(cx - w*0.45, cy + h/2 - h*0.05, w * 0.9, h*0.05, tuple(c * 0.6 for c in body))
+
+    def cube_3d(self, x, y, size, color, depth=0.3):
+        """Isometric-style 3D cube using 3 parallelograms."""
+        d = size * depth  # depth offset
+        lighter = tuple(min(1.0, c + 0.18) for c in color)
+        darker = tuple(c * 0.65 for c in color)
+        # FRONT face (rect)
+        self.rect(x, y + d, size, size, color)
+        # TOP face (parallelogram - need polygon)
+        py_top = self._y(y + d) + size  # PDF coords: top of front face
+        py_back = self._y(y) + size      # back top
+        cmds = [self._fill(lighter)]
+        cmds.append(f"{x:.2f} {py_top:.2f} m")
+        cmds.append(f"{x + d:.2f} {py_back:.2f} l")
+        cmds.append(f"{x + size + d:.2f} {py_back:.2f} l")
+        cmds.append(f"{x + size:.2f} {py_top:.2f} l")
+        cmds.append("f")
+        self.cur.append('\n'.join(cmds))
+        # RIGHT face (parallelogram)
+        py_front_top = self._y(y + d) + size
+        py_front_bot = self._y(y + d + size) + size
+        py_back_top = self._y(y) + size
+        py_back_bot = self._y(y + size) + size
+        cmds = [self._fill(darker)]
+        cmds.append(f"{x + size:.2f} {py_front_bot:.2f} m")
+        cmds.append(f"{x + size:.2f} {py_front_top:.2f} l")
+        cmds.append(f"{x + size + d:.2f} {py_back_top:.2f} l")
+        cmds.append(f"{x + size + d:.2f} {py_back_bot:.2f} l")
+        cmds.append("f")
+        self.cur.append('\n'.join(cmds))
+
+    def user_avatar(self, cx, cy, size, color):
+        """User avatar - circle head + rounded shoulders."""
+        head_r = size / 4
+        # Head
+        self.circle(cx, cy - size/3, head_r, color)
+        # Body (shoulders)
+        body_w = size * 0.85
+        body_h = size * 0.45
+        self.rect(cx - body_w/2, cy - size/8, body_w, body_h, color, radius=body_h/2)
+
+    def phone_3d(self, x, y, w, h, screen_color=(0.23, 0.51, 0.97), label=""):
+        """3D smartphone mockup."""
+        # Phone body
+        self.rect(x, y, w, h, (0.05, 0.06, 0.15), radius=10)
+        # Screen
+        s_x = x + w * 0.06
+        s_y = y + h * 0.08
+        s_w = w * 0.88
+        s_h = h * 0.78
+        self.rect(s_x, s_y, s_w, s_h, screen_color)
+        # Notch
+        notch_w = w * 0.35
+        self.rect(x + (w - notch_w)/2, y + 2, notch_w, 6, (0.05, 0.06, 0.15), radius=3)
+        # Speaker
+        self.rect(x + w/2 - 8, y + 5, 16, 2, (0.3, 0.3, 0.3))
+        # Home indicator
+        self.rect(x + w/2 - 25, y + h - 5, 50, 2, (1, 1, 1))
+        if label:
+            self.text_center(x + w/2, y + h/2, label, size=12, color=(1, 1, 1), font='bold')
+
+    def server_rack(self, x, y, w, h, color=(0.16, 0.25, 0.41)):
+        """3D server rack - chassis + 3 stacked units with LEDs."""
+        # Outer chassis
+        self.rect(x, y, w, h, color, radius=4)
+        # Server units inside
+        unit_h = (h - 8) / 3
+        for i in range(3):
+            uy = y + 3 + i * (unit_h + 1)
+            self.rect(x + 3, uy, w - 6, unit_h, (0.06, 0.10, 0.20))
+            # LEDs
+            led_y = uy + unit_h * 0.3
+            self.circle(x + 8, led_y, 1.5, (0.06, 0.73, 0.51))   # green
+            self.circle(x + 12, led_y, 1.5, (0.98, 0.75, 0.14))   # amber
+            self.circle(x + 16, led_y, 1.5, (0.23, 0.51, 0.97))   # blue
+            # Slot/vent line
+            self.rect(x + 25, uy + unit_h * 0.45, w - 32, 1, (0.19, 0.23, 0.31))
+
+    def delivery_truck(self, x, y, w, h, color=(0.97, 0.45, 0.09)):
+        """Delivery truck illustration."""
+        # Cargo box
+        cargo_w = w * 0.62
+        cargo_h = h * 0.72
+        self.rect(x, y + h*0.08, cargo_w, cargo_h, color)
+        # Cargo door lines
+        self.rect(x + 4, y + h*0.12, 1.5, cargo_h*0.92, tuple(c*0.7 for c in color))
+        self.rect(x + cargo_w - 5, y + h*0.12, 1.5, cargo_h*0.92, tuple(c*0.7 for c in color))
+        # Cab
+        cab_x = x + cargo_w
+        cab_w = w * 0.36
+        cab_h = h * 0.5
+        self.rect(cab_x, y + h*0.3, cab_w, cab_h, (0.04, 0.09, 0.22), radius=4)
+        # Windshield
+        self.rect(cab_x + 2, y + h*0.34, cab_w*0.7, cab_h*0.5, (0.23, 0.51, 0.97))
+        # Wheels
+        wheel_y = y + h*0.85
+        wheel_r = h * 0.12
+        for cx in [x + cargo_w*0.2, x + cargo_w*0.7, cab_x + cab_w*0.5]:
+            self.circle(cx, wheel_y, wheel_r, (0.1, 0.1, 0.1))
+            self.circle(cx, wheel_y, wheel_r * 0.4, (0.58, 0.64, 0.72))
+
+    def shield(self, cx, cy, w, h, color):
+        """Security shield (pentagon-ish)."""
+        # Top rect part
+        self.rect(cx - w/2, cy - h/2, w, h*0.6, color, radius=5)
+        # Bottom triangle (using triangle method)
+        self.triangle(cx - w/2, cy + h*0.1, cx + w/2, cy + h*0.1, cx, cy + h/2, color)
+
+    def rocket(self, cx, cy, w, h, body_color=(0.98, 0.75, 0.14), fin_color=(0.91, 0.34, 0.04)):
+        """Rocket illustration."""
+        # Body
+        body_w = w * 0.5
+        body_h = h * 0.55
+        self.rect(cx - body_w/2, cy - h/2 + h*0.2, body_w, body_h, body_color, radius=body_w/4)
+        # Nose cone
+        self.triangle(cx - body_w/2, cy - h/2 + h*0.2, cx + body_w/2, cy - h/2 + h*0.2, cx, cy - h/2, fin_color)
+        # Window
+        win_r = body_w * 0.18
+        self.circle(cx, cy - h*0.1, win_r, (0.23, 0.51, 0.97))
+        self.circle(cx + win_r*0.3, cy - h*0.1 - win_r*0.3, win_r*0.4, (1, 1, 1))
+        # Fins
+        fin_w = w * 0.18
+        fin_h = h * 0.15
+        # Left fin (triangle)
+        self.triangle(cx - body_w/2 - fin_w + 2, cy + h*0.15,
+                      cx - body_w/2 + 2, cy + h*0.15,
+                      cx - body_w/2 + 2, cy + h*0.15 + fin_h, fin_color)
+        # Right fin
+        self.triangle(cx + body_w/2 - 2, cy + h*0.15,
+                      cx + body_w/2 + fin_w - 2, cy + h*0.15,
+                      cx + body_w/2 - 2, cy + h*0.15 + fin_h, fin_color)
+        # Flame
+        flame_w = body_w * 0.6
+        flame_top = cy + h*0.3
+        self.triangle(cx - flame_w/2, flame_top, cx + flame_w/2, flame_top,
+                      cx, cy + h/2, (0.94, 0.27, 0.27))
+
+    def map_pin(self, cx, cy, size, color=(0.94, 0.27, 0.27)):
+        """Location map pin."""
+        # Round head
+        self.circle(cx, cy - size*0.6, size*0.5, color)
+        # Pointer triangle
+        self.triangle(cx - size*0.3, cy - size*0.4, cx + size*0.3, cy - size*0.4,
+                      cx, cy + size*0.1, color)
+        # Inner dot
+        self.circle(cx, cy - size*0.6, size*0.18, (1, 1, 1))
+
+    def cloud_shape(self, cx, cy, w, h, color):
+        """Cloud illustration (3 overlapping circles + base rect)."""
+        # 3 puffs
+        self.circle(cx - w*0.3, cy, h*0.45, color)
+        self.circle(cx, cy - h*0.15, h*0.55, color)
+        self.circle(cx + w*0.3, cy, h*0.45, color)
+        # Base
+        self.rect(cx - w*0.4, cy - 1, w*0.8, h*0.5, color, radius=h*0.25)
+
+    def chat_bubble(self, x, y, w, h, color):
+        """Chat bubble with tail."""
+        self.rect(x, y, w, h, color, radius=6)
+        # Tail (small triangle below-left)
+        self.triangle(x + w*0.15, y + h, x + w*0.3, y + h, x + w*0.15, y + h + 6, color)
+
 
 
     def save(self, path):
@@ -211,23 +426,29 @@ class PDF:
 
 
 # ============================================================
-# SLIDE 1: TITLE - Hero design with massive typography
+# SLIDE 1: TITLE - Hero with 3D LPG cylinder
 # ============================================================
 def slide1(pdf):
     pdf.page()
     # Full navy background
     pdf.rect(0, 0, PW, PH, NAVY_DEEP)
-    # Layered decorative circles (top right)
-    pdf.circle(780, 80, 180, ORANGE)
-    pdf.circle(820, 50, 130, ORANGE_DEEP)
-    pdf.circle(770, 130, 70, AMBER)
-    # Bottom-left accent circle
-    pdf.circle(40, 520, 120, BLUE_BR)
+    # Layered decorative circles (top right & bottom-left)
+    pdf.circle(50, 520, 120, BLUE_BR)
     pdf.circle(80, 540, 60, BLUE)
-    # Floating dots
-    pdf.circle(640, 380, 8, AMBER)
-    pdf.circle(720, 420, 5, ORANGE)
-    pdf.circle(680, 460, 6, WHITE)
+    # Hex-tech background pattern (decorative)
+    for hx, hy in [(540, 60), (575, 90), (610, 60), (540, 120), (610, 120)]:
+        pdf.circle(hx, hy, 8, NAVY_MID)
+    # === BIG 3D LPG CYLINDER (right hero visual) ===
+    pdf.lpg_cylinder_full(720, 320, 100, 280, body=ORANGE, label="LPG")
+    # Floating data nodes near cylinder (network feel)
+    pdf.circle(620, 200, 8, AMBER)
+    pdf.circle(615, 380, 6, BLUE_BR)
+    pdf.circle(800, 250, 7, GREEN)
+    pdf.circle(815, 480, 6, AMBER)
+    # Connection lines from nodes to cylinder
+    pdf.line(620, 200, 690, 220, AMBER, width=1)
+    pdf.line(615, 380, 700, 360, BLUE_BR, width=1)
+    pdf.line(800, 250, 750, 240, GREEN, width=1)
     # Top status pill
     pdf.rect(60, 50, 200, 28, ORANGE, radius=14)
     pdf.text(80, 70, "BACKEND API  |  v1.0", size=11, color=WHITE, font='bold')
@@ -286,6 +507,8 @@ def slide2(pdf):
     # Stats panel at bottom
     pdf.rect(40, 380, 240, 180, NAVY_MID, radius=8)
     pdf.text(60, 410, "PROJECT IMPACT", size=11, color=ORANGE, font='bold')
+    # Small LPG cylinder icon next to title
+    pdf.lpg_cylinder_full(265, 410, 25, 50, body=ORANGE, label="")
     stats = [("3+", "User Roles"), ("30+", "API Endpoints"), ("10+", "Core Features"), ("2", "Databases")]
     for i, (num, label) in enumerate(stats):
         col = i % 2
@@ -401,7 +624,7 @@ def slide3(pdf):
 
 
 # ============================================================
-# SLIDE 4: SYSTEM ARCHITECTURE & WORKFLOW
+# SLIDE 4: ARCHITECTURE - With 3D illustrations
 # ============================================================
 def slide4(pdf):
     pdf.page()
@@ -412,47 +635,46 @@ def slide4(pdf):
     pdf.text(40, 50, "04", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "SYSTEM DESIGN", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Architecture & Workflow", size=22, color=WHITE, font='bold')
-    # === LEFT: Architecture Diagram ===
-    # User role circles (top row)
-    roles = [
-        ("CUSTOMER", BLUE_BR, 80),
-        ("ADMIN", ORANGE, 220),
-        ("AGENT", GREEN, 360),
-    ]
-    for name, color, x in roles:
-        pdf.circle(x, 160, 38, color)
-        # Inner highlight
-        pdf.circle(x - 8, 152, 12, WHITE)
-        pdf.text_center(x, 207, name, size=10, color=NAVY, font='bold')
-    # Down arrow lines from roles to API
-    for _, _, x in roles:
-        pdf.line(x, 200, 220, 245, GRAY, width=1.5)
+    pdf.text(40, 115, "ARCHITECTURE FLOW", size=10, color=ORANGE, font='bold')
+    # === USER AVATARS (3D illustrations replacing flat circles) ===
+    pdf.user_avatar(80, 165, 50, BLUE_BR)
+    pdf.text_center(80, 215, "CUSTOMER", size=9, color=NAVY, font='bold')
+    pdf.user_avatar(220, 165, 50, ORANGE)
+    pdf.text_center(220, 215, "ADMIN", size=9, color=NAVY, font='bold')
+    pdf.user_avatar(360, 165, 50, GREEN)
+    pdf.text_center(360, 215, "AGENT", size=9, color=NAVY, font='bold')
+    # Connection lines from avatars to API server
+    pdf.line(80, 200, 220, 240, GRAY, width=1)
+    pdf.line(220, 200, 220, 240, GRAY, width=1)
+    pdf.line(360, 200, 220, 240, GRAY, width=1)
     pdf.triangle(212, 240, 228, 240, 220, 252, ORANGE)
-    # API Box (centered)
-    pdf.rect(50, 255, 350, 70, NAVY, radius=10)
-    pdf.rect(50, 255, 6, 70, ORANGE)
-    pdf.text(75, 282, "EXPRESS.JS BACKEND API", size=14, color=WHITE, font='bold')
-    pdf.text(75, 305, "REST API  |  Socket.IO  |  JWT  |  RBAC  |  Zod", size=10, color=GRAY)
-    # Down arrow to DBs
-    pdf.line(140, 325, 140, 360, GRAY, width=1.5)
-    pdf.line(310, 325, 310, 360, GRAY, width=1.5)
+    # === 3D SERVER RACK (API backend) ===
+    pdf.server_rack(60, 245, 320, 75)
+    pdf.text(80, 263, "EXPRESS.JS BACKEND API SERVER", size=12, color=ORANGE, font='bold')
+    pdf.text(80, 308, "REST  |  Socket.IO  |  JWT  |  RBAC", size=9, color=GRAY)
+    # Down arrows to DBs
+    pdf.line(140, 320, 140, 360, GRAY, width=1.5)
+    pdf.line(310, 320, 310, 360, GRAY, width=1.5)
     pdf.triangle(132, 357, 148, 357, 140, 369, ORANGE)
     pdf.triangle(302, 357, 318, 357, 310, 369, ORANGE)
-    # MongoDB
-    pdf.rect(50, 370, 160, 60, GREEN, radius=8)
-    pdf.text(75, 395, "MongoDB", size=14, color=WHITE, font='bold')
-    pdf.text(75, 415, "Primary Database", size=9, color=(0.85, 1, 0.9))
-    # Redis
-    pdf.rect(240, 370, 160, 60, RED, radius=8)
-    pdf.text(265, 395, "Redis", size=14, color=WHITE, font='bold')
-    pdf.text(265, 415, "Cache + Real-Time", size=9, color=(1, 0.9, 0.9))
-    # Architecture title
-    pdf.text(50, 130, "ARCHITECTURE FLOW", size=10, color=ORANGE, font='bold')
+    # === 3D DATABASE CYLINDERS ===
+    pdf.cylinder_3d(140, 420, 110, 80, GREEN)
+    pdf.text_center(140, 425, "MongoDB", size=12, color=WHITE, font='bold')
+    pdf.text_center(140, 478, "Primary DB", size=8, color=GRAY)
+    pdf.cylinder_3d(310, 420, 110, 80, RED)
+    pdf.text_center(310, 425, "Redis", size=12, color=WHITE, font='bold')
+    pdf.text_center(310, 478, "Cache + RT", size=8, color=GRAY)
+    # === Delivery truck illustration at bottom ===
+    pdf.delivery_truck(70, 510, 100, 50, ORANGE)
+    pdf.text(190, 535, "Delivery Agent", size=10, color=DARK_GRAY, font='bold')
+    pdf.text(190, 553, "GPS-tracked van", size=8, color=GRAY)
     # === RIGHT: Order Lifecycle ===
     pdf.rect(440, 110, 380, 425, WHITE, radius=10)
     pdf.rect(440, 110, 380, 50, NAVY, radius=10)
     pdf.rect(440, 145, 380, 15, NAVY)
     pdf.text(470, 142, "ORDER LIFECYCLE FLOW", size=14, color=ORANGE, font='bold')
+    # Map pin icon at top right
+    pdf.map_pin(795, 135, 12, AMBER)
     steps = [
         ("01", "Customer places order", BLUE_BR),
         ("02", "Admin assigns agent", ORANGE),
@@ -464,83 +686,78 @@ def slide4(pdf):
     ]
     for i, (num, text, color) in enumerate(steps):
         y = 185 + i * 48
-        # Number circle
         pdf.circle(475, y + 5, 17, color)
         pdf.text_center(475, y + 11, num, size=11, color=WHITE, font='bold')
-        # Text
         pdf.text(505, y + 8, text, size=12, color=NAVY, font='bold')
-        # Connecting line down
         if i < len(steps) - 1:
             pdf.line(475, y + 22, 475, y + 35, color, width=2)
-    # Slide number
     pdf.text(PW - 40, 575, "04", size=14, color=GRAY, font='bold')
 
 
 
 # ============================================================
-# SLIDE 5: TECHNOLOGIES USED
+# SLIDE 5: TECHNOLOGIES - With 3D cubes & cloud
 # ============================================================
 def slide5(pdf):
     pdf.page()
     pdf.rect(0, 0, PW, PH, NAVY_DEEP)
-    # Decorative side accent
     pdf.rect(0, 0, 8, PH, ORANGE)
     pdf.circle(800, 80, 100, NAVY_MID)
-    pdf.circle(820, 60, 60, ORANGE)
-    # Header
+    # Decorative cloud (Docker/K8s/cloud feel)
+    pdf.cloud_shape(770, 95, 70, 35, ORANGE_DEEP)
     pdf.text(40, 65, "05", size=52, color=ORANGE, font='bold')
     pdf.text(120, 50, "TECH STACK", size=11, color=AMBER, font='bold')
     pdf.text(120, 85, "Modern Technologies", size=24, color=WHITE, font='bold')
-    pdf.text(120, 108, "Built with industry-standard tools for scalability & reliability", size=11, color=GRAY)
-    # Tech cards in 3-column grid
+    pdf.text(120, 108, "3D-illustrated stack for production scalability", size=11, color=GRAY)
+    # Tech cards in 4-column grid with 3D CUBES
     techs = [
-        # row 1
-        ("Node.js", "Runtime\nEngine", GREEN, 60, 160),
-        ("Express", "Web\nFramework", BLUE_BR, 60, 160),
-        ("MongoDB", "NoSQL\nDatabase", (0.20, 0.55, 0.23), 60, 160),
-        ("Redis", "Cache &\nRT Store", RED, 60, 160),
-        # row 2
-        ("Socket.IO", "WebSocket\nLayer", PURPLE, 60, 320),
-        ("Docker", "Container\nPlatform", BLUE, 60, 320),
-        ("Kubernetes", "Orchestration\nEngine", BLUE_BR, 60, 320),
-        ("JWT", "Auth &\nSecurity", ORANGE, 60, 320),
+        ("Node.js", "Runtime", GREEN),
+        ("Express", "Framework", BLUE_BR),
+        ("MongoDB", "Database", (0.20, 0.55, 0.23)),
+        ("Redis", "Cache", RED),
+        ("Socket.IO", "WebSocket", PURPLE),
+        ("Docker", "Container", BLUE),
+        ("Kubernetes", "Orchestration", BLUE_BR),
+        ("JWT", "Auth", ORANGE),
     ]
-    card_w, card_h = 175, 130
-    gap_x = 15
-    for i, (name, desc, color, _, _) in enumerate(techs):
+    card_w, card_h = 180, 130
+    gap_x = 18
+    cube_size = 50
+    for i, (name, desc, color) in enumerate(techs):
         col = i % 4
         row = i // 4
         x = 40 + col * (card_w + gap_x)
         y = 150 + row * (card_h + 20)
-        # Card with gradient feel (two rects)
-        pdf.rect(x, y, card_w, card_h, color, radius=10)
-        pdf.rect(x, y, card_w, 6, WHITE)  # top highlight stripe (light overlay)
-        pdf.rect(x, y, card_w, 4, AMBER)  # accent stripe
-        # Big initial letter
-        pdf.text(x + 15, y + 50, name[0], size=32, color=WHITE, font='bold')
+        # Card with shadow
+        pdf.rect(x, y, card_w, card_h, (0.06, 0.10, 0.20), radius=10)
+        # Top accent stripe
+        pdf.rect(x, y, card_w, 4, AMBER)
+        # === 3D CUBE icon ===
+        pdf.cube_3d(x + 15, y + 25, cube_size, color)
+        pdf.text(x + 30, y + 65, name[0], size=22, color=WHITE, font='bold')
         # Tech name
-        pdf.text(x + 15, y + 75, name, size=14, color=WHITE, font='bold')
+        pdf.text(x + 90, y + 50, name, size=14, color=WHITE, font='bold')
         # Underline
-        pdf.rect(x + 15, y + 80, 30, 2, AMBER)
+        pdf.rect(x + 90, y + 55, 25, 2, AMBER)
         # Description
-        for j, line_text in enumerate(desc.split('\n')):
-            pdf.text(x + 15, y + 100 + j * 14, line_text, size=10, color=(0.95, 0.95, 0.95))
-    # Bottom supporting tools strip
-    pdf.rect(40, 440, 770, 110, NAVY_MID, radius=10)
-    pdf.rect(40, 440, 770, 6, ORANGE, radius=0)
+        pdf.text(x + 90, y + 75, desc, size=10, color=GRAY)
+        # Bottom tagline
+        pdf.text(x + 15, y + card_h - 15, "Production-ready", size=9, color=AMBER, font='italic')
+    # Bottom supporting tools
+    pdf.rect(40, 440, 770, 110, (0.09, 0.15, 0.30), radius=10)
+    pdf.rect(40, 440, 770, 4, ORANGE)
     pdf.text(60, 470, "SUPPORTING LIBRARIES & TOOLS", size=11, color=ORANGE, font='bold')
     tool_groups = [
-        ("Security:", "bcrypt | Helmet | CORS | Zod | mongo-sanitize"),
-        ("Logging:", "Winston | Morgan | daily-rotate-file"),
-        ("Integration:", "Twilio | SendGrid | Razorpay | AWS S3 | Multer"),
-        ("Testing:", "Jest | Supertest | mongodb-memory-server"),
+        ("Security:", "bcrypt | Helmet | CORS | Zod"),
+        ("Logging:", "Winston | Morgan | rotate-file"),
+        ("Integration:", "Twilio | SendGrid | Razorpay | S3"),
+        ("Testing:", "Jest | Supertest | mongo-mem-server"),
     ]
     for i, (label, content) in enumerate(tool_groups):
         y = 495 + (i // 2) * 20
         x = 60 + (i % 2) * 380
         pdf.text(x, y, label, size=10, color=AMBER, font='bold')
         pdf.text(x + 70, y, content, size=10, color=GRAY)
-    # Slide number
     pdf.text(PW - 40, 575, "05", size=14, color=GRAY, font='bold')
 
 
@@ -625,7 +842,7 @@ def slide6(pdf):
 
 
 # ============================================================
-# SLIDE 7: DATABASE / ER DIAGRAM
+# SLIDE 7: ER DIAGRAM - With 3D database cylinders
 # ============================================================
 def slide7(pdf):
     pdf.page()
@@ -635,69 +852,64 @@ def slide7(pdf):
     pdf.text(40, 50, "07", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "DATA MODEL", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Database Design & ER Diagram", size=22, color=WHITE, font='bold')
-    # ER Diagram - 5 entities arranged in a diamond pattern
+    # ER Diagram - 5 entities with 3D database cylinder icons
     entities = [
-        # (name, x, y, color, fields)
-        ("USER", 40, 130, BLUE, ["_id, name, email", "role, phone", "addresses", "isOnDuty, kycStatus"]),
-        ("ORDER", 340, 130, ORANGE, ["orderId, customerId", "agentId, warehouseId", "status, cylinderCount", "timeline, priority"]),
-        ("INVENTORY", 640, 130, GREEN, ["warehouseId, name", "totalCylinders", "availableCylinders", "location, isActive"]),
-        ("CHAT MESSAGE", 40, 360, PURPLE, ["messageId, chatRoomId", "senderId, senderRole", "content, type", "status, mediaUrl"]),
-        ("DELIVERY", 340, 360, RED, ["orderId, agentId", "lat, lng, timestamp", "ETA, route data", "GPS tracking"]),
+        ("USER", 40, 130, BLUE, ["_id, name, email", "role, phone", "addresses", "isOnDuty, kyc"]),
+        ("ORDER", 340, 130, ORANGE, ["orderId, customerId", "agentId, warehouseId", "status, count", "timeline, priority"]),
+        ("INVENTORY", 640, 130, GREEN, ["warehouseId, name", "totalCylinders", "available", "location, active"]),
+        ("CHAT MSG", 40, 360, PURPLE, ["messageId, roomId", "senderId, role", "content, type", "status, mediaUrl"]),
+        ("DELIVERY", 340, 360, RED, ["orderId, agentId", "lat, lng, time", "ETA, route", "GPS tracking"]),
     ]
     for name, x, y, color, fields in entities:
-        # Header strip
-        pdf.rect(x, y, 180, 35, color, radius=8)
-        pdf.rect(x, y + 22, 180, 13, color)
-        # Header icon circle
-        pdf.circle(x + 18, y + 18, 11, WHITE)
-        pdf.text(x + 13, y + 23, "DB", size=8, color=color, font='bold')
-        # Name
-        pdf.text(x + 38, y + 22, name, size=12, color=WHITE, font='bold')
-        # Fields box
-        pdf.rect(x, y + 35, 180, 110, WHITE)
-        pdf.rect(x, y + 35, 180, 110, GRAY)  # would need stroke - skip
-        pdf.rect(x, y + 35, 4, 110, color)  # left accent
+        # 3D database cylinder icon
+        pdf.cylinder_3d(x + 25, y + 18, 40, 30, color)
+        # Entity name label box
+        pdf.rect(x + 50, y, 130, 35, color, radius=5)
+        pdf.text_center(x + 115, y + 22, name, size=12, color=WHITE, font='bold')
+        # Fields panel
+        pdf.rect(x, y + 40, 180, 110, WHITE)
+        pdf.rect(x, y + 40, 4, 110, color)  # left accent
         for i, field in enumerate(fields):
-            pdf.text(x + 15, y + 55 + i * 22, field, size=9, color=DARK_GRAY)
-    # Relationship lines
-    # User -> Order
+            pdf.text(x + 15, y + 60 + i * 22, field, size=9, color=DARK_GRAY)
+    # Relationship lines with badges
     pdf.line(220, 200, 340, 200, ORANGE, width=2)
-    pdf.text(255, 195, "1:N", size=9, color=ORANGE, font='bold')
-    # Order -> Inventory
+    pdf.circle(280, 200, 14, AMBER)
+    pdf.text_center(280, 204, "1:N", size=8, color=NAVY, font='bold')
     pdf.line(520, 200, 640, 200, ORANGE, width=2)
-    pdf.text(560, 195, "N:1", size=9, color=ORANGE, font='bold')
-    # User -> ChatMessage
+    pdf.circle(580, 200, 14, AMBER)
+    pdf.text_center(580, 204, "N:1", size=8, color=NAVY, font='bold')
     pdf.line(130, 280, 130, 360, ORANGE, width=2)
-    pdf.text(135, 320, "1:N", size=9, color=ORANGE, font='bold')
-    # Order -> Delivery
+    pdf.circle(130, 320, 14, AMBER)
+    pdf.text_center(130, 324, "1:N", size=8, color=NAVY, font='bold')
     pdf.line(430, 280, 430, 360, ORANGE, width=2)
-    pdf.text(435, 320, "1:1", size=9, color=ORANGE, font='bold')
-    # Order -> ChatMessage (diagonal)
-    pdf.line(340, 240, 220, 360, ORANGE, width=2)
-    # === Right side: Relationships panel ===
+    pdf.circle(430, 320, 14, AMBER)
+    pdf.text_center(430, 324, "1:1", size=8, color=NAVY, font='bold')
+    pdf.line(340, 240, 220, 360, ORANGE, width=1.5)
+    # Right relationships panel
     pdf.rect(640, 360, 180, 185, NAVY, radius=8)
     pdf.rect(640, 360, 180, 6, ORANGE, radius=0)
-    pdf.text(660, 390, "RELATIONSHIPS", size=11, color=ORANGE, font='bold')
+    # Stack of 3D database cylinders icon in panel
+    pdf.cylinder_3d(670, 395, 25, 12, AMBER)
+    pdf.text(700, 393, "RELATIONSHIPS", size=11, color=ORANGE, font='bold')
     rels = [
         "User (1) -> (N) Orders",
         "User (1) -> (N) Orders",
-        "         [as agent]",
+        "          [as agent]",
         "Inventory (1) -> (N)",
-        "         Orders",
+        "          Orders",
         "Order (1) -> (N)",
-        "         ChatMessages",
+        "          ChatMessages",
         "Order (1) -> (1)",
-        "         Delivery",
+        "          Delivery",
     ]
     for i, rel in enumerate(rels):
-        pdf.text(660, 415 + i * 14, rel, size=9, color=WHITE)
-    # Slide number
+        pdf.text(660, 425 + i * 14, rel, size=9, color=WHITE)
     pdf.text(PW - 40, 575, "07", size=14, color=GRAY, font='bold')
 
 
 
 # ============================================================
-# SLIDE 8: DEMO & SECURITY
+# SLIDE 8: DEMO & SECURITY - With phone & shield illustrations
 # ============================================================
 def slide8(pdf):
     pdf.page()
@@ -707,80 +919,92 @@ def slide8(pdf):
     pdf.text(40, 50, "08", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "EXECUTION & PROTECTION", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Demo & Security", size=22, color=WHITE, font='bold')
-    # === LEFT: Demo highlights with mock screens ===
+    # === LEFT: Phone mockup + dashboard ===
     pdf.text(40, 125, "EXECUTION DEMO", size=11, color=ORANGE, font='bold')
     pdf.rect(40, 130, 60, 2, ORANGE)
-    # Mock dashboard screen
-    pdf.rect(40, 145, 380, 180, WHITE, radius=8)
-    # Browser bar
-    pdf.rect(40, 145, 380, 25, NAVY_DEEP, radius=8)
-    pdf.rect(40, 162, 380, 8, NAVY_DEEP)
-    pdf.circle(54, 158, 4, RED)
-    pdf.circle(70, 158, 4, AMBER)
-    pdf.circle(86, 158, 4, GREEN)
-    pdf.text(120, 162, "/api/v1/admin/dashboard", size=9, color=GRAY)
-    # Dashboard mock content
-    # Sidebar
-    pdf.rect(40, 170, 80, 155, NAVY)
-    for i in range(5):
-        pdf.rect(50, 185 + i * 25, 60, 4, ORANGE if i == 0 else GRAY)
+    # 3D PHONE MOCKUP (left)
+    pdf.phone_3d(40, 145, 130, 240, BLUE_BR)
+    # Phone screen content - mock app UI
+    pdf.rect(50, 175, 110, 30, AMBER, radius=4)
+    pdf.text_center(105, 188, "CYLINDER", size=10, color=NAVY, font='bold')
+    pdf.text_center(105, 200, "BOOKING", size=8, color=NAVY, font='bold')
+    # Mock order cards on phone
+    for i in range(4):
+        cy = 215 + i * 35
+        pdf.rect(50, cy, 110, 28, WHITE, radius=3)
+        pdf.rect(50, cy, 4, 28, [GREEN, ORANGE, BLUE_BR, PURPLE][i])
+        pdf.text(58, cy + 11, f"Order #{1001+i}", size=8, color=NAVY, font='bold')
+        pdf.text(58, cy + 22, "Domestic 14.2kg", size=7, color=DARK_GRAY)
+    # Dashboard mockup (right of phone)
+    pdf.rect(190, 145, 240, 180, WHITE, radius=4)
+    pdf.rect(190, 145, 240, 22, NAVY_DEEP, radius=4)
+    pdf.rect(190, 161, 240, 6, NAVY_DEEP)
+    pdf.circle(202, 156, 3, RED)
+    pdf.circle(214, 156, 3, AMBER)
+    pdf.circle(226, 156, 3, GREEN)
+    pdf.text(245, 161, "admin/dashboard", size=8, color=GRAY)
     # Stats cards
-    stats = [(BLUE_BR, "150", "Orders"), (ORANGE, "23", "Agents"), (GREEN, "98%", "Success")]
-    for i, (col, num, label) in enumerate(stats):
-        x = 130 + i * 95
-        pdf.rect(x, 185, 85, 50, col, radius=4)
-        pdf.text(x + 10, 210, num, size=18, color=WHITE, font='bold')
-        pdf.text(x + 10, 225, label, size=8, color=WHITE)
-    # Chart area mock
-    pdf.rect(130, 245, 280, 70, LIGHT_GRAY, radius=4)
-    # Bar chart bars
-    heights = [25, 45, 30, 55, 40, 60, 50]
-    for i, h in enumerate(heights):
-        pdf.rect(145 + i * 35, 305 - h, 20, h, BLUE_BR, radius=2)
-    # Demo feature list
+    stats = [(BLUE_BR, "150", "Orders"), (ORANGE, "23", "Agents"), (GREEN, "98%", "Done")]
+    for i, (col, num, lbl) in enumerate(stats):
+        x = 200 + i * 78
+        pdf.rect(x, 175, 70, 45, col, radius=3)
+        pdf.text(x + 8, 200, num, size=18, color=WHITE, font='bold')
+        pdf.text(x + 8, 215, lbl, size=8, color=WHITE)
+    # Mini bar chart
+    pdf.rect(200, 230, 220, 80, LIGHT_GRAY, radius=2)
+    bars = [25, 45, 30, 55, 40, 60, 50]
+    for i, h in enumerate(bars):
+        pdf.rect(212 + i * 28, 305 - h, 16, h, BLUE_BR, radius=1)
+    # Demo features list
     demos = [
-        ("Admin Dashboard", "Order management & analytics"),
-        ("Swagger API Docs", "Interactive testing UI at /api/v1/docs"),
-        ("Live GPS Tracking", "Real-time agent location updates"),
-        ("Agent-Customer Chat", "WebSocket-based messaging"),
+        ("Mobile App", "iOS / Android booking"),
+        ("Admin Panel", "Order management UI"),
+        ("Live GPS", "Real-time tracking"),
+        ("API Docs", "Swagger interactive UI"),
     ]
     for i, (head, desc) in enumerate(demos):
-        y = 345 + i * 50
-        pdf.circle(55, y + 12, 12, ORANGE)
-        pdf.text_center(55, y + 17, str(i + 1), size=11, color=WHITE, font='bold')
-        pdf.text(80, y + 8, head, size=12, color=NAVY, font='bold')
-        pdf.text(80, y + 25, desc, size=10, color=DARK_GRAY)
-    # === RIGHT: Security ===
+        y = 355 + i * 40
+        pdf.circle(60, y + 7, 12, ORANGE)
+        pdf.text_center(60, y + 11, str(i + 1), size=11, color=WHITE, font='bold')
+        pdf.text(80, y + 4, head, size=11, color=NAVY, font='bold')
+        pdf.text(80, y + 18, desc, size=9, color=DARK_GRAY)
+        # Map pin badge for GPS
+        if i == 2:
+            pdf.map_pin(380, y + 20, 12, GREEN)
+    # === RIGHT: Security with shield illustration ===
     pdf.text(450, 125, "SECURITY ARCHITECTURE", size=11, color=ORANGE, font='bold')
     pdf.rect(450, 130, 80, 2, ORANGE)
     # Security card
-    pdf.rect(450, 145, 370, 410, NAVY, radius=10)
+    pdf.rect(450, 145, 370, 380, NAVY, radius=10)
     pdf.rect(450, 145, 370, 6, ORANGE, radius=0)
-    # Security shield icon
-    pdf.circle(485, 185, 22, ORANGE)
-    pdf.text(478, 192, "S", size=22, color=WHITE, font='bold')
-    pdf.text(520, 178, "MULTI-LAYER", size=11, color=AMBER, font='bold')
-    pdf.text(520, 195, "PROTECTION", size=11, color=AMBER, font='bold')
-    # 4 main security pillars
+    # Big SHIELD illustration
+    pdf.shield(495, 200, 50, 60, ORANGE)
+    pdf.text_center(495, 210, "S", size=24, color=WHITE, font='bold')
+    pdf.text(540, 178, "MULTI-LAYER", size=11, color=AMBER, font='bold')
+    pdf.text(540, 195, "PROTECTION", size=11, color=AMBER, font='bold')
+    pdf.text(540, 215, "Production-grade", size=9, color=GRAY)
+    # 4 main security pillars with bolt icons
     pillars = [
-        ("JWT AUTH", "Access (15min) + Refresh (7d)\nToken rotation + reuse detection", BLUE_BR),
-        ("RATE LIMITING", "100 req/15min global\n10 req/15min for auth endpoints", ORANGE),
-        ("ENCRYPTION", "bcrypt 12-round password hashing\nHelmet + CSP headers + HTTPS", PURPLE),
-        ("RBAC", "Role-based access control:\nAdmin | Customer | Delivery Agent", GREEN),
+        ("JWT AUTH", "Access (15min) + Refresh (7d)", "Token rotation + reuse detect", BLUE_BR),
+        ("RATE LIMITING", "100 req/15min global", "10 req/15min for auth", ORANGE),
+        ("ENCRYPTION", "bcrypt 12-round hashing", "Helmet + CSP + HTTPS", PURPLE),
+        ("RBAC", "Admin | Customer | Agent", "Role-scoped routes", GREEN),
     ]
-    for i, (title, desc, color) in enumerate(pillars):
-        y = 230 + i * 75
-        # Color indicator bar
+    for i, (title, desc1, desc2, color) in enumerate(pillars):
+        y = 260 + i * 60
         pdf.rect(465, y, 4, 50, color)
-        pdf.text(480, y + 12, title, size=12, color=AMBER, font='bold')
-        for j, line_text in enumerate(desc.split('\n')):
-            pdf.text(480, y + 30 + j * 15, line_text, size=9, color=GRAY)
-    # Bottom badges row
-    badges = ["Helmet", "CORS", "HPP", "Sanitize", "XSS-Clean", "Winston"]
+        # Lightning bolt-ish accent (zigzag using triangles)
+        pdf.triangle(478, y + 5, 488, y + 5, 478, y + 25, color)
+        pdf.triangle(478, y + 25, 488, y + 25, 488, y + 45, color)
+        pdf.text(500, y + 12, title, size=12, color=AMBER, font='bold')
+        pdf.text(500, y + 28, desc1, size=9, color=GRAY)
+        pdf.text(500, y + 42, desc2, size=9, color=GRAY)
+    # Bottom badges
+    badges = ["Helmet", "CORS", "HPP", "Sanitize", "XSS", "Winston"]
     for i, b in enumerate(badges):
         x = 460 + (i % 6) * 60
-        pdf.rect(x, 540, 55, 16, NAVY_MID, radius=8)
-        pdf.text_center(x + 27, 552, b, size=8, color=AMBER, font='bold')
+        pdf.rect(x, 510, 55, 16, NAVY_MID, radius=8)
+        pdf.text_center(x + 27, 521, b, size=8, color=AMBER, font='bold')
     pdf.text(PW - 40, 575, "08", size=14, color=GRAY, font='bold')
 
 
@@ -852,9 +1076,14 @@ def slide9(pdf):
     # === Big Thank You section ===
     pdf.rect(150, 430, 540, 110, ORANGE, radius=15)
     pdf.rect(150, 430, 540, 6, AMBER, radius=0)
-    # Decorative circles on thank you
-    pdf.circle(180, 485, 25, ORANGE_DEEP)
+    # ROCKET illustration on the left side of THANK YOU
+    pdf.rocket(125, 485, 50, 90, AMBER, ORANGE_DEEP)
+    # Decorative star/dots on right
     pdf.circle(660, 485, 25, ORANGE_DEEP)
+    # Stars
+    for sx, sy in [(225, 460), (700, 470), (715, 510)]:
+        pdf.triangle(sx-5, sy+2, sx+5, sy+2, sx, sy-7, AMBER)
+        pdf.triangle(sx-5, sy+2, sx+5, sy+2, sx, sy+10, AMBER)
     # Text
     pdf.text_center(420, 480, "THANK YOU!", size=42, color=WHITE, font='bold')
     pdf.text_center(420, 510, "Questions  &  Discussion  Welcome", size=13, color=(1, 0.95, 0.88))
