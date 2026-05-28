@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "build": "npm run build --prefix client && node -e \"const fs = require('fs'); if (fs.existsSync('./dist')) fs.rmSync('./dist', { recursive: true, force: true }); fs.renameSync('client/dist', './dist')\"",
     "test": "jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "jest --coverage --runInBand --forceExit",
     "seed": "node scripts/seed.js",
