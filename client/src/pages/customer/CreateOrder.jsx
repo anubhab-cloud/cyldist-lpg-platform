@@ -113,10 +113,17 @@ export default function CreateOrder() {
             }
           },
           modal: {
-            ondismiss: function () {
-              toast('Payment Cancelled', 'You closed the payment popup. Order is pending.', 'warning');
-              setSubmitting(false);
-              navigate('/customer/orders');
+            ondismiss: async function () {
+              try {
+                setSubmitting(true);
+                await ordersAPI.cancel(orderData.orderId, 'Payment cancelled by customer');
+                toast('Order Cancelled', 'You closed the payment popup. The order was not placed.', 'error');
+              } catch (err) {
+                console.error('Failed to cancel order on payment dismissal:', err);
+              } finally {
+                setSubmitting(false);
+                navigate('/customer/orders');
+              }
             }
           }
         };
