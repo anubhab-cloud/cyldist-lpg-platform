@@ -1,0 +1,1947 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R] /Count 9 >>
+endobj
+
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+
+6 0 obj
+<< /Length 1472 >>
+stream
+0.106 0.165 0.290 rg
+0.0 0.0 842.0 595.0 re f
+0.910 0.475 0.169 rg
+0.0 589.0 842.0 6.0 re f
+0.180 0.290 0.478 rg
+820.0 515.0 m
+820.0 570.2 775.2 615.0 720.0 615.0 c
+664.8 615.0 620.0 570.2 620.0 515.0 c
+620.0 459.8 664.8 415.0 720.0 415.0 c
+775.2 415.0 820.0 459.8 820.0 515.0 c
+f
+0.180 0.290 0.478 rg
+140.0 115.0 m
+140.0 159.2 104.2 195.0 60.0 195.0 c
+15.8 195.0 -20.0 159.2 -20.0 115.0 c
+-20.0 70.8 15.8 35.0 60.0 35.0 c
+104.2 35.0 140.0 70.8 140.0 115.0 c
+f
+0.910 0.475 0.169 rg
+50.0 295.0 5.0 120.0 re f
+BT
+/F2 32 Tf
+1.000 1.000 1.000 rg
+70.0 395.0 Td
+(Cylinder Distribution Platform) Tj
+ET
+BT
+/F2 26 Tf
+0.961 0.651 0.137 rg
+70.0 355.0 Td
+(Backend API) Tj
+ET
+BT
+/F1 14 Tf
+0.722 0.773 0.851 rg
+70.0 315.0 Td
+(Production-Grade LPG Delivery Service Platform) Tj
+ET
+BT
+/F2 16 Tf
+0.961 0.651 0.137 rg
+70.0 265.0 Td
+(Team CylDist) Tj
+ET
+BT
+/F2 12 Tf
+1.000 1.000 1.000 rg
+70.0 240.0 Td
+(Team Members:) Tj
+ET
+BT
+/F1 11 Tf
+0.722 0.773 0.851 rg
+85.0 220.0 Td
+(* Member 1 - Full Stack Developer) Tj
+ET
+BT
+/F1 11 Tf
+0.722 0.773 0.851 rg
+85.0 202.0 Td
+(* Member 2 - Backend Engineer) Tj
+ET
+BT
+/F1 11 Tf
+0.722 0.773 0.851 rg
+85.0 184.0 Td
+(* Member 3 - DevOps & Database) Tj
+ET
+BT
+/F1 11 Tf
+0.722 0.773 0.851 rg
+85.0 166.0 Td
+(* Member 4 - Frontend & Testing) Tj
+ET
+BT
+/F1 11 Tf
+0.533 0.600 0.702 rg
+70.0 135.0 Td
+(Department of Computer Engineering) Tj
+ET
+BT
+/F1 11 Tf
+0.533 0.600 0.702 rg
+70.0 117.0 Td
+([Your College Name], 2025) Tj
+ET
+0.910 0.475 0.169 rg
+0.0 0.0 842.0 6.0 re f
+endstream
+endobj
+
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 6 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+8 0 obj
+<< /Length 2969 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Introduction & Objectives) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(Overview of the LPG Cylinder Distribution Platform) Tj
+ET
+0.180 0.290 0.478 rg
+40.0 240.0 m
+400.0 240.0 l
+405.5 240.0 410.0 244.5 410.0 250.0 c
+410.0 470.0 l
+410.0 475.5 405.5 480.0 400.0 480.0 c
+40.0 480.0 l
+34.5 480.0 30.0 475.5 30.0 470.0 c
+30.0 250.0 l
+30.0 244.5 34.5 240.0 40.0 240.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+50.0 455.0 Td
+(Platform Overview) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 430.0 Td
+(* Digital LPG cylinder booking &) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 413.0 Td
+(  delivery management system) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 390.0 Td
+(* Multi-role platform:) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 373.0 Td
+(  Admin, Customer, Delivery Agent) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 350.0 Td
+(* Real-time GPS tracking & live chat) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 330.0 Td
+(* End-to-end order lifecycle management) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 307.0 Td
+(* WhatsApp-based booking support) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 287.0 Td
+(* Emergency crisis prioritization) Tj
+ET
+0.106 0.165 0.290 rg
+440.0 240.0 m
+800.0 240.0 l
+805.5 240.0 810.0 244.5 810.0 250.0 c
+810.0 470.0 l
+810.0 475.5 805.5 480.0 800.0 480.0 c
+440.0 480.0 l
+434.5 480.0 430.0 475.5 430.0 470.0 c
+430.0 250.0 l
+430.0 244.5 434.5 240.0 440.0 240.0 c
+f
+BT
+/F2 14 Tf
+0.961 0.651 0.137 rg
+450.0 455.0 Td
+(Key Objectives) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 430.0 Td
+(* Digitize traditional LPG distribution) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 410.0 Td
+(* Provide real-time GPS delivery tracking) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 390.0 Td
+(* Enable emergency-aware allocation) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 370.0 Td
+(* Build secure & scalable architecture) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 350.0 Td
+(* Production-ready Docker/K8s deploy) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 330.0 Td
+(* Implement role-based access control) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 310.0 Td
+(* Create comprehensive API documentation) Tj
+ET
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 287.0 Td
+(* Enable real-time communication) Tj
+ET
+0.941 0.957 0.973 rg
+38.0 135.0 m
+802.0 135.0 l
+806.4 135.0 810.0 138.6 810.0 143.0 c
+810.0 217.0 l
+810.0 221.4 806.4 225.0 802.0 225.0 c
+38.0 225.0 l
+33.6 225.0 30.0 221.4 30.0 217.0 c
+30.0 143.0 l
+30.0 138.6 33.6 135.0 38.0 135.0 c
+f
+BT
+/F2 13 Tf
+0.106 0.165 0.290 rg
+50.0 205.0 Td
+(Key Highlights) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+50.0 183.0 Td
+(Node.js + Express.js  |  MongoDB + Redis  |  Socket.IO Real-Time  |  Docker & Kubernetes) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+50.0 163.0 Td
+(JWT Auth + RBAC  |  Swagger API Docs  |  WhatsApp Integration  |  Crisis Engine) Tj
+ET
+endstream
+endobj
+
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 8 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+10 0 obj
+<< /Length 3230 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Problem Statement & Proposed Solution) Tj
+ET
+0.698 0.110 0.110 rg
+35.0 455.0 m
+395.0 455.0 l
+397.8 455.0 400.0 457.2 400.0 460.0 c
+400.0 480.0 l
+400.0 482.8 397.8 485.0 395.0 485.0 c
+35.0 485.0 l
+32.2 485.0 30.0 482.8 30.0 480.0 c
+30.0 460.0 l
+30.0 457.2 32.2 455.0 35.0 455.0 c
+f
+BT
+/F2 12 Tf
+1.000 1.000 1.000 rg
+80.0 465.0 Td
+(Problems in Traditional System) Tj
+ET
+1.000 0.950 0.950 rg
+35.0 220.0 m
+395.0 220.0 l
+397.8 220.0 400.0 222.2 400.0 225.0 c
+400.0 445.0 l
+400.0 447.8 397.8 450.0 395.0 450.0 c
+35.0 450.0 l
+32.2 450.0 30.0 447.8 30.0 445.0 c
+30.0 225.0 l
+30.0 222.2 32.2 220.0 35.0 220.0 c
+f
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 427.0 Td
+(X  Manual booking via phone/visits) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 401.0 Td
+(X  No real-time delivery tracking) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 375.0 Td
+(X  Inventory management is opaque) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 349.0 Td
+(X  No priority during emergencies) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 323.0 Td
+(X  Paper-based record keeping) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 297.0 Td
+(X  No communication channel) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 271.0 Td
+(X  No analytics or reporting) Tj
+ET
+BT
+/F1 11 Tf
+0.500 0.100 0.100 rg
+50.0 245.0 Td
+(X  Inefficient route planning) Tj
+ET
+3.0 w
+0.910 0.475 0.169 RG
+405.0 345.0 m
+430.0 345.0 l
+S
+0.910 0.475 0.169 rg
+430.0 345.0 m
+422.6 341.9 l
+422.6 348.1 l
+f
+0.153 0.369 0.129 rg
+445.0 455.0 m
+805.0 455.0 l
+807.8 455.0 810.0 457.2 810.0 460.0 c
+810.0 480.0 l
+810.0 482.8 807.8 485.0 805.0 485.0 c
+445.0 485.0 l
+442.2 485.0 440.0 482.8 440.0 480.0 c
+440.0 460.0 l
+440.0 457.2 442.2 455.0 445.0 455.0 c
+f
+BT
+/F2 12 Tf
+1.000 1.000 1.000 rg
+500.0 465.0 Td
+(Our Digital Solution) Tj
+ET
+0.930 1.000 0.930 rg
+445.0 220.0 m
+805.0 220.0 l
+807.8 220.0 810.0 222.2 810.0 225.0 c
+810.0 445.0 l
+810.0 447.8 807.8 450.0 805.0 450.0 c
+445.0 450.0 l
+442.2 450.0 440.0 447.8 440.0 445.0 c
+440.0 225.0 l
+440.0 222.2 442.2 220.0 445.0 220.0 c
+f
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 427.0 Td
+(+  Online booking + WhatsApp API) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 401.0 Td
+(+  Live GPS delivery tracking) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 375.0 Td
+(+  Automated inventory system) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 349.0 Td
+(+  Crisis prioritization engine) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 323.0 Td
+(+  Digital order management) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 297.0 Td
+(+  Real-time agent-customer chat) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 271.0 Td
+(+  Dashboard analytics & reports) Tj
+ET
+BT
+/F1 11 Tf
+0.100 0.400 0.100 rg
+460.0 245.0 Td
+(+  Smart warehouse allocation) Tj
+ET
+0.106 0.165 0.290 rg
+38.0 160.0 m
+802.0 160.0 l
+806.4 160.0 810.0 163.6 810.0 168.0 c
+810.0 197.0 l
+810.0 201.4 806.4 205.0 802.0 205.0 c
+38.0 205.0 l
+33.6 205.0 30.0 201.4 30.0 197.0 c
+30.0 168.0 l
+30.0 163.6 33.6 160.0 38.0 160.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+60.0 179.0 Td
+(Impact: 100% digital workflow | Real-time visibility | Emergency-aware | Scalable microservices) Tj
+ET
+endstream
+endobj
+
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 10 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+12 0 obj
+<< /Length 4054 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(System Architecture & Workflow) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(User -> Backend API -> Database) Tj
+ET
+0.290 0.565 0.851 rg
+155.0 430.0 m
+155.0 449.3 139.3 465.0 120.0 465.0 c
+100.7 465.0 85.0 449.3 85.0 430.0 c
+85.0 410.7 100.7 395.0 120.0 395.0 c
+139.3 395.0 155.0 410.7 155.0 430.0 c
+f
+BT
+/F2 9 Tf
+1.000 1.000 1.000 rg
+95.0 433.0 Td
+(Customer) Tj
+ET
+0.910 0.475 0.169 rg
+285.0 430.0 m
+285.0 449.3 269.3 465.0 250.0 465.0 c
+230.7 465.0 215.0 449.3 215.0 430.0 c
+215.0 410.7 230.7 395.0 250.0 395.0 c
+269.3 395.0 285.0 410.7 285.0 430.0 c
+f
+BT
+/F2 9 Tf
+1.000 1.000 1.000 rg
+233.0 433.0 Td
+(Admin) Tj
+ET
+0.153 0.682 0.376 rg
+415.0 430.0 m
+415.0 449.3 399.3 465.0 380.0 465.0 c
+360.7 465.0 345.0 449.3 345.0 430.0 c
+345.0 410.7 360.7 395.0 380.0 395.0 c
+399.3 395.0 415.0 410.7 415.0 430.0 c
+f
+BT
+/F2 9 Tf
+1.000 1.000 1.000 rg
+363.0 433.0 Td
+(Agent) Tj
+ET
+2.0 w
+0.910 0.475 0.169 RG
+120.0 395.0 m
+250.0 355.0 l
+S
+0.910 0.475 0.169 rg
+250.0 355.0 m
+243.9 349.9 l
+242.0 355.8 l
+f
+2.0 w
+0.910 0.475 0.169 RG
+250.0 395.0 m
+250.0 355.0 l
+S
+0.910 0.475 0.169 rg
+250.0 355.0 m
+253.1 347.6 l
+246.9 347.6 l
+f
+2.0 w
+0.910 0.475 0.169 RG
+380.0 395.0 m
+250.0 355.0 l
+S
+0.910 0.475 0.169 rg
+250.0 355.0 m
+258.0 355.8 l
+256.1 349.9 l
+f
+0.106 0.165 0.290 rg
+90.0 290.0 m
+470.0 290.0 l
+475.5 290.0 480.0 294.5 480.0 300.0 c
+480.0 340.0 l
+480.0 345.5 475.5 350.0 470.0 350.0 c
+90.0 350.0 l
+84.5 350.0 80.0 345.5 80.0 340.0 c
+80.0 300.0 l
+80.0 294.5 84.5 290.0 90.0 290.0 c
+f
+BT
+/F2 13 Tf
+1.000 1.000 1.000 rg
+120.0 327.0 Td
+(Express.js Backend API \(Node.js\)) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+110.0 305.0 Td
+(REST API | Socket.IO | JWT Auth | RBAC | Zod) Tj
+ET
+2.0 w
+0.910 0.475 0.169 RG
+200.0 285.0 m
+150.0 245.0 l
+S
+0.910 0.475 0.169 rg
+150.0 245.0 m
+157.7 242.8 l
+153.8 238.0 l
+f
+2.0 w
+0.910 0.475 0.169 RG
+350.0 285.0 m
+400.0 245.0 l
+S
+0.910 0.475 0.169 rg
+400.0 245.0 m
+396.2 238.0 l
+392.3 242.8 l
+f
+0.180 0.490 0.196 rg
+78.0 190.0 m
+242.0 190.0 l
+246.4 190.0 250.0 193.6 250.0 198.0 c
+250.0 232.0 l
+250.0 236.4 246.4 240.0 242.0 240.0 c
+78.0 240.0 l
+73.6 240.0 70.0 236.4 70.0 232.0 c
+70.0 198.0 l
+70.0 193.6 73.6 190.0 78.0 190.0 c
+f
+BT
+/F2 12 Tf
+1.000 1.000 1.000 rg
+100.0 221.0 Td
+(MongoDB) Tj
+ET
+BT
+/F1 9 Tf
+0.784 0.902 0.784 rg
+95.0 202.0 Td
+(Primary Database) Tj
+ET
+0.776 0.157 0.157 rg
+308.0 190.0 m
+472.0 190.0 l
+476.4 190.0 480.0 193.6 480.0 198.0 c
+480.0 232.0 l
+480.0 236.4 476.4 240.0 472.0 240.0 c
+308.0 240.0 l
+303.6 240.0 300.0 236.4 300.0 232.0 c
+300.0 198.0 l
+300.0 193.6 303.6 190.0 308.0 190.0 c
+f
+BT
+/F2 12 Tf
+1.000 1.000 1.000 rg
+350.0 221.0 Td
+(Redis) Tj
+ET
+BT
+/F1 9 Tf
+1.000 0.804 0.824 rg
+325.0 202.0 Td
+(Cache + Real-Time) Tj
+ET
+0.941 0.957 0.973 rg
+540.0 155.0 m
+800.0 155.0 l
+805.5 155.0 810.0 159.5 810.0 165.0 c
+810.0 465.0 l
+810.0 470.5 805.5 475.0 800.0 475.0 c
+540.0 475.0 l
+534.5 475.0 530.0 470.5 530.0 465.0 c
+530.0 165.0 l
+530.0 159.5 534.5 155.0 540.0 155.0 c
+f
+BT
+/F2 13 Tf
+0.106 0.165 0.290 rg
+580.0 450.0 Td
+(Order Lifecycle Flow) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 420.0 Td
+(1. Customer places order) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 403.0 Td
+(|) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 385.0 Td
+(2. Admin assigns agent) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 368.0 Td
+(|) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 350.0 Td
+(3. Agent picks up cylinder) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 333.0 Td
+(|) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 315.0 Td
+(4. GPS tracking begins) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 298.0 Td
+(|) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 280.0 Td
+(5. Live chat enabled) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 263.0 Td
+(|) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+560.0 245.0 Td
+(6. Delivery + OTP verify) Tj
+ET
+BT
+/F1 11 Tf
+0.910 0.475 0.169 rg
+610.0 228.0 Td
+(|) Tj
+ET
+BT
+/F2 11 Tf
+0.153 0.369 0.129 rg
+560.0 210.0 Td
+(7. Order completed!) Tj
+ET
+endstream
+endobj
+
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 12 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+14 0 obj
+<< /Length 3544 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Technologies Used) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(Modern Tech Stack for Production-Grade Platform) Tj
+ET
+0.298 0.686 0.314 rg
+50.0 385.0 m
+215.0 385.0 l
+220.5 385.0 225.0 389.5 225.0 395.0 c
+225.0 465.0 l
+225.0 470.5 220.5 475.0 215.0 475.0 c
+50.0 475.0 l
+44.5 475.0 40.0 470.5 40.0 465.0 c
+40.0 395.0 l
+40.0 389.5 44.5 385.0 50.0 385.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+70.0 440.0 Td
+(Node.js) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+70.0 417.0 Td
+(Runtime Engine) Tj
+ET
+0.290 0.565 0.851 rg
+250.0 385.0 m
+415.0 385.0 l
+420.5 385.0 425.0 389.5 425.0 395.0 c
+425.0 465.0 l
+425.0 470.5 420.5 475.0 415.0 475.0 c
+250.0 475.0 l
+244.5 475.0 240.0 470.5 240.0 465.0 c
+240.0 395.0 l
+240.0 389.5 244.5 385.0 250.0 385.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+270.0 440.0 Td
+(Express.js) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+270.0 417.0 Td
+(Web Framework) Tj
+ET
+0.220 0.557 0.235 rg
+450.0 385.0 m
+615.0 385.0 l
+620.5 385.0 625.0 389.5 625.0 395.0 c
+625.0 465.0 l
+625.0 470.5 620.5 475.0 615.0 475.0 c
+450.0 475.0 l
+444.5 475.0 440.0 470.5 440.0 465.0 c
+440.0 395.0 l
+440.0 389.5 444.5 385.0 450.0 385.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+470.0 440.0 Td
+(MongoDB) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+470.0 417.0 Td
+(NoSQL Database) Tj
+ET
+0.827 0.184 0.184 rg
+650.0 385.0 m
+815.0 385.0 l
+820.5 385.0 825.0 389.5 825.0 395.0 c
+825.0 465.0 l
+825.0 470.5 820.5 475.0 815.0 475.0 c
+650.0 475.0 l
+644.5 475.0 640.0 470.5 640.0 465.0 c
+640.0 395.0 l
+640.0 389.5 644.5 385.0 650.0 385.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+670.0 440.0 Td
+(Redis) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+670.0 417.0 Td
+(Cache & RT Store) Tj
+ET
+0.129 0.129 0.129 rg
+150.0 280.0 m
+315.0 280.0 l
+320.5 280.0 325.0 284.5 325.0 290.0 c
+325.0 360.0 l
+325.0 365.5 320.5 370.0 315.0 370.0 c
+150.0 370.0 l
+144.5 370.0 140.0 365.5 140.0 360.0 c
+140.0 290.0 l
+140.0 284.5 144.5 280.0 150.0 280.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+170.0 335.0 Td
+(Socket.IO) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+170.0 312.0 Td
+(WebSocket Layer) Tj
+ET
+0.098 0.463 0.824 rg
+350.0 280.0 m
+515.0 280.0 l
+520.5 280.0 525.0 284.5 525.0 290.0 c
+525.0 360.0 l
+525.0 365.5 520.5 370.0 515.0 370.0 c
+350.0 370.0 l
+344.5 370.0 340.0 365.5 340.0 360.0 c
+340.0 290.0 l
+340.0 284.5 344.5 280.0 350.0 280.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+370.0 335.0 Td
+(Docker) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+370.0 312.0 Td
+(Containerization) Tj
+ET
+0.196 0.424 0.898 rg
+550.0 280.0 m
+715.0 280.0 l
+720.5 280.0 725.0 284.5 725.0 290.0 c
+725.0 360.0 l
+725.0 365.5 720.5 370.0 715.0 370.0 c
+550.0 370.0 l
+544.5 370.0 540.0 365.5 540.0 360.0 c
+540.0 290.0 l
+540.0 284.5 544.5 280.0 550.0 280.0 c
+f
+BT
+/F2 14 Tf
+1.000 1.000 1.000 rg
+570.0 335.0 Td
+(Kubernetes) Tj
+ET
+BT
+/F1 10 Tf
+0.900 0.900 0.900 rg
+570.0 312.0 Td
+(Orchestration) Tj
+ET
+0.941 0.957 0.973 rg
+38.0 155.0 m
+802.0 155.0 l
+806.4 155.0 810.0 158.6 810.0 163.0 c
+810.0 247.0 l
+810.0 251.4 806.4 255.0 802.0 255.0 c
+38.0 255.0 l
+33.6 255.0 30.0 251.4 30.0 247.0 c
+30.0 163.0 l
+30.0 158.6 33.6 155.0 38.0 155.0 c
+f
+BT
+/F2 13 Tf
+0.106 0.165 0.290 rg
+50.0 230.0 Td
+(Supporting Technologies & Libraries) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+50.0 205.0 Td
+(JWT | bcrypt | Zod | Winston | Swagger | Helmet | CORS | Razorpay | Twilio | SendGrid) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+50.0 183.0 Td
+(AWS S3 | Jest | Supertest | Nodemon | Docker Compose | HPA | Multer | Morgan) Tj
+ET
+endstream
+endobj
+
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 14 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+16 0 obj
+<< /Length 3923 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Unique Features Implemented) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(10 Key Feature Highlights) Tj
+ET
+0.106 0.165 0.290 rg
+36.0 431.0 m
+404.0 431.0 l
+407.3 431.0 410.0 433.7 410.0 437.0 c
+410.0 469.0 l
+410.0 472.3 407.3 475.0 404.0 475.0 c
+36.0 475.0 l
+32.7 475.0 30.0 472.3 30.0 469.0 c
+30.0 437.0 l
+30.0 433.7 32.7 431.0 36.0 431.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 448.0 Td
+(WhatsApp Booking - Book via API) Tj
+ET
+0.106 0.165 0.290 rg
+36.0 379.0 m
+404.0 379.0 l
+407.3 379.0 410.0 381.7 410.0 385.0 c
+410.0 417.0 l
+410.0 420.3 407.3 423.0 404.0 423.0 c
+36.0 423.0 l
+32.7 423.0 30.0 420.3 30.0 417.0 c
+30.0 385.0 l
+30.0 381.7 32.7 379.0 36.0 379.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 396.0 Td
+(Product Store - Buy accessories) Tj
+ET
+0.106 0.165 0.290 rg
+36.0 327.0 m
+404.0 327.0 l
+407.3 327.0 410.0 329.7 410.0 333.0 c
+410.0 365.0 l
+410.0 368.3 407.3 371.0 404.0 371.0 c
+36.0 371.0 l
+32.7 371.0 30.0 368.3 30.0 365.0 c
+30.0 333.0 l
+30.0 329.7 32.7 327.0 36.0 327.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 344.0 Td
+(GPS Tracking - Real-time location) Tj
+ET
+0.106 0.165 0.290 rg
+36.0 275.0 m
+404.0 275.0 l
+407.3 275.0 410.0 277.7 410.0 281.0 c
+410.0 313.0 l
+410.0 316.3 407.3 319.0 404.0 319.0 c
+36.0 319.0 l
+32.7 319.0 30.0 316.3 30.0 313.0 c
+30.0 281.0 l
+30.0 277.7 32.7 275.0 36.0 275.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 292.0 Td
+(Live Chat - Agent messaging) Tj
+ET
+0.106 0.165 0.290 rg
+36.0 223.0 m
+404.0 223.0 l
+407.3 223.0 410.0 225.7 410.0 229.0 c
+410.0 261.0 l
+410.0 264.3 407.3 267.0 404.0 267.0 c
+36.0 267.0 l
+32.7 267.0 30.0 264.3 30.0 261.0 c
+30.0 229.0 l
+30.0 225.7 32.7 223.0 36.0 223.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+50.0 240.0 Td
+(Crisis Engine - Emergency priority) Tj
+ET
+0.180 0.290 0.478 rg
+436.0 431.0 m
+804.0 431.0 l
+807.3 431.0 810.0 433.7 810.0 437.0 c
+810.0 469.0 l
+810.0 472.3 807.3 475.0 804.0 475.0 c
+436.0 475.0 l
+432.7 475.0 430.0 472.3 430.0 469.0 c
+430.0 437.0 l
+430.0 433.7 432.7 431.0 436.0 431.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 448.0 Td
+(Inventory Mgmt - Warehouse tracking) Tj
+ET
+0.180 0.290 0.478 rg
+436.0 379.0 m
+804.0 379.0 l
+807.3 379.0 810.0 381.7 810.0 385.0 c
+810.0 417.0 l
+810.0 420.3 807.3 423.0 804.0 423.0 c
+436.0 423.0 l
+432.7 423.0 430.0 420.3 430.0 417.0 c
+430.0 385.0 l
+430.0 381.7 432.7 379.0 436.0 379.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 396.0 Td
+(JWT + RBAC - Role-based security) Tj
+ET
+0.180 0.290 0.478 rg
+436.0 327.0 m
+804.0 327.0 l
+807.3 327.0 810.0 329.7 810.0 333.0 c
+810.0 365.0 l
+810.0 368.3 807.3 371.0 804.0 371.0 c
+436.0 371.0 l
+432.7 371.0 430.0 368.3 430.0 365.0 c
+430.0 333.0 l
+430.0 329.7 432.7 327.0 436.0 327.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 344.0 Td
+(Notifications - SMS/Email/Push) Tj
+ET
+0.180 0.290 0.478 rg
+436.0 275.0 m
+804.0 275.0 l
+807.3 275.0 810.0 277.7 810.0 281.0 c
+810.0 313.0 l
+810.0 316.3 807.3 319.0 804.0 319.0 c
+436.0 319.0 l
+432.7 319.0 430.0 316.3 430.0 313.0 c
+430.0 281.0 l
+430.0 277.7 432.7 275.0 436.0 275.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 292.0 Td
+(Swagger Docs - Interactive API) Tj
+ET
+0.180 0.290 0.478 rg
+436.0 223.0 m
+804.0 223.0 l
+807.3 223.0 810.0 225.7 810.0 229.0 c
+810.0 261.0 l
+810.0 264.3 807.3 267.0 804.0 267.0 c
+436.0 267.0 l
+432.7 267.0 430.0 264.3 430.0 261.0 c
+430.0 229.0 l
+430.0 225.7 432.7 223.0 436.0 223.0 c
+f
+BT
+/F1 11 Tf
+1.000 1.000 1.000 rg
+450.0 240.0 Td
+(Docker + K8s - Container deploy) Tj
+ET
+0.910 0.475 0.169 rg
+38.0 160.0 m
+802.0 160.0 l
+806.4 160.0 810.0 163.6 810.0 168.0 c
+810.0 192.0 l
+810.0 196.4 806.4 200.0 802.0 200.0 c
+38.0 200.0 l
+33.6 200.0 30.0 196.4 30.0 192.0 c
+30.0 168.0 l
+30.0 163.6 33.6 160.0 38.0 160.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+100.0 177.0 Td
+(All features are production-ready with comprehensive error handling & logging) Tj
+ET
+endstream
+endobj
+
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 16 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+18 0 obj
+<< /Length 4544 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Database Design & ER Diagram) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(MongoDB Collections & Relationships) Tj
+ET
+0.106 0.165 0.290 rg
+55.0 447.0 m
+255.0 447.0 l
+257.8 447.0 260.0 449.2 260.0 452.0 c
+260.0 470.0 l
+260.0 472.8 257.8 475.0 255.0 475.0 c
+55.0 475.0 l
+52.2 475.0 50.0 472.8 50.0 470.0 c
+50.0 452.0 l
+50.0 449.2 52.2 447.0 55.0 447.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+100.0 456.0 Td
+(User) Tj
+ET
+0.941 0.957 0.973 rg
+50.0 357.0 210.0 90.0 re f
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 427.0 Td
+(_id, name, email, role) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 407.0 Td
+(phone, addresses, location) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 387.0 Td
+(isOnDuty, walletBalance) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 367.0 Td
+(kycStatus, facilityType) Tj
+ET
+0.910 0.475 0.169 rg
+305.0 447.0 m
+505.0 447.0 l
+507.8 447.0 510.0 449.2 510.0 452.0 c
+510.0 470.0 l
+510.0 472.8 507.8 475.0 505.0 475.0 c
+305.0 475.0 l
+302.2 475.0 300.0 472.8 300.0 470.0 c
+300.0 452.0 l
+300.0 449.2 302.2 447.0 305.0 447.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+350.0 456.0 Td
+(Order) Tj
+ET
+0.941 0.957 0.973 rg
+300.0 357.0 210.0 90.0 re f
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 427.0 Td
+(orderId, customerId) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 407.0 Td
+(agentId, warehouseId) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 387.0 Td
+(status, cylinderCount) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 367.0 Td
+(timeline, priority, OTP) Tj
+ET
+0.180 0.490 0.196 rg
+565.0 447.0 m
+765.0 447.0 l
+767.8 447.0 770.0 449.2 770.0 452.0 c
+770.0 470.0 l
+770.0 472.8 767.8 475.0 765.0 475.0 c
+565.0 475.0 l
+562.2 475.0 560.0 472.8 560.0 470.0 c
+560.0 452.0 l
+560.0 449.2 562.2 447.0 565.0 447.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+610.0 456.0 Td
+(Inventory) Tj
+ET
+0.941 0.957 0.973 rg
+560.0 357.0 210.0 90.0 re f
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+570.0 427.0 Td
+(warehouseId, name) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+570.0 407.0 Td
+(totalCylinders) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+570.0 387.0 Td
+(availableCylinders) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+570.0 367.0 Td
+(location, isActive) Tj
+ET
+0.416 0.106 0.604 rg
+55.0 257.0 m
+255.0 257.0 l
+257.8 257.0 260.0 259.2 260.0 262.0 c
+260.0 280.0 l
+260.0 282.8 257.8 285.0 255.0 285.0 c
+55.0 285.0 l
+52.2 285.0 50.0 282.8 50.0 280.0 c
+50.0 262.0 l
+50.0 259.2 52.2 257.0 55.0 257.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+100.0 266.0 Td
+(ChatMessage) Tj
+ET
+0.941 0.957 0.973 rg
+50.0 167.0 210.0 90.0 re f
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 237.0 Td
+(messageId, chatRoomId) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 217.0 Td
+(senderId, senderRole) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 197.0 Td
+(content, type, status) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+60.0 177.0 Td
+(mediaUrl, readAt) Tj
+ET
+0.776 0.157 0.157 rg
+305.0 257.0 m
+505.0 257.0 l
+507.8 257.0 510.0 259.2 510.0 262.0 c
+510.0 280.0 l
+510.0 282.8 507.8 285.0 505.0 285.0 c
+305.0 285.0 l
+302.2 285.0 300.0 282.8 300.0 280.0 c
+300.0 262.0 l
+300.0 259.2 302.2 257.0 305.0 257.0 c
+f
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+350.0 266.0 Td
+(Delivery) Tj
+ET
+0.941 0.957 0.973 rg
+300.0 167.0 210.0 90.0 re f
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 237.0 Td
+(orderId, agentId) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 217.0 Td
+(lat, lng, timestamp) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 197.0 Td
+(route data, ETA) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+310.0 177.0 Td
+(GPS tracking) Tj
+ET
+0.941 0.957 0.973 rg
+568.0 155.0 m
+802.0 155.0 l
+806.4 155.0 810.0 158.6 810.0 163.0 c
+810.0 277.0 l
+810.0 281.4 806.4 285.0 802.0 285.0 c
+568.0 285.0 l
+563.6 285.0 560.0 281.4 560.0 277.0 c
+560.0 163.0 l
+560.0 158.6 563.6 155.0 568.0 155.0 c
+f
+BT
+/F2 12 Tf
+0.106 0.165 0.290 rg
+575.0 262.0 Td
+(Relationships) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+575.0 237.0 Td
+(User \(1\) -> \(*\) Orders) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+575.0 219.0 Td
+(User \(1\) -> \(*\) Orders [agent]) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+575.0 201.0 Td
+(Order \(1\) -> \(*\) ChatMessages) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+575.0 183.0 Td
+(Inventory \(1\) -> \(*\) Orders) Tj
+ET
+BT
+/F1 9 Tf
+0.290 0.333 0.408 rg
+575.0 165.0 Td
+(Order \(1\) -> \(1\) Delivery) Tj
+ET
+1.5 w
+0.910 0.475 0.169 RG
+260.0 420.0 m
+300.0 420.0 l
+S
+1.5 w
+0.910 0.475 0.169 RG
+510.0 420.0 m
+560.0 420.0 l
+S
+1.5 w
+0.910 0.475 0.169 RG
+155.0 357.0 m
+155.0 285.0 l
+S
+1.5 w
+0.910 0.475 0.169 RG
+405.0 357.0 m
+405.0 285.0 l
+S
+endstream
+endobj
+
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 18 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+20 0 obj
+<< /Length 2957 >>
+stream
+0.106 0.165 0.290 rg
+0.0 550.0 842.0 45.0 re f
+0.910 0.475 0.169 rg
+0.0 547.0 842.0 3.0 re f
+BT
+/F2 22 Tf
+0.106 0.165 0.290 rg
+40.0 525.0 Td
+(Demo & Security Features) Tj
+ET
+BT
+/F1 11 Tf
+0.290 0.333 0.408 rg
+40.0 503.0 Td
+(API Documentation, Tracking & Security Measures) Tj
+ET
+0.941 0.957 0.973 rg
+40.0 255.0 m
+410.0 255.0 l
+415.5 255.0 420.0 259.5 420.0 265.0 c
+420.0 475.0 l
+420.0 480.5 415.5 485.0 410.0 485.0 c
+40.0 485.0 l
+34.5 485.0 30.0 480.5 30.0 475.0 c
+30.0 265.0 l
+30.0 259.5 34.5 255.0 40.0 255.0 c
+f
+BT
+/F2 13 Tf
+0.106 0.165 0.290 rg
+50.0 460.0 Td
+(Live Demo Highlights) Tj
+ET
+BT
+/F2 11 Tf
+0.290 0.333 0.408 rg
+50.0 435.0 Td
+(Admin Dashboard) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 417.0 Td
+(* Order management & analytics) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 400.0 Td
+(* Agent assignment & monitoring) Tj
+ET
+BT
+/F2 11 Tf
+0.290 0.333 0.408 rg
+50.0 377.0 Td
+(Swagger API Documentation) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 359.0 Td
+(* /api/v1/docs - Interactive testing) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 342.0 Td
+(* All 30+ endpoints documented) Tj
+ET
+BT
+/F2 11 Tf
+0.290 0.333 0.408 rg
+50.0 319.0 Td
+(Real-Time Delivery Tracking) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 301.0 Td
+(* GPS updates every 5 seconds) Tj
+ET
+BT
+/F1 10 Tf
+0.290 0.333 0.408 rg
+65.0 284.0 Td
+(* Socket.IO room-per-order) Tj
+ET
+0.106 0.165 0.290 rg
+450.0 255.0 m
+800.0 255.0 l
+805.5 255.0 810.0 259.5 810.0 265.0 c
+810.0 475.0 l
+810.0 480.5 805.5 485.0 800.0 485.0 c
+450.0 485.0 l
+444.5 485.0 440.0 480.5 440.0 475.0 c
+440.0 265.0 l
+440.0 259.5 444.5 255.0 450.0 255.0 c
+f
+BT
+/F2 13 Tf
+0.961 0.651 0.137 rg
+460.0 460.0 Td
+(Security Architecture) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 433.0 Td
+(JWT Authentication) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+475.0 415.0 Td
+(Access \(15min\) + Refresh \(7d\)) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 392.0 Td
+(Rate Limiting) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+475.0 374.0 Td
+(100 req/15min, 10/15min auth) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 351.0 Td
+(Password Encryption) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+475.0 333.0 Td
+(bcrypt 12 rounds hashing) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 310.0 Td
+(Role-Based Access \(RBAC\)) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+475.0 292.0 Td
+(Admin | Customer | Agent) Tj
+ET
+0.102 0.102 0.180 rg
+38.0 160.0 m
+802.0 160.0 l
+806.4 160.0 810.0 163.6 810.0 168.0 c
+810.0 232.0 l
+810.0 236.4 806.4 240.0 802.0 240.0 c
+38.0 240.0 l
+33.6 240.0 30.0 236.4 30.0 232.0 c
+30.0 168.0 l
+30.0 163.6 33.6 160.0 38.0 160.0 c
+f
+BT
+/F2 12 Tf
+0.961 0.651 0.137 rg
+50.0 217.0 Td
+(Additional Security Measures) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+50.0 195.0 Td
+(Helmet \(CSP\) | CORS Allowlist | HPP Protection | Mongo Sanitize | XSS Clean | 10kb Payload Limit) Tj
+ET
+BT
+/F1 10 Tf
+0.722 0.773 0.851 rg
+50.0 177.0 Td
+(Refresh Token Rotation | Reuse Detection | NoSQL Injection Prevention | Winston Logging | ELK-Ready) Tj
+ET
+endstream
+endobj
+
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 20 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+22 0 obj
+<< /Length 3015 >>
+stream
+0.106 0.165 0.290 rg
+0.0 0.0 842.0 595.0 re f
+0.910 0.475 0.169 rg
+0.0 590.0 842.0 5.0 re f
+BT
+/F2 22 Tf
+1.000 1.000 1.000 rg
+250.0 557.0 Td
+(Conclusion & Future Scope) Tj
+ET
+0.180 0.290 0.478 rg
+40.0 255.0 m
+400.0 255.0 l
+405.5 255.0 410.0 259.5 410.0 265.0 c
+410.0 525.0 l
+410.0 530.5 405.5 535.0 400.0 535.0 c
+40.0 535.0 l
+34.5 535.0 30.0 530.5 30.0 525.0 c
+30.0 265.0 l
+30.0 259.5 34.5 255.0 40.0 255.0 c
+f
+BT
+/F2 14 Tf
+0.961 0.651 0.137 rg
+60.0 510.0 Td
+(Project Achievements) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 483.0 Td
+(+ Production-grade REST API) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 461.0 Td
+(+ Real-time GPS + Live Chat) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 439.0 Td
+(+ Crisis Prioritization Engine) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 417.0 Td
+(+ Complete Order Lifecycle) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 395.0 Td
+(+ Docker & K8s Deployment) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 373.0 Td
+(+ Comprehensive Security) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 351.0 Td
+(+ WhatsApp Integration) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 329.0 Td
+(+ Swagger API Documentation) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 307.0 Td
+(+ Multi-role RBAC System) Tj
+ET
+BT
+/F1 10 Tf
+1.000 1.000 1.000 rg
+60.0 285.0 Td
+(+ Inventory Management) Tj
+ET
+0.180 0.290 0.478 rg
+440.0 255.0 m
+800.0 255.0 l
+805.5 255.0 810.0 259.5 810.0 265.0 c
+810.0 525.0 l
+810.0 530.5 805.5 535.0 800.0 535.0 c
+440.0 535.0 l
+434.5 535.0 430.0 530.5 430.0 525.0 c
+430.0 265.0 l
+430.0 259.5 434.5 255.0 440.0 255.0 c
+f
+BT
+/F2 14 Tf
+0.961 0.651 0.137 rg
+460.0 510.0 Td
+(Future Enhancements) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 483.0 Td
+(AI Demand Prediction) Tj
+ET
+BT
+/F1 9 Tf
+0.533 0.600 0.702 rg
+475.0 465.0 Td
+(ML-based consumption forecast) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 435.0 Td
+(Mobile App Integration) Tj
+ET
+BT
+/F1 9 Tf
+0.533 0.600 0.702 rg
+475.0 417.0 Td
+(React Native / Flutter app) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 387.0 Td
+(Online Payment Gateway) Tj
+ET
+BT
+/F1 9 Tf
+0.533 0.600 0.702 rg
+475.0 369.0 Td
+(Razorpay/Stripe integration) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 339.0 Td
+(Smart Route Optimization) Tj
+ET
+BT
+/F1 9 Tf
+0.533 0.600 0.702 rg
+475.0 321.0 Td
+(Google Maps route planning) Tj
+ET
+BT
+/F2 11 Tf
+1.000 1.000 1.000 rg
+460.0 291.0 Td
+(IoT Cylinder Monitoring) Tj
+ET
+BT
+/F1 9 Tf
+0.533 0.600 0.702 rg
+475.0 273.0 Td
+(Smart sensors for gas level) Tj
+ET
+0.910 0.475 0.169 rg
+232.0 145.0 m
+608.0 145.0 l
+614.6 145.0 620.0 150.4 620.0 157.0 c
+620.0 213.0 l
+620.0 219.6 614.6 225.0 608.0 225.0 c
+232.0 225.0 l
+225.4 225.0 220.0 219.6 220.0 213.0 c
+220.0 157.0 l
+220.0 150.4 225.4 145.0 232.0 145.0 c
+f
+BT
+/F2 24 Tf
+1.000 1.000 1.000 rg
+330.0 195.0 Td
+(Thank You!) Tj
+ET
+BT
+/F1 12 Tf
+1.000 0.953 0.878 rg
+290.0 167.0 Td
+(Questions & Feedback Welcome) Tj
+ET
+BT
+/F1 10 Tf
+0.420 0.482 0.561 rg
+200.0 115.0 Td
+(Team CylDist  |  Department of Computer Engineering  |  2025) Tj
+ET
+0.910 0.475 0.169 rg
+0.0 0.0 842.0 5.0 re f
+endstream
+endobj
+
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 22 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+
+xref
+0 24
+0000000000 65535 f 
+0000000015 00000 n 
+0000000065 00000 n 
+0000000178 00000 n 
+0000000276 00000 n 
+0000000379 00000 n 
+0000000485 00000 n 
+0000002010 00000 n 
+0000002157 00000 n 
+0000005179 00000 n 
+0000005326 00000 n 
+0000008610 00000 n 
+0000008759 00000 n 
+0000012867 00000 n 
+0000013016 00000 n 
+0000016614 00000 n 
+0000016763 00000 n 
+0000020740 00000 n 
+0000020889 00000 n 
+0000025487 00000 n 
+0000025636 00000 n 
+0000028647 00000 n 
+0000028796 00000 n 
+0000031865 00000 n 
+trailer
+<< /Size 24 /Root 1 0 R >>
+startxref
+32014
+%%EOF
