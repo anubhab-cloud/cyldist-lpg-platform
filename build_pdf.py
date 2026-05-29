@@ -521,7 +521,7 @@ def slide2(pdf):
     pdf.text(360, 70, "KEY OBJECTIVES", size=11, color=ORANGE, font='bold')
     pdf.rect(360, 80, 60, 2, ORANGE)
     pdf.text(360, 115, "Goals & Mission", size=28, color=NAVY, font='bold')
-    # 4 objective cards in 2x2 grid
+    # 4 objective cards in 2x2 grid (compressed to make room for 5th card)
     objs = [
         ("DIGITIZE", "Replace manual booking\nwith online + WhatsApp", BLUE_BR),
         ("TRACK", "Real-time GPS tracking\n& live customer chat", ORANGE),
@@ -532,20 +532,43 @@ def slide2(pdf):
         col = i % 2
         row = i // 2
         x = 360 + col * 230
-        y = 160 + row * 180
+        y = 130 + row * 145
         # Card
-        pdf.rect(x, y, 215, 160, WHITE, radius=8)
+        pdf.rect(x, y, 215, 130, WHITE, radius=8)
         # Top color band
-        pdf.rect(x, y, 215, 6, color)
+        pdf.rect(x, y, 215, 5, color)
         # Number circle
-        pdf.circle(x + 30, y + 50, 22, color)
-        pdf.text_center(x + 30, y + 56, str(i + 1), size=20, color=WHITE, font='bold')
+        pdf.circle(x + 25, y + 40, 17, color)
+        pdf.text_center(x + 25, y + 46, str(i + 1), size=16, color=WHITE, font='bold')
         # Title
-        pdf.text(x + 65, y + 50, head, size=18, color=NAVY, font='bold')
-        pdf.text(x + 65, y + 70, "_____", size=10, color=color, font='bold')
+        pdf.text(x + 55, y + 42, head, size=15, color=NAVY, font='bold')
+        pdf.text(x + 55, y + 60, "____", size=10, color=color, font='bold')
         # Description
         for j, line_text in enumerate(desc.split('\n')):
-            pdf.text(x + 20, y + 105 + j * 18, line_text, size=10, color=DARK_GRAY)
+            pdf.text(x + 18, y + 85 + j * 16, line_text, size=10, color=DARK_GRAY)
+    # === 5TH CARD: EMERGENCY CRISIS ENGINE (wide banner) ===
+    y5 = 425
+    pdf.rect(360, y5, 445, 100, RED, radius=8)
+    # Top accent
+    pdf.rect(360, y5, 445, 5, AMBER)
+    # Number circle (white-on-red)
+    pdf.circle(385, y5 + 35, 17, WHITE)
+    pdf.text_center(385, y5 + 41, "5", size=16, color=RED, font='bold')
+    # Title
+    pdf.text(415, y5 + 32, "CRISIS ENGINE", size=14, color=WHITE, font='bold')
+    # Tagline
+    pdf.text(415, y5 + 50, "Emergency-aware allocation with Priority Score Formula", size=9, color=(1, 0.85, 0.85))
+    # Badges row
+    badges = [
+        ("HOSPITAL +150", AMBER),
+        ("DOMESTIC +75", (1, 0.9, 0.9)),
+        ("HOTEL 70% cap", (1, 0.9, 0.9)),
+        ("HOARDING -200", (1, 0.9, 0.9)),
+    ]
+    for i, (txt, col_text) in enumerate(badges):
+        bx = 380 + i * 105
+        pdf.rect(bx, y5 + 70, 95, 20, (0.55, 0, 0), radius=10)
+        pdf.text_center(bx + 47, y5 + 83, txt, size=8, color=col_text, font='bold')
     # Slide number
     pdf.text(PW - 40, 575, "02", size=14, color=GRAY, font='bold')
 
@@ -696,7 +719,101 @@ def slide4(pdf):
 
 
 # ============================================================
-# SLIDE 5: TECHNOLOGIES - With 3D cubes & cloud
+# SLIDE 5 (NEW): CRISIS ENGINE - How It Works (text-heavy)
+# ============================================================
+def slide_crisis(pdf):
+    pdf.page()
+    pdf.rect(0, 0, PW, PH, OFF_WHITE)
+    # Header
+    pdf.rect(0, 0, PW, 75, NAVY)
+    pdf.rect(0, 75, PW, 3, ORANGE)
+    pdf.text(40, 45, "05", size=40, color=ORANGE, font='bold')
+    pdf.text(110, 30, "CRISIS PRIORITIZATION ENGINE", size=10, color=AMBER, font='bold')
+    pdf.text(110, 60, "How Emergency Allocation Works", size=20, color=WHITE, font='bold')
+    # Subtitle
+    pdf.text(40, 95, "During severe stock crises, FCFS is suspended. Orders enter a holding pool & are allocated using a Heuristic Priority Score (P).",
+             size=9, color=DARK_GRAY)
+    # === FORMULA HIGHLIGHTED BOX ===
+    pdf.rect(40, 110, 770, 75, NAVY, radius=8)
+    pdf.rect(40, 110, 6, 75, ORANGE)
+    pdf.text(60, 130, "PRIORITY SCORE FORMULA", size=10, color=AMBER, font='bold')
+    pdf.text(60, 158, "P  =  (1.5 x S_sector)  +  (1.0 x S_urgency)  -  (1.0 x S_hoarding)",
+             size=18, color=WHITE, font='bold')
+    pdf.text(60, 178, "Higher P = higher priority. Orders sorted in a Max-Heap and allocated in descending P order.",
+             size=8, color=GRAY)
+    # === 3 COMPONENT EXPLANATIONS (3 columns) ===
+    comp_y = 200
+    comp_h = 175
+    col_w = 250
+    cols = [
+        (BLUE, "S_sector", "Sector Base Score", [
+            "Hospitals/Emergency:  100",
+            "Domestic Households:    50",
+            "Hostels/Institutional:    30",
+            "Commercial (Hotels):     10",
+            "",
+            "Multiplier:  W_sector = 1.5",
+            "Hospital order = 150 in P",
+        ]),
+        (ORANGE, "S_urgency", "Necessity Index", [
+            "(DaysSinceRefill / AvgCycle)",
+            "x 100",
+            "",
+            "Capped at 200 max",
+            "(prevents outlier anomalies)",
+            "",
+            "Multiplier:  W_urgency = 1.0",
+        ]),
+        (RED, "S_hoarding", "Hoarding Penalty Shield", [
+            "-200 if user refilled within",
+            "21 days, OR ordered more",
+            "than 2 cylinders in 30 days",
+            "",
+            "Hospitals: fully exempt",
+            "",
+            "Multiplier:  W_hoarding = 1.0",
+        ]),
+    ]
+    for i, (color, name, sub, lines) in enumerate(cols):
+        x = 40 + i * (col_w + 10)
+        pdf.rect(x, comp_y, col_w, comp_h, WHITE, radius=6)
+        pdf.rect(x, comp_y, col_w, 5, color)
+        pdf.text(x + 15, comp_y + 25, name, size=15, color=color, font='bold')
+        pdf.text(x + 15, comp_y + 42, sub, size=10, color=NAVY, font='bold')
+        pdf.rect(x + 15, comp_y + 48, 25, 2, color)
+        for j, line_text in enumerate(lines):
+            pdf.text(x + 15, comp_y + 65 + j * 14, line_text, size=9, color=DARK_GRAY)
+    # === SECTOR COOLDOWN LOCKOUTS ===
+    cool_y = 390
+    cool_h = 75
+    cools = [
+        (GREEN, "HOSPITAL", "Exempt from cooldowns", "15% emergency reserve stock"),
+        (BLUE_BR, "DOMESTIC HOUSEHOLD", "30-day lock period", "Hard reject within 30 days"),
+        (RED, "HOTEL / COMMERCIAL", "7-day lock period", "70% quantity cap applied"),
+    ]
+    for i, (color, title, l1, l2) in enumerate(cools):
+        x = 40 + i * (col_w + 10)
+        pdf.rect(x, cool_y, col_w, cool_h, color, radius=6)
+        pdf.text(x + 15, cool_y + 22, title, size=13, color=WHITE, font='bold')
+        pdf.text(x + 15, cool_y + 42, l1, size=10, color=WHITE, font='bold')
+        pdf.text(x + 15, cool_y + 58, l2, size=9, color=WHITE)
+    # === WORKFLOW STRIP ===
+    flow_y = 480
+    pdf.rect(40, flow_y, 770, 45, NAVY_DEEP, radius=6)
+    pdf.rect(40, flow_y, 770, 4, AMBER)
+    flow_steps = ["Order Created", "Score Calculated", "Max-Heap Sort", "Batch Allocate", "Notify Customer"]
+    step_w = 770 / len(flow_steps)
+    for i, step in enumerate(flow_steps):
+        sx = 40 + i * step_w
+        col = AMBER if i == 0 else WHITE
+        pdf.text_center(sx + step_w/2, flow_y + 27, step, size=10, color=col, font='bold')
+        if i < len(flow_steps) - 1:
+            pdf.text_center(sx + step_w - 8, flow_y + 27, ">", size=14, color=ORANGE, font='bold')
+    pdf.text(PW - 40, 575, "05", size=14, color=GRAY, font='bold')
+
+
+# ============================================================
+# SLIDE 5 (now SLIDE 6): TECHNOLOGIES - With 3D cubes & cloud
 # ============================================================
 def slide5(pdf):
     pdf.page()
@@ -705,7 +822,7 @@ def slide5(pdf):
     pdf.circle(800, 80, 100, NAVY_MID)
     # Decorative cloud (Docker/K8s/cloud feel)
     pdf.cloud_shape(770, 95, 70, 35, ORANGE_DEEP)
-    pdf.text(40, 65, "05", size=52, color=ORANGE, font='bold')
+    pdf.text(40, 65, "06", size=52, color=ORANGE, font='bold')
     pdf.text(120, 50, "TECH STACK", size=11, color=AMBER, font='bold')
     pdf.text(120, 85, "Modern Technologies", size=24, color=WHITE, font='bold')
     pdf.text(120, 108, "3D-illustrated stack for production scalability", size=11, color=GRAY)
@@ -758,7 +875,7 @@ def slide5(pdf):
         x = 60 + (i % 2) * 380
         pdf.text(x, y, label, size=10, color=AMBER, font='bold')
         pdf.text(x + 70, y, content, size=10, color=GRAY)
-    pdf.text(PW - 40, 575, "05", size=14, color=GRAY, font='bold')
+    pdf.text(PW - 40, 575, "06", size=14, color=GRAY, font='bold')
 
 
 
@@ -771,7 +888,7 @@ def slide6(pdf):
     # Header strip
     pdf.rect(0, 0, PW, 90, NAVY)
     pdf.rect(0, 90, PW, 3, ORANGE)
-    pdf.text(40, 50, "06", size=44, color=ORANGE, font='bold')
+    pdf.text(40, 50, "07", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "WHAT MAKES US DIFFERENT", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Unique Features", size=22, color=WHITE, font='bold')
     # 10 features in a 5x2 grid
@@ -837,7 +954,7 @@ def slide6(pdf):
         # Bottom accent
         pdf.rect(x, y + card_h - 4, card_w, 4, color, radius=0)
     # Slide number
-    pdf.text(PW - 40, 575, "06", size=14, color=GRAY, font='bold')
+    pdf.text(PW - 40, 575, "07", size=14, color=GRAY, font='bold')
 
 
 
@@ -849,7 +966,7 @@ def slide7(pdf):
     pdf.rect(0, 0, PW, PH, OFF_WHITE)
     pdf.rect(0, 0, PW, 90, NAVY)
     pdf.rect(0, 90, PW, 3, ORANGE)
-    pdf.text(40, 50, "07", size=44, color=ORANGE, font='bold')
+    pdf.text(40, 50, "08", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "DATA MODEL", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Database Design & ER Diagram", size=22, color=WHITE, font='bold')
     # ER Diagram - 5 entities with 3D database cylinder icons
@@ -904,7 +1021,7 @@ def slide7(pdf):
     ]
     for i, rel in enumerate(rels):
         pdf.text(660, 425 + i * 14, rel, size=9, color=WHITE)
-    pdf.text(PW - 40, 575, "07", size=14, color=GRAY, font='bold')
+    pdf.text(PW - 40, 575, "08", size=14, color=GRAY, font='bold')
 
 
 
@@ -916,7 +1033,7 @@ def slide8(pdf):
     pdf.rect(0, 0, PW, PH, OFF_WHITE)
     pdf.rect(0, 0, PW, 90, NAVY)
     pdf.rect(0, 90, PW, 3, ORANGE)
-    pdf.text(40, 50, "08", size=44, color=ORANGE, font='bold')
+    pdf.text(40, 50, "09", size=44, color=ORANGE, font='bold')
     pdf.text(110, 38, "EXECUTION & PROTECTION", size=11, color=AMBER, font='bold')
     pdf.text(110, 70, "Demo & Security", size=22, color=WHITE, font='bold')
     # === LEFT: Phone mockup + dashboard ===
@@ -1005,7 +1122,7 @@ def slide8(pdf):
         x = 460 + (i % 6) * 60
         pdf.rect(x, 510, 55, 16, NAVY_MID, radius=8)
         pdf.text_center(x + 27, 521, b, size=8, color=AMBER, font='bold')
-    pdf.text(PW - 40, 575, "08", size=14, color=GRAY, font='bold')
+    pdf.text(PW - 40, 575, "09", size=14, color=GRAY, font='bold')
 
 
 
@@ -1025,7 +1142,7 @@ def slide9(pdf):
     # Top bar
     pdf.rect(0, 0, PW, 5, ORANGE)
     # Header
-    pdf.text(40, 60, "09", size=44, color=ORANGE, font='bold')
+    pdf.text(40, 60, "10", size=44, color=ORANGE, font='bold')
     pdf.text(110, 50, "WRAPPING UP", size=11, color=AMBER, font='bold')
     pdf.text(110, 80, "Conclusion & Future Scope", size=22, color=WHITE, font='bold')
     # === Left: Achievements ===
@@ -1090,7 +1207,7 @@ def slide9(pdf):
     # Bottom signature
     pdf.text_center(PW / 2, 565, "Team CylDist  -  Department of Computer Engineering  -  2025-26", size=10, color=GRAY)
     pdf.rect(0, PH - 5, PW, 5, ORANGE)
-    pdf.text(PW - 40, 575, "09", size=14, color=GRAY, font='bold')
+    pdf.text(PW - 40, 575, "10", size=14, color=GRAY, font='bold')
 
 
 # ============================================================
@@ -1102,6 +1219,7 @@ def main():
     slide2(pdf)
     slide3(pdf)
     slide4(pdf)
+    slide_crisis(pdf)
     slide5(pdf)
     slide6(pdf)
     slide7(pdf)

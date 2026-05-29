@@ -428,19 +428,43 @@ def slide2():
         col = i % 2
         row = i // 2
         x = emu(5.0) + col * emu(3.7)
-        y = emu(2.1) + row * emu(2.5)
-        s.append(shape_text(x, y, emu(3.5), emu(2.3), WHITE, [], prst="roundRect", radius=6000, shadow=True))
+        y = emu(2.1) + row * emu(2.0)
+        s.append(shape_text(x, y, emu(3.5), emu(1.85), WHITE, [], prst="roundRect", radius=6000, shadow=True))
         s.append(rect(x, y, emu(3.5), emu(0.08), color))
-        s.append(circle(x + emu(0.25), y + emu(0.5), emu(0.6), color))
-        s.append(text_box(x + emu(0.25), y + emu(0.6), emu(0.6), emu(0.5),
-            [(str(i + 1), 22, True, WHITE, "ctr")]))
-        s.append(text_box(x + emu(1.0), y + emu(0.55), emu(2.3), emu(0.5),
-            [(head, 18, True, NAVY, "l")]))
-        s.append(rect(x + emu(1.0), y + emu(1.0), emu(0.6), emu(0.04), color))
-        s.append(text_box(x + emu(0.3), y + emu(1.4), emu(3.2), emu(0.4),
-            [(d1, 11, False, DARK_GRAY, "l")]))
-        s.append(text_box(x + emu(0.3), y + emu(1.7), emu(3.2), emu(0.4),
-            [(d2, 11, False, DARK_GRAY, "l")]))
+        s.append(circle(x + emu(0.2), y + emu(0.4), emu(0.5), color))
+        s.append(text_box(x + emu(0.2), y + emu(0.5), emu(0.5), emu(0.4),
+            [(str(i + 1), 18, True, WHITE, "ctr")]))
+        s.append(text_box(x + emu(0.85), y + emu(0.45), emu(2.5), emu(0.4),
+            [(head, 16, True, NAVY, "l")]))
+        s.append(rect(x + emu(0.85), y + emu(0.85), emu(0.5), emu(0.04), color))
+        s.append(text_box(x + emu(0.25), y + emu(1.05), emu(3.2), emu(0.35),
+            [(d1, 10, False, DARK_GRAY, "l")]))
+        s.append(text_box(x + emu(0.25), y + emu(1.35), emu(3.2), emu(0.35),
+            [(d2, 10, False, DARK_GRAY, "l")]))
+    # === 5TH CARD: EMERGENCY CRISIS ENGINE (wide banner) ===
+    y5 = emu(6.05)
+    s.append(shape_text(emu(5.0), y5, emu(7.5), emu(1.05), RED, [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(5.0), y5, emu(7.5), emu(0.08), AMBER))
+    # Number circle (white-on-red)
+    s.append(circle(emu(5.15), y5 + emu(0.25), emu(0.55), WHITE))
+    s.append(text_box(emu(5.15), y5 + emu(0.35), emu(0.55), emu(0.4),
+        [("5", 20, True, RED, "ctr")]))
+    # Title + tagline
+    s.append(text_box(emu(5.85), y5 + emu(0.18), emu(5), emu(0.4),
+        [("CRISIS ENGINE", 16, True, WHITE, "l")]))
+    s.append(text_box(emu(5.85), y5 + emu(0.5), emu(6.5), emu(0.3),
+        [("Emergency-aware allocation w/ Priority Score formula  |  Heuristic Engine", 9, False, "FFD0D0", "l")]))
+    # Sector priority badges row
+    badges = [
+        ("HOSPITAL +150", AMBER),
+        ("DOMESTIC +75", "FFE5E5"),
+        ("HOTEL 70% cap", "FFE5E5"),
+        ("HOARDING -200", "FFE5E5"),
+    ]
+    for i, (txt, col_text) in enumerate(badges):
+        bx = emu(5.85) + i * emu(1.6)
+        s.append(shape_text(bx, y5 + emu(0.78), emu(1.5), emu(0.22), "8B0000",
+            [(txt, 8, True, col_text, "ctr")], prst="roundRect", radius=15000))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
         [("02", 14, True, GRAY, "r")]))
     return ''.join(s)
@@ -611,6 +635,119 @@ def slide4():
 
 
 # ============================================================
+# SLIDE 5 (NEW): CRISIS ENGINE - How It Works (text-heavy)
+# ============================================================
+def slide_crisis():
+    """Crisis Prioritization Engine - between Architecture and Tech Stack."""
+    s = []
+    s.append(rect(0, 0, SLIDE_W, SLIDE_H, OFF_WHITE))
+    # Header bar
+    s.append(rect(0, 0, SLIDE_W, emu(1.0), NAVY))
+    s.append(rect(0, emu(1.0), SLIDE_W, emu(0.04), ORANGE))
+    s.append(text_box(emu(0.5), emu(0.18), emu(2), emu(0.8),
+        [("05", 44, True, ORANGE, "l")]))
+    s.append(text_box(emu(1.5), emu(0.22), emu(11), emu(0.4),
+        [("CRISIS PRIORITIZATION ENGINE", 11, True, AMBER, "l")]))
+    s.append(text_box(emu(1.5), emu(0.6), emu(11), emu(0.5),
+        [("How Emergency Allocation Works", 22, True, WHITE, "l")]))
+    # Subtitle / intro
+    s.append(text_box(emu(0.5), emu(1.15), emu(12.5), emu(0.4),
+        [("During severe stock crises, FCFS is suspended. Orders enter a holding pool & are allocated using a Heuristic Priority Score (P).",
+          11, False, DARK_GRAY, "l")]))
+    # === FORMULA HIGHLIGHTED BOX ===
+    s.append(shape_text(emu(0.5), emu(1.6), emu(12.4), emu(1.05), NAVY,
+        [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.5), emu(1.6), emu(0.1), emu(1.05), ORANGE))
+    s.append(text_box(emu(0.8), emu(1.7), emu(4), emu(0.3),
+        [("PRIORITY SCORE FORMULA", 11, True, AMBER, "l")]))
+    s.append(text_box(emu(0.8), emu(2.0), emu(11.5), emu(0.55),
+        [("P  =  (1.5  x  S_sector)  +  (1.0  x  S_urgency)  -  (1.0  x  S_hoarding)",
+          22, True, WHITE, "l")]))
+    s.append(text_box(emu(0.8), emu(2.45), emu(11.5), emu(0.3),
+        [("Higher P = higher priority. Orders sorted in a Max-Heap and allocated in descending P order.",
+          9, False, GRAY, "l")]))
+    # === 3 COMPONENT EXPLANATIONS ===
+    comp_y = emu(2.85)
+    comp_h = emu(2.4)
+    col_w = emu(4.05)
+    cols = [
+        (BLUE, "S_sector", "Sector Base Score", [
+            "Hospitals / Emergency:     100",
+            "Domestic Households:        50",
+            "Hostels / Institutional:        30",
+            "Commercial (Hotels):           10",
+            "",
+            "Multiplier:  W_sector = 1.5",
+            "Hospital order contributes 150 to P",
+        ]),
+        (ORANGE, "S_urgency", "Necessity Index", [
+            "(DaysSinceRefill / AvgCycle)",
+            "x 100",
+            "",
+            "Capped at 200 max",
+            "(prevents outlier anomalies)",
+            "",
+            "Multiplier:  W_urgency = 1.0",
+        ]),
+        (RED, "S_hoarding", "Hoarding Penalty Shield", [
+            "-200 points if user refilled",
+            "within 21 days, OR ordered",
+            "more than 2 cylinders in 30d",
+            "",
+            "Hospitals: fully exempt",
+            "",
+            "Multiplier:  W_hoarding = 1.0",
+        ]),
+    ]
+    for i, (color, name, sub, lines) in enumerate(cols):
+        x = emu(0.5) + i * (col_w + emu(0.1))
+        s.append(shape_text(x, comp_y, col_w, comp_h, WHITE, [], prst="roundRect", radius=6000, shadow=True))
+        s.append(rect(x, comp_y, col_w, emu(0.1), color))
+        s.append(text_box(x + emu(0.2), comp_y + emu(0.18), col_w - emu(0.4), emu(0.4),
+            [(name, 16, True, color, "l")]))
+        s.append(text_box(x + emu(0.2), comp_y + emu(0.55), col_w - emu(0.4), emu(0.3),
+            [(sub, 10, True, NAVY, "l")]))
+        s.append(rect(x + emu(0.2), comp_y + emu(0.9), emu(0.5), emu(0.04), color))
+        for j, line_text in enumerate(lines):
+            s.append(text_box(x + emu(0.2), comp_y + emu(1.0) + j * emu(0.18), col_w - emu(0.4), emu(0.18),
+                [(line_text, 9, False, DARK_GRAY, "l")]))
+    # === SECTOR COOLDOWN LOCKOUTS ===
+    cool_y = emu(5.45)
+    cool_h = emu(1.0)
+    cools = [
+        (GREEN, "HOSPITAL", "Exempt from cooldowns", "15% emergency reserve stock"),
+        (BLUE_BR, "DOMESTIC HOUSEHOLD", "30-day lock period", "Hard reject within 30 days"),
+        (RED, "HOTEL / COMMERCIAL", "7-day lock period", "70% quantity cap applied"),
+    ]
+    for i, (color, title, l1, l2) in enumerate(cools):
+        x = emu(0.5) + i * (col_w + emu(0.1))
+        s.append(shape_text(x, cool_y, col_w, cool_h, color, [], prst="roundRect", radius=6000, shadow=True))
+        s.append(text_box(x + emu(0.25), cool_y + emu(0.12), col_w - emu(0.4), emu(0.35),
+            [(title, 13, True, WHITE, "l")]))
+        s.append(text_box(x + emu(0.25), cool_y + emu(0.45), col_w - emu(0.4), emu(0.25),
+            [(l1, 10, True, WHITE, "l")]))
+        s.append(text_box(x + emu(0.25), cool_y + emu(0.7), col_w - emu(0.4), emu(0.25),
+            [(l2, 9, False, "FFFFFF", "l")]))
+    # === WORKFLOW STRIP ===
+    flow_y = emu(6.55)
+    s.append(shape_text(emu(0.5), flow_y, emu(12.4), emu(0.55), NAVY_DEEP,
+        [], prst="roundRect", radius=6000))
+    s.append(rect(emu(0.5), flow_y, emu(12.4), emu(0.05), AMBER))
+    flow_steps = ["Order Created", "Score Calculated", "Max-Heap Sort", "Batch Allocate", "Notify Customer"]
+    step_w = emu(2.4)
+    for i, step in enumerate(flow_steps):
+        sx = emu(0.55) + i * step_w
+        s.append(text_box(sx, flow_y + emu(0.18), step_w, emu(0.3),
+            [(step, 10, True, AMBER if i == 0 else WHITE, "ctr")]))
+        if i < len(flow_steps) - 1:
+            s.append(text_box(sx + step_w - emu(0.15), flow_y + emu(0.18), emu(0.3), emu(0.3),
+                [(">", 14, True, ORANGE, "ctr")]))
+    s.append(text_box(emu(12.6), emu(7.2), emu(0.5), emu(0.3),
+        [("05", 14, True, GRAY, "r")]))
+    return ''.join(s)
+
+
+# ============================================================
 # SLIDE 5: TECHNOLOGIES USED - With 3D cubes
 # ============================================================
 def slide5():
@@ -621,7 +758,7 @@ def slide5():
     # Decorative cloud (representing Docker/K8s cloud)
     s.append(cloud_shape(emu(11.5), emu(0.3), emu(1.5), emu(0.9), ORANGE_DEEP))
     s.append(text_box(emu(0.4), emu(0.3), emu(2), emu(1.0),
-        [("05", 52, True, ORANGE, "l")]))
+        [("06", 52, True, ORANGE, "l")]))
     s.append(text_box(emu(1.5), emu(0.4), emu(8), emu(0.4),
         [("TECH STACK", 11, True, AMBER, "l")]))
     s.append(text_box(emu(1.5), emu(0.85), emu(10), emu(0.6),
@@ -677,7 +814,7 @@ def slide5():
     s.append(text_box(emu(0.6), emu(6.95), emu(12), emu(0.3),
         [("bcrypt | Helmet | CORS | Zod | Winston | Twilio | SendGrid | Razorpay | AWS S3 | Jest | Swagger", 10, False, GRAY, "l")]))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
-        [("05", 14, True, GRAY, "r")]))
+        [("06", 14, True, GRAY, "r")]))
     return ''.join(s)
 
 
@@ -691,7 +828,7 @@ def slide6():
     s.append(rect(0, 0, SLIDE_W, emu(1.2), NAVY))
     s.append(rect(0, emu(1.2), SLIDE_W, emu(0.04), ORANGE))
     s.append(text_box(emu(0.5), emu(0.25), emu(2), emu(0.8),
-        [("06", 44, True, ORANGE, "l")]))
+        [("07", 44, True, ORANGE, "l")]))
     s.append(text_box(emu(1.5), emu(0.3), emu(10), emu(0.4),
         [("WHAT MAKES US DIFFERENT", 11, True, AMBER, "l")]))
     s.append(text_box(emu(1.5), emu(0.7), emu(10), emu(0.5),
@@ -731,7 +868,7 @@ def slide6():
             [(desc, 10, False, DARK_GRAY, "l")]))
         s.append(rect(x, y + card_h - emu(0.06), card_w, emu(0.06), color))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
-        [("06", 14, True, GRAY, "r")]))
+        [("07", 14, True, GRAY, "r")]))
     return ''.join(s)
 
 
@@ -745,7 +882,7 @@ def slide7():
     s.append(rect(0, 0, SLIDE_W, emu(1.2), NAVY))
     s.append(rect(0, emu(1.2), SLIDE_W, emu(0.04), ORANGE))
     s.append(text_box(emu(0.5), emu(0.25), emu(2), emu(0.8),
-        [("07", 44, True, ORANGE, "l")]))
+        [("08", 44, True, ORANGE, "l")]))
     s.append(text_box(emu(1.5), emu(0.3), emu(10), emu(0.4),
         [("DATA MODEL", 11, True, AMBER, "l")]))
     s.append(text_box(emu(1.5), emu(0.7), emu(10), emu(0.5),
@@ -807,7 +944,7 @@ def slide7():
         s.append(text_box(emu(8.95), emu(5.95) + i * emu(0.25), emu(3.8), emu(0.25),
             [(r, 10, False, WHITE, "l")]))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
-        [("07", 14, True, GRAY, "r")]))
+        [("08", 14, True, GRAY, "r")]))
     return ''.join(s)
 
 
@@ -821,7 +958,7 @@ def slide8():
     s.append(rect(0, 0, SLIDE_W, emu(1.2), NAVY))
     s.append(rect(0, emu(1.2), SLIDE_W, emu(0.04), ORANGE))
     s.append(text_box(emu(0.5), emu(0.25), emu(2), emu(0.8),
-        [("08", 44, True, ORANGE, "l")]))
+        [("09", 44, True, ORANGE, "l")]))
     s.append(text_box(emu(1.5), emu(0.3), emu(10), emu(0.4),
         [("EXECUTION & PROTECTION", 11, True, AMBER, "l")]))
     s.append(text_box(emu(1.5), emu(0.7), emu(10), emu(0.5),
@@ -929,7 +1066,7 @@ def slide8():
         s.append(shape_text(x, y, emu(1.4), emu(0.5), NAVY_MID,
             [(b, 9, True, AMBER, "ctr")], prst="roundRect", radius=10000, shadow=True))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
-        [("08", 14, True, GRAY, "r")]))
+        [("09", 14, True, GRAY, "r")]))
     return ''.join(s)
 
 
@@ -947,7 +1084,7 @@ def slide9():
     s.append(circle(emu(0.5), emu(6.5), emu(1.5), AMBER))
     s.append(rect(0, 0, SLIDE_W, emu(0.06), ORANGE))
     s.append(text_box(emu(0.5), emu(0.4), emu(2), emu(0.8),
-        [("09", 44, True, ORANGE, "l")]))
+        [("10", 44, True, ORANGE, "l")]))
     s.append(text_box(emu(1.5), emu(0.4), emu(10), emu(0.4),
         [("WRAPPING UP", 11, True, AMBER, "l")]))
     s.append(text_box(emu(1.5), emu(0.85), emu(10), emu(0.5),
@@ -1038,6 +1175,12 @@ def slide_xml(shapes_xml, transition="fade"):
         transition_xml = '<p:transition spd="med"><p:push dir="l"/></p:transition>'
     elif transition == "wipe":
         transition_xml = '<p:transition spd="med"><p:wipe dir="l"/></p:transition>'
+    elif transition == "zoom":
+        transition_xml = '<p:transition spd="med"><p:zoom/></p:transition>'
+    elif transition == "split":
+        transition_xml = '<p:transition spd="med"><p:split orient="horz" dir="out"/></p:transition>'
+    elif transition == "cover":
+        transition_xml = '<p:transition spd="med"><p:cover dir="l"/></p:transition>'
     return XML_DECL + f'''<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>{shapes_xml}</p:spTree></p:cSld>{transition_xml}<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>'''
 
 def slide_rels():
@@ -1094,11 +1237,11 @@ def app_xml():
 
 
 def main():
-    slides = [slide1(), slide2(), slide3(), slide4(), slide5(),
-              slide6(), slide7(), slide8(), slide9()]
+    slides = [slide1(), slide2(), slide3(), slide4(), slide_crisis(),
+              slide5(), slide6(), slide7(), slide8(), slide9()]
     n = len(slides)
     out = "/projects/sandbox/cyldist-lpg-platform/CylDist_Platform_Presentation.pptx"
-    transitions = ["fade", "push", "fade", "wipe", "fade", "push", "fade", "wipe", "fade"]
+    transitions = ["fade", "push", "fade", "wipe", "zoom", "fade", "push", "fade", "wipe", "fade"]
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr('[Content_Types].xml', content_types_xml(n))
         z.writestr('_rels/.rels', root_rels())
