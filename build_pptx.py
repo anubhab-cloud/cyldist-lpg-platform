@@ -846,14 +846,14 @@ def slide6():
         ("Docker +", "K8s", "Production deploy", "228B22"),
     ]
     card_w = emu(2.4)
-    card_h = emu(2.7)
+    card_h = emu(2.0)
     gap = emu(0.13)
     start_x = emu(0.4)
     for i, (t1, t2, desc, color) in enumerate(features):
         col = i % 5
         row = i // 5
         x = start_x + col * (card_w + gap)
-        y = emu(1.5) + row * (card_h + emu(0.3))
+        y = emu(1.5) + row * (card_h + emu(0.25))
         s.append(shape_text(x, y, card_w, card_h, WHITE, [], prst="roundRect", radius=6000, shadow=True))
         s.append(rect(x, y, card_w, emu(1.2), color, radius=6000))
         s.append(rect(x, y + emu(0.6), card_w, emu(0.6), color))
@@ -864,9 +864,45 @@ def slide6():
             [(t1, 12, True, WHITE, "l")]))
         s.append(text_box(x + emu(0.95), y + emu(0.65), emu(1.5), emu(0.4),
             [(t2, 12, True, WHITE, "l")]))
-        s.append(text_box(x + emu(0.2), y + emu(1.5), emu(2.0), emu(0.5),
+        s.append(text_box(x + emu(0.2), y + emu(1.4), emu(2.0), emu(0.5),
             [(desc, 10, False, DARK_GRAY, "l")]))
         s.append(rect(x, y + card_h - emu(0.06), card_w, emu(0.06), color))
+    # === 11TH FEATURE: DELIVERY MANAGEMENT (wide premium banner) ===
+    y_dm = emu(6.1)
+    bnr_w = emu(12.5)
+    s.append(shape_text(emu(0.4), y_dm, bnr_w, emu(1.25), NAVY, [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.4), y_dm, bnr_w, emu(0.08), ORANGE))
+    # Number badge
+    s.append(circle(emu(0.6), y_dm + emu(0.3), emu(0.6), ORANGE))
+    s.append(text_box(emu(0.6), y_dm + emu(0.4), emu(0.6), emu(0.45),
+        [("11", 18, True, WHITE, "ctr")]))
+    # Title
+    s.append(text_box(emu(1.4), y_dm + emu(0.18), emu(5), emu(0.4),
+        [("DELIVERY MANAGEMENT", 16, True, AMBER, "l")]))
+    # Tagline
+    s.append(text_box(emu(1.4), y_dm + emu(0.55), emu(6), emu(0.3),
+        [("End-to-end delivery lifecycle: assignment, tracking, verification & proof", 9, False, "C8D2E0", "l")]))
+    # Mini description below tagline
+    s.append(text_box(emu(1.4), y_dm + emu(0.85), emu(6), emu(0.3),
+        [("Real-time GPS via Socket.IO  |  /delivery/:orderId/route API  |  OTP verify @ delivery", 8, False, GRAY, "l")]))
+    # Sub-feature pill badges (5 across right side)
+    sub_features = [
+        ("Agent Assign", BLUE_BR),
+        ("Live GPS", GREEN),
+        ("OTP Verify", AMBER),
+        ("Photo Proof", PURPLE),
+        ("Route + ETA", TEAL),
+    ]
+    badge_w = emu(0.95)
+    badge_start = emu(7.6)
+    badge_gap = emu(0.05)
+    for i, (txt, col_b) in enumerate(sub_features):
+        bx = badge_start + i * (badge_w + badge_gap)
+        s.append(shape_text(bx, y_dm + emu(0.42), badge_w, emu(0.32), col_b,
+            [(txt, 8, True, WHITE, "ctr")], prst="roundRect", radius=20000, shadow=False))
+    # Bottom mini-stats row
+    s.append(text_box(emu(7.6), y_dm + emu(0.85), emu(5), emu(0.3),
+        [("5-second GPS interval  |  Socket.IO rooms per order  |  Order timeline tracking", 8, False, GRAY, "l")]))
     s.append(text_box(emu(12.6), emu(7.1), emu(0.5), emu(0.3),
         [("07", 14, True, GRAY, "r")]))
     return ''.join(s)
@@ -1236,12 +1272,283 @@ def app_xml():
     return XML_DECL + '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft PowerPoint</Application><Slides>9</Slides><Company>Team CylDist</Company></Properties>'
 
 
+# ============================================================
+# SLIDE 11 (NEW): Zonal Crisis Prioritization & Heuristic Allocation Engine
+# Deep-dive reference slide (placed at end as final slide)
+# ============================================================
+def slide_zonal_crisis():
+    s = []
+    s.append(rect(0, 0, SLIDE_W, SLIDE_H, OFF_WHITE))
+    # Header
+    s.append(rect(0, 0, SLIDE_W, emu(0.95), NAVY))
+    s.append(rect(0, emu(0.95), SLIDE_W, emu(0.04), ORANGE))
+    s.append(text_box(emu(0.4), emu(0.18), emu(2), emu(0.7),
+        [("11", 36, True, ORANGE, "l")]))
+    s.append(text_box(emu(1.3), emu(0.18), emu(11), emu(0.32),
+        [("DEEP DIVE  |  HEURISTIC ALLOCATION REFERENCE", 10, True, AMBER, "l")]))
+    s.append(text_box(emu(1.3), emu(0.5), emu(11.5), emu(0.45),
+        [("Zonal Crisis Prioritization & Heuristic Allocation Engine", 17, True, WHITE, "l")]))
+    # Objective subtitle
+    s.append(text_box(emu(0.5), emu(1.05), emu(12.5), emu(0.3),
+        [("Objective: Allocate LPG fairly during severe shortages by replacing FCFS with a priority-based heuristic system",
+          10, False, DARK_GRAY, "l")]))
+    # === SECTION 1: Crisis Mode Activation (top-left) ===
+    sec1_y = emu(1.45)
+    s.append(shape_text(emu(0.4), sec1_y, emu(6.3), emu(1.65), WHITE, [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(0.4), sec1_y, emu(6.3), emu(0.06), RED))
+    s.append(text_box(emu(0.6), sec1_y + emu(0.1), emu(6), emu(0.32),
+        [("[1]  CRISIS MODE ACTIVATION", 12, True, RED, "l")]))
+    bullets1 = [
+        "FCFS allocation is suspended during shortages",
+        "Incoming orders enter a Zonal Holding Pool",
+        "Orders periodically ranked by Priority Score (P)",
+        "Allocation runs in batches via Max-Heap engine",
+    ]
+    for i, b in enumerate(bullets1):
+        s.append(circle(emu(0.7), sec1_y + emu(0.52) + i * emu(0.25), emu(0.1), RED))
+        s.append(text_box(emu(0.95), sec1_y + emu(0.46) + i * emu(0.25), emu(5.6), emu(0.28),
+            [(b, 10, False, DARK_GRAY, "l")]))
+    # === SECTION 2: Allocation Workflow (top-right) ===
+    s.append(shape_text(emu(6.9), sec1_y, emu(6.0), emu(1.65), NAVY, [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(6.9), sec1_y, emu(6.0), emu(0.06), AMBER))
+    s.append(text_box(emu(7.1), sec1_y + emu(0.1), emu(5.5), emu(0.32),
+        [("[2]  ALLOCATION WORKFLOW", 12, True, AMBER, "l")]))
+    flow_steps = [("Order", BLUE_BR), ("Score Calc", ORANGE), ("Max-Heap", PURPLE), ("Allocate", GREEN)]
+    sw = emu(1.18)
+    sx0 = emu(7.1)
+    for i, (txt, col) in enumerate(flow_steps):
+        sx = sx0 + i * (sw + emu(0.13))
+        s.append(shape_text(sx, sec1_y + emu(0.55), sw, emu(0.5), col,
+            [(txt, 9, True, WHITE, "ctr")], prst="roundRect", radius=6000))
+        if i < len(flow_steps) - 1:
+            s.append(text_box(sx + sw - emu(0.04), sec1_y + emu(0.6), emu(0.2), emu(0.4),
+                [(">", 14, True, AMBER, "ctr")]))
+    s.append(text_box(emu(7.1), sec1_y + emu(1.15), emu(5.7), emu(0.25),
+        [("Highest Priority Score served first  -  Max-Heap descending order", 9, False, "C8D2E0", "l")]))
+    s.append(text_box(emu(7.1), sec1_y + emu(1.4), emu(5.7), emu(0.22),
+        [("Periodic batch allocation cycles ensure fairness across the zone", 8, False, GRAY, "l")]))
+    # === SECTION 3: Priority Score Formula (full-width banner) ===
+    f_y = emu(3.2)
+    s.append(shape_text(emu(0.4), f_y, emu(12.5), emu(1.1), NAVY_DEEP, [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.4), f_y, emu(0.1), emu(1.1), ORANGE))
+    s.append(text_box(emu(0.7), f_y + emu(0.08), emu(5), emu(0.3),
+        [("[3]  PRIORITY SCORE FORMULA", 11, True, AMBER, "l")]))
+    s.append(text_box(emu(0.7), f_y + emu(0.36), emu(11.5), emu(0.5),
+        [("P  =  (1.5 x S_sector)  +  (1.0 x S_urgency)  -  (1.0 x S_hoarding)", 20, True, WHITE, "l")]))
+    s.append(text_box(emu(0.7), f_y + emu(0.78), emu(11.5), emu(0.25),
+        [("S_sector: Hospital 100 / Domestic 50 / Hostel 30 / Commercial 10   |   S_urgency: (DaysSinceRefill / AvgCycle) x 100, max 200   |   S_hoarding: -200 if refill <21d (Hospitals exempt)",
+          7, False, GRAY, "l")]))
+    # === SECTION 4: Sector Policies (3 cards) ===
+    sp_y = emu(4.45)
+    sp_w = emu(4.05)
+    sectors = [
+        (RED, "HOSPITAL & EMERGENCY", "Highest Priority",
+            ["Dedicated emergency reserve", "No cooldown restrictions", "Exempt from hoarding shield"]),
+        (BLUE_BR, "DOMESTIC HOUSEHOLD", "30-day Cooldown",
+            ["Hard reject within 30 days", "Anti-hoarding lock active", "Standard priority weight"]),
+        (ORANGE, "COMMERCIAL / HOTELS", "7-day + 70% Cap",
+            ["7-day booking cooldown", "70% quantity reduction cap", "Lowest priority weight"]),
+    ]
+    for i, (col, name, sub, bullets) in enumerate(sectors):
+        sx = emu(0.4) + i * (sp_w + emu(0.1))
+        s.append(shape_text(sx, sp_y, sp_w, emu(1.6), col, [], prst="roundRect", radius=6000, shadow=True))
+        s.append(text_box(sx + emu(0.2), sp_y + emu(0.1), sp_w - emu(0.4), emu(0.3),
+            [("[4]  " + name, 11, True, WHITE, "l")]))
+        s.append(text_box(sx + emu(0.2), sp_y + emu(0.4), sp_w - emu(0.4), emu(0.28),
+            [(sub, 11, True, "FFFFFF", "l")]))
+        s.append(rect(sx + emu(0.2), sp_y + emu(0.72), emu(0.5), emu(0.03), AMBER))
+        for j, b in enumerate(bullets):
+            s.append(text_box(sx + emu(0.25), sp_y + emu(0.82) + j * emu(0.22), sp_w - emu(0.4), emu(0.22),
+                [("-  " + b, 9, False, "FFFFFF", "l")]))
+    # === SECTION 5: Key Benefits (bottom strip) ===
+    kb_y = emu(6.2)
+    s.append(shape_text(emu(0.4), kb_y, emu(12.5), emu(0.9), NAVY, [], prst="roundRect", radius=6000))
+    s.append(rect(emu(0.4), kb_y, emu(12.5), emu(0.05), GREEN))
+    s.append(text_box(emu(0.6), kb_y + emu(0.08), emu(4), emu(0.3),
+        [("[5]  KEY BENEFITS", 11, True, GREEN, "l")]))
+    benefits = ["Prevents hoarding", "Fair distribution", "Emergency-first", "Necessity-based", "Better utilization"]
+    for i, b in enumerate(benefits):
+        bx = emu(0.6) + i * emu(2.42)
+        s.append(circle(bx, kb_y + emu(0.5), emu(0.16), GREEN))
+        s.append(text_box(bx, kb_y + emu(0.42), emu(0.16), emu(0.2),
+            [("v", 9, True, WHITE, "ctr")]))
+        s.append(text_box(bx + emu(0.25), kb_y + emu(0.42), emu(2.2), emu(0.3),
+            [(b, 10, True, WHITE, "l")]))
+    s.append(text_box(emu(0.4), kb_y + emu(0.62), emu(12.5), emu(0.22),
+        [("Outcome: Data-driven heuristic ensuring equitable & efficient LPG distribution during emergencies",
+          8, True, AMBER, "l")]))
+    s.append(text_box(emu(12.6), emu(7.25), emu(0.5), emu(0.2),
+        [("11", 12, True, GRAY, "r")]))
+    return ''.join(s)
+
+
+# ============================================================
+# SLIDE 12 (NEW): System Architecture & Design (3-tier)
+# ============================================================
+def slide_architecture():
+    s = []
+    s.append(rect(0, 0, SLIDE_W, SLIDE_H, OFF_WHITE))
+    # Header
+    s.append(rect(0, 0, SLIDE_W, emu(0.95), NAVY))
+    s.append(rect(0, emu(0.95), SLIDE_W, emu(0.04), ORANGE))
+    s.append(text_box(emu(0.4), emu(0.18), emu(2), emu(0.7),
+        [("12", 36, True, ORANGE, "l")]))
+    s.append(text_box(emu(1.3), emu(0.18), emu(11), emu(0.32),
+        [("DEEP DIVE  |  PLATFORM ARCHITECTURE", 10, True, AMBER, "l")]))
+    s.append(text_box(emu(1.3), emu(0.5), emu(11.5), emu(0.45),
+        [("System Architecture & Design", 17, True, WHITE, "l")]))
+    # Subtitle
+    s.append(text_box(emu(0.5), emu(1.05), emu(12.5), emu(0.3),
+        [("Three-tier architecture:  Client Layer  ->  API Gateway  ->  Data + External Services",
+          10, False, DARK_GRAY, "l")]))
+    # === TIER 1: CLIENT LAYER ===
+    t1_y = emu(1.4)
+    s.append(shape_text(emu(0.4), t1_y, emu(12.5), emu(1.0), WHITE,
+        [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.4), t1_y, emu(12.5), emu(0.06), BLUE_BR))
+    s.append(text_box(emu(0.6), t1_y + emu(0.08), emu(7), emu(0.3),
+        [("[ TIER 1 ]  CLIENT LAYER  -  React 19", 10, True, BLUE_BR, "l")]))
+    clients = [
+        (BLUE_BR, "CUSTOMER APP", "Book  -  Track  -  Chat  -  Rate"),
+        (ORANGE, "ADMIN PANEL", "Dispatch  -  Crisis  -  Analytics"),
+        (GREEN, "AGENT APP", "GPS  -  Photo Proof  -  Chat"),
+    ]
+    for i, (col, name, desc) in enumerate(clients):
+        cx = emu(0.6) + i * emu(4.15)
+        s.append(shape_text(cx, t1_y + emu(0.4), emu(3.95), emu(0.4), col,
+            [(name, 11, True, WHITE, "ctr")], prst="roundRect", radius=6000, shadow=True))
+        s.append(text_box(cx, t1_y + emu(0.8), emu(3.95), emu(0.18),
+            [(desc, 8, False, DARK_GRAY, "ctr")]))
+    # Arrow connectors down
+    s.append(text_box(emu(2.5), t1_y + emu(1.05), emu(2), emu(0.2),
+        [("HTTP REST", 8, True, GRAY, "ctr")]))
+    s.append(line(emu(3.5), t1_y + emu(1.0), emu(3.5), t1_y + emu(1.25), GRAY, width=15000))
+    s.append(text_box(emu(8.5), t1_y + emu(1.05), emu(2), emu(0.2),
+        [("WebSocket (Socket.IO)", 8, True, GRAY, "ctr")]))
+    s.append(line(emu(9.5), t1_y + emu(1.0), emu(9.5), t1_y + emu(1.25), GRAY, width=15000))
+    # === TIER 2: API GATEWAY ===
+    t2_y = emu(2.65)
+    s.append(shape_text(emu(0.4), t2_y, emu(12.5), emu(1.4), NAVY,
+        [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.4), t2_y, emu(12.5), emu(0.06), ORANGE))
+    s.append(text_box(emu(0.6), t2_y + emu(0.08), emu(8), emu(0.3),
+        [("[ TIER 2 ]  API GATEWAY  -  Node.js + Express + Socket.IO", 10, True, AMBER, "l")]))
+    # Module pills
+    modules = [
+        ("Auth", BLUE_BR), ("Orders", ORANGE), ("Dispatch", PURPLE),
+        ("Crisis", RED), ("Chat", TEAL), ("Inventory", GREEN),
+        ("Delivery", AMBER), ("Notify", "EA580C"), ("Support", "8B5CF6"),
+    ]
+    pill_w = emu(1.3)
+    pill_y = t2_y + emu(0.4)
+    for i, (m, col) in enumerate(modules):
+        px = emu(0.6) + i * (pill_w + emu(0.06))
+        s.append(shape_text(px, pill_y, pill_w, emu(0.32), col,
+            [(m, 9, True, WHITE, "ctr")], prst="roundRect", radius=20000, shadow=False))
+    # Middleware bar
+    s.append(text_box(emu(0.6), t2_y + emu(0.82), emu(4), emu(0.22),
+        [("MIDDLEWARE CHAIN:", 8, True, AMBER, "l")]))
+    s.append(rect(emu(0.6), t2_y + emu(1.05), emu(12.1), emu(0.27), NAVY_DEEP, radius=4000))
+    s.append(text_box(emu(0.7), t2_y + emu(1.08), emu(12), emu(0.22),
+        [("Helmet  |  CORS  |  Rate Limiter (100/15min)  |  JWT Auth (15m+7d)  |  RBAC  |  Mongo Sanitize  |  XSS Clean  |  HPP",
+          8, False, GRAY, "l")]))
+    # Arrows down to tier 3
+    s.append(line(emu(3.0), t2_y + emu(1.4), emu(3.0), t2_y + emu(1.6), GRAY, width=15000))
+    s.append(line(emu(6.7), t2_y + emu(1.4), emu(6.7), t2_y + emu(1.6), GRAY, width=15000))
+    s.append(line(emu(10.0), t2_y + emu(1.4), emu(10.0), t2_y + emu(1.6), GRAY, width=15000))
+    # === TIER 3: DATA & EXTERNAL ===
+    t3_y = emu(4.3)
+    s.append(shape_text(emu(0.4), t3_y, emu(12.5), emu(1.0), WHITE,
+        [], prst="roundRect", radius=8000, shadow=True))
+    s.append(rect(emu(0.4), t3_y, emu(12.5), emu(0.06), GREEN))
+    s.append(text_box(emu(0.6), t3_y + emu(0.08), emu(8), emu(0.3),
+        [("[ TIER 3 ]  DATA & EXTERNAL SERVICES", 10, True, GREEN, "l")]))
+    data_cards = [
+        (GREEN, "MongoDB", "Primary DB - Users, Orders, Inventory, Chat, Routes"),
+        (RED, "Redis", "Cache, GPS Location, Sessions, Rate Limits, OTP"),
+        (PURPLE, "External APIs", "Ola Maps, Razorpay, AWS S3, Gmail SMTP, Fast2SMS"),
+    ]
+    for i, (col, name, desc) in enumerate(data_cards):
+        cx = emu(0.6) + i * emu(4.15)
+        s.append(shape_text(cx, t3_y + emu(0.4), emu(3.95), emu(0.35), col,
+            [(name, 11, True, WHITE, "ctr")], prst="roundRect", radius=6000, shadow=True))
+        s.append(text_box(cx, t3_y + emu(0.78), emu(3.95), emu(0.2),
+            [(desc, 8, False, DARK_GRAY, "ctr")]))
+    # === BOTTOM ROW: 3 panels ===
+    bot_y = emu(5.5)
+    panel_w = emu(4.05)
+    # Panel 1: Performance Metrics
+    s.append(shape_text(emu(0.4), bot_y, panel_w, emu(1.7), NAVY_DEEP,
+        [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(0.4), bot_y, panel_w, emu(0.06), AMBER))
+    s.append(text_box(emu(0.55), bot_y + emu(0.1), emu(4), emu(0.3),
+        [("[*]  PERFORMANCE METRICS", 11, True, AMBER, "l")]))
+    perf_metrics = [
+        ("Auto-Dispatch (9 ord)", "55-90 ms"),
+        ("Redis ops / sec", "6,289 reads"),
+        ("API (cached)", "< 5 ms"),
+        ("GPS broadcast", "every 5 s"),
+        ("Concurrent sockets", "1000+"),
+    ]
+    for i, (label, value) in enumerate(perf_metrics):
+        py = bot_y + emu(0.45) + i * emu(0.24)
+        s.append(text_box(emu(0.55), py, emu(2.4), emu(0.22),
+            [(label, 8, False, GRAY, "l")]))
+        s.append(text_box(emu(2.95), py, emu(1.4), emu(0.22),
+            [(value, 8, True, AMBER, "l")]))
+    # Panel 2: Key Algorithms
+    s.append(shape_text(emu(4.65), bot_y, panel_w, emu(1.7), NAVY,
+        [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(4.65), bot_y, panel_w, emu(0.06), ORANGE))
+    s.append(text_box(emu(4.8), bot_y + emu(0.1), emu(4), emu(0.3),
+        [("[*]  CORE ALGORITHMS", 11, True, ORANGE, "l")]))
+    algos = [
+        ("K-Means++", "Order clustering by GPS"),
+        ("Greedy Nearest", "Agent <-> cluster pairing"),
+        ("Priority-Weighted", "Route sequencing"),
+        ("Heuristic P-Score", "Crisis-mode allocation"),
+        ("Max-Heap Ranking", "Descending P order"),
+    ]
+    for i, (name, desc) in enumerate(algos):
+        py = bot_y + emu(0.45) + i * emu(0.24)
+        s.append(text_box(emu(4.8), py, emu(1.6), emu(0.22),
+            [(name, 8, True, ORANGE, "l")]))
+        s.append(text_box(emu(6.4), py, emu(2.2), emu(0.22),
+            [(desc, 8, False, "C8D2E0", "l")]))
+    # Panel 3: Order Lifecycle State Machine
+    s.append(shape_text(emu(8.9), bot_y, emu(4.0), emu(1.7), NAVY_MID,
+        [], prst="roundRect", radius=6000, shadow=True))
+    s.append(rect(emu(8.9), bot_y, emu(4.0), emu(0.06), GREEN))
+    s.append(text_box(emu(9.05), bot_y + emu(0.1), emu(4), emu(0.3),
+        [("[*]  ORDER LIFECYCLE", 11, True, GREEN, "l")]))
+    states = [("CREATED", BLUE_BR), ("ASSIGNED", ORANGE), ("OUT FOR DELIVERY", PURPLE), ("DELIVERED", GREEN)]
+    for i, (st, col) in enumerate(states):
+        sy = bot_y + emu(0.45) + i * emu(0.3)
+        s.append(circle(emu(9.1), sy, emu(0.22), col))
+        s.append(text_box(emu(9.1), sy + emu(0.03), emu(0.22), emu(0.22),
+            [(str(i+1), 9, True, WHITE, "ctr")]))
+        s.append(text_box(emu(9.45), sy + emu(0.03), emu(2.5), emu(0.22),
+            [(st, 9, True, WHITE, "l")]))
+        if i < len(states) - 1:
+            s.append(line(emu(9.21), sy + emu(0.22), emu(9.21), sy + emu(0.3), col, width=15000))
+    s.append(text_box(emu(9.05), bot_y + emu(1.5), emu(3.8), emu(0.18),
+        [("OTP + Photo proof verification at delivery", 7, True, AMBER, "l")]))
+    # Footer caption
+    s.append(text_box(emu(0.4), emu(7.25), emu(11), emu(0.2),
+        [("Production-grade backend  -  Docker + K8s ready  -  REST + WebSocket  -  Multi-database (MongoDB + Redis)",
+          8, True, GRAY, "l")]))
+    s.append(text_box(emu(12.6), emu(7.25), emu(0.5), emu(0.2),
+        [("12", 12, True, GRAY, "r")]))
+    return ''.join(s)
+
+
 def main():
     slides = [slide1(), slide2(), slide3(), slide4(), slide_crisis(),
-              slide5(), slide6(), slide7(), slide8(), slide9()]
+              slide5(), slide6(), slide7(), slide8(), slide9(),
+              slide_zonal_crisis(), slide_architecture()]
     n = len(slides)
     out = "/projects/sandbox/cyldist-lpg-platform/CylDist_Platform_Presentation.pptx"
-    transitions = ["fade", "push", "fade", "wipe", "zoom", "fade", "push", "fade", "wipe", "fade"]
+    transitions = ["fade", "push", "fade", "wipe", "zoom", "fade", "push", "fade", "wipe", "fade", "zoom", "split"]
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr('[Content_Types].xml', content_types_xml(n))
         z.writestr('_rels/.rels', root_rels())

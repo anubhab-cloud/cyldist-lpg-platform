@@ -916,43 +916,71 @@ def slide6(pdf):
         "Interactive API testing UI",
         "Production-grade deployment",
     ]
-    card_w, card_h = 145, 175
+    card_w, card_h = 145, 145
     gap = 10
     start_x = 40
     for i, ((title1, title2, color), desc) in enumerate(zip(features, feature_descs)):
         col = i % 5
         row = i // 5
         x = start_x + col * (card_w + gap)
-        y = 120 + row * (card_h + 20)
+        y = 115 + row * (card_h + 18)
         # Main card
         pdf.rect(x, y, card_w, card_h, WHITE, radius=10)
         # Top color block
-        pdf.rect(x, y, card_w, 70, color, radius=10)
-        pdf.rect(x, y + 35, card_w, 35, color)
+        pdf.rect(x, y, card_w, 65, color, radius=10)
+        pdf.rect(x, y + 32, card_w, 33, color)
         # Big number badge
-        pdf.circle(x + 25, y + 30, 16, WHITE)
-        pdf.text_center(x + 25, y + 36, str(i + 1).zfill(2), size=12, color=color, font='bold')
+        pdf.circle(x + 25, y + 28, 14, WHITE)
+        pdf.text_center(x + 25, y + 33, str(i + 1).zfill(2), size=11, color=color, font='bold')
         # Two-line title
-        pdf.text(x + 50, y + 30, title1, size=12, color=WHITE, font='bold')
-        pdf.text(x + 50, y + 47, title2, size=12, color=WHITE, font='bold')
+        pdf.text(x + 48, y + 28, title1, size=11, color=WHITE, font='bold')
+        pdf.text(x + 48, y + 44, title2, size=11, color=WHITE, font='bold')
         # Description below
-        pdf.text(x + 12, y + 95, desc[:25], size=9, color=DARK_GRAY)
-        if len(desc) > 25:
-            # wrap
-            words = desc.split()
-            lines, cur = [], ""
-            for w in words:
-                if len(cur + " " + w) > 22:
-                    lines.append(cur.strip())
-                    cur = w
-                else:
-                    cur += " " + w
-            if cur:
+        words = desc.split()
+        lines, cur = [], ""
+        for w in words:
+            if len(cur + " " + w) > 22:
                 lines.append(cur.strip())
-            for j, ln in enumerate(lines[:3]):
-                pdf.text(x + 12, y + 95 + j * 14, ln, size=9, color=DARK_GRAY)
+                cur = w
+            else:
+                cur += " " + w
+        if cur:
+            lines.append(cur.strip())
+        for j, ln in enumerate(lines[:3]):
+            pdf.text(x + 12, y + 85 + j * 14, ln, size=9, color=DARK_GRAY)
         # Bottom accent
         pdf.rect(x, y + card_h - 4, card_w, 4, color, radius=0)
+    # === 11TH FEATURE: DELIVERY MANAGEMENT (wide premium banner) ===
+    y_dm = 425
+    pdf.rect(40, y_dm, 770, 110, NAVY, radius=10)
+    pdf.rect(40, y_dm, 770, 5, ORANGE)
+    # Number badge
+    pdf.circle(70, y_dm + 32, 17, ORANGE)
+    pdf.text_center(70, y_dm + 38, "11", size=14, color=WHITE, font='bold')
+    # Title
+    pdf.text(100, y_dm + 30, "DELIVERY MANAGEMENT", size=15, color=AMBER, font='bold')
+    # Tagline
+    pdf.text(100, y_dm + 50, "End-to-end delivery lifecycle: assignment, tracking, verification & proof of delivery", size=9, color=(0.78, 0.82, 0.88))
+    # Mini description
+    pdf.text(100, y_dm + 68, "Real-time GPS via Socket.IO  |  /delivery/:orderId/route API  |  OTP verify @ delivery", size=8, color=GRAY)
+    # 5 sub-feature pill badges
+    sub_features = [
+        ("Agent Assign", BLUE_BR),
+        ("Live GPS", GREEN),
+        ("OTP Verify", AMBER),
+        ("Photo Proof", PURPLE),
+        ("Route + ETA", TEAL),
+    ]
+    badge_w = 88
+    badge_start = 460
+    badge_gap = 5
+    for i, (txt, col_b) in enumerate(sub_features):
+        bx = badge_start + i * (badge_w + badge_gap)
+        pdf.rect(bx, y_dm + 32, badge_w, 22, col_b, radius=11)
+        pdf.text_center(bx + badge_w/2, y_dm + 46, txt, size=8, color=WHITE, font='bold')
+    # Bottom mini-stats row
+    pdf.text(460, y_dm + 75, "5-second GPS interval  |  Socket.IO rooms per order  |  Order timeline tracking", size=8, color=GRAY)
+    pdf.text(460, y_dm + 90, "Delivery API endpoints + admin/agent routing dashboard", size=8, color=GRAY)
     # Slide number
     pdf.text(PW - 40, 575, "07", size=14, color=GRAY, font='bold')
 
@@ -1211,6 +1239,222 @@ def slide9(pdf):
 
 
 # ============================================================
+# SLIDE 11 (NEW): Zonal Crisis Prioritization & Heuristic Allocation Engine
+# Deep-dive reference slide (placed at end as final slide)
+# ============================================================
+def slide_zonal_crisis(pdf):
+    pdf.page()
+    pdf.rect(0, 0, PW, PH, OFF_WHITE)
+    # Header
+    pdf.rect(0, 0, PW, 75, NAVY)
+    pdf.rect(0, 75, PW, 3, ORANGE)
+    pdf.text(35, 45, "11", size=36, color=ORANGE, font='bold')
+    pdf.text(100, 30, "DEEP DIVE  |  HEURISTIC ALLOCATION REFERENCE", size=9, color=AMBER, font='bold')
+    pdf.text(100, 60, "Zonal Crisis Prioritization & Heuristic Allocation Engine", size=16, color=WHITE, font='bold')
+    # Objective subtitle
+    pdf.text(35, 95, "Objective: Allocate LPG fairly during severe shortages by replacing FCFS with a priority-based heuristic system",
+             size=9, color=DARK_GRAY)
+    # === SECTION 1: Crisis Mode Activation (top-left) ===
+    sec1_y = 110
+    pdf.rect(35, sec1_y, 395, 125, WHITE, radius=6)
+    pdf.rect(35, sec1_y, 395, 5, RED)
+    pdf.text(50, sec1_y + 22, "[1]  CRISIS MODE ACTIVATION", size=11, color=RED, font='bold')
+    bullets1 = [
+        "FCFS allocation is suspended during shortages",
+        "Incoming orders enter a Zonal Holding Pool",
+        "Orders periodically ranked by Priority Score (P)",
+        "Allocation runs in batches via Max-Heap engine",
+    ]
+    for i, b in enumerate(bullets1):
+        pdf.circle(58, sec1_y + 45 + i * 18, 3, RED)
+        pdf.text(70, sec1_y + 48 + i * 18, b, size=9, color=DARK_GRAY)
+    # === SECTION 2: Allocation Workflow (top-right) ===
+    pdf.rect(440, sec1_y, 365, 125, NAVY, radius=6)
+    pdf.rect(440, sec1_y, 365, 5, AMBER)
+    pdf.text(455, sec1_y + 22, "[2]  ALLOCATION WORKFLOW", size=11, color=AMBER, font='bold')
+    flow_steps = [("Order", BLUE_BR), ("Score Calc", ORANGE), ("Max-Heap", PURPLE), ("Allocate", GREEN)]
+    flow_w = 75
+    flow_x0 = 455
+    for i, (txt, col) in enumerate(flow_steps):
+        sx = flow_x0 + i * (flow_w + 8)
+        pdf.rect(sx, sec1_y + 40, flow_w, 30, col, radius=4)
+        pdf.text_center(sx + flow_w/2, sec1_y + 58, txt, size=9, color=WHITE, font='bold')
+        if i < len(flow_steps) - 1:
+            pdf.text(sx + flow_w + 1, sec1_y + 58, ">", size=14, color=AMBER, font='bold')
+    pdf.text(455, sec1_y + 90, "Highest Priority Score served first  -  Max-Heap descending", size=8, color=(0.78, 0.82, 0.88))
+    pdf.text(455, sec1_y + 105, "Periodic batch allocation cycles ensure fairness across the zone", size=8, color=GRAY)
+    # === SECTION 3: Priority Score Formula (full-width banner) ===
+    f_y = 245
+    pdf.rect(35, f_y, 770, 80, NAVY_DEEP, radius=8)
+    pdf.rect(35, f_y, 6, 80, ORANGE)
+    pdf.text(50, f_y + 18, "[3]  PRIORITY SCORE FORMULA", size=10, color=AMBER, font='bold')
+    pdf.text(50, f_y + 47, "P  =  (1.5 x S_sector)  +  (1.0 x S_urgency)  -  (1.0 x S_hoarding)",
+             size=18, color=WHITE, font='bold')
+    pdf.text(50, f_y + 67, "S_sector: Hospital 100 / Domestic 50 / Hostel 30 / Commercial 10  |  S_urgency: (DaysSinceRefill / AvgCycle) x 100, max 200  |  S_hoarding: -200 if refill <21d (Hospital exempt)",
+             size=7, color=GRAY)
+    # === SECTION 4: Sector Policies (3 cards) ===
+    sp_y = 335
+    sp_w = 250
+    sectors = [
+        (RED, "HOSPITAL & EMERGENCY", "Highest Priority",
+            ["Dedicated emergency reserve", "No cooldown restrictions", "Exempt from hoarding shield"]),
+        (BLUE_BR, "DOMESTIC HOUSEHOLD", "30-day Cooldown",
+            ["Hard reject within 30 days", "Anti-hoarding lock active", "Standard priority weight"]),
+        (ORANGE, "COMMERCIAL / HOTELS", "7-day + 70% Cap",
+            ["7-day booking cooldown", "70% quantity reduction cap", "Lowest priority weight"]),
+    ]
+    for i, (col, name, sub, bullets) in enumerate(sectors):
+        sx = 35 + i * (sp_w + 10)
+        pdf.rect(sx, sp_y, sp_w, 110, col, radius=6)
+        pdf.text(sx + 12, sp_y + 18, "[4]  " + name, size=10, color=WHITE, font='bold')
+        pdf.text(sx + 12, sp_y + 38, sub, size=11, color=WHITE, font='bold')
+        pdf.rect(sx + 12, sp_y + 45, 30, 2, AMBER)
+        for j, b in enumerate(bullets):
+            pdf.text(sx + 14, sp_y + 65 + j * 14, "-  " + b, size=9, color=WHITE)
+    # === SECTION 5: Key Benefits (bottom strip) ===
+    kb_y = 460
+    pdf.rect(35, kb_y, 770, 75, NAVY, radius=6)
+    pdf.rect(35, kb_y, 770, 4, GREEN)
+    pdf.text(50, kb_y + 20, "[5]  KEY BENEFITS", size=10, color=GREEN, font='bold')
+    benefits = ["Prevents hoarding", "Fair distribution", "Emergency-first", "Necessity-based", "Better utilization"]
+    for i, b in enumerate(benefits):
+        bx = 50 + i * 150
+        pdf.circle(bx + 8, kb_y + 45, 6, GREEN)
+        pdf.text_center(bx + 8, kb_y + 49, "v", size=9, color=WHITE, font='bold')
+        pdf.text(bx + 22, kb_y + 49, b, size=9, color=WHITE, font='bold')
+    pdf.text(50, kb_y + 65, "Outcome: Data-driven heuristic ensuring equitable & efficient LPG distribution during emergencies",
+             size=8, color=AMBER, font='bold')
+    pdf.text(PW - 30, 575, "11", size=12, color=GRAY, font='bold')
+
+
+# ============================================================
+# SLIDE 12 (NEW): System Architecture & Design (3-tier)
+# ============================================================
+def slide_architecture(pdf):
+    pdf.page()
+    pdf.rect(0, 0, PW, PH, OFF_WHITE)
+    # Header
+    pdf.rect(0, 0, PW, 75, NAVY)
+    pdf.rect(0, 75, PW, 3, ORANGE)
+    pdf.text(35, 45, "12", size=36, color=ORANGE, font='bold')
+    pdf.text(100, 30, "DEEP DIVE  |  PLATFORM ARCHITECTURE", size=9, color=AMBER, font='bold')
+    pdf.text(100, 60, "System Architecture & Design", size=16, color=WHITE, font='bold')
+    # Subtitle
+    pdf.text(35, 95, "Three-tier architecture:  Client Layer  ->  API Gateway  ->  Data + External Services",
+             size=9, color=DARK_GRAY)
+    # === TIER 1: CLIENT LAYER ===
+    t1_y = 110
+    pdf.rect(35, t1_y, 770, 65, WHITE, radius=8)
+    pdf.rect(35, t1_y, 770, 4, BLUE_BR)
+    pdf.text(48, t1_y + 18, "[ TIER 1 ]  CLIENT LAYER  -  React 19", size=9, color=BLUE_BR, font='bold')
+    clients = [
+        (BLUE_BR, "CUSTOMER APP", "Book - Track - Chat - Rate"),
+        (ORANGE, "ADMIN PANEL", "Dispatch - Crisis - Analytics"),
+        (GREEN, "AGENT APP", "GPS - Photo Proof - Chat"),
+    ]
+    cli_w = 250
+    for i, (col, name, desc) in enumerate(clients):
+        cx = 45 + i * (cli_w + 5)
+        pdf.rect(cx, t1_y + 28, cli_w, 22, col, radius=4)
+        pdf.text_center(cx + cli_w/2, t1_y + 42, name, size=10, color=WHITE, font='bold')
+        pdf.text_center(cx + cli_w/2, t1_y + 60, desc, size=8, color=DARK_GRAY)
+    # Arrow connectors
+    pdf.text_center(220, t1_y + 80, "HTTP REST", size=8, color=GRAY, font='bold')
+    pdf.line(220, t1_y + 75, 220, t1_y + 88, GRAY, width=1)
+    pdf.text_center(580, t1_y + 80, "WebSocket (Socket.IO)", size=8, color=GRAY, font='bold')
+    pdf.line(580, t1_y + 75, 580, t1_y + 88, GRAY, width=1)
+    # === TIER 2: API GATEWAY ===
+    t2_y = 200
+    pdf.rect(35, t2_y, 770, 95, NAVY, radius=8)
+    pdf.rect(35, t2_y, 770, 4, ORANGE)
+    pdf.text(48, t2_y + 18, "[ TIER 2 ]  API GATEWAY  -  Node.js + Express + Socket.IO", size=9, color=AMBER, font='bold')
+    # Module pills
+    modules = [
+        ("Auth", BLUE_BR), ("Orders", ORANGE), ("Dispatch", PURPLE),
+        ("Crisis", RED), ("Chat", TEAL), ("Inventory", GREEN),
+        ("Delivery", AMBER), ("Notify", (0.91, 0.34, 0.04)), ("Support", PURPLE),
+    ]
+    pill_w = 80
+    for i, (m, col) in enumerate(modules):
+        px = 45 + i * (pill_w + 4)
+        pdf.rect(px, t2_y + 30, pill_w, 18, col, radius=9)
+        pdf.text_center(px + pill_w/2, t2_y + 41, m, size=8, color=WHITE, font='bold')
+    # Middleware
+    pdf.text(45, t2_y + 60, "MIDDLEWARE CHAIN:", size=8, color=AMBER, font='bold')
+    pdf.rect(45, t2_y + 65, 750, 20, NAVY_DEEP, radius=3)
+    pdf.text(55, t2_y + 78, "Helmet | CORS | Rate Limiter (100/15min) | JWT Auth (15m+7d) | RBAC | Mongo Sanitize | XSS Clean | HPP",
+             size=8, color=GRAY)
+    # Down arrows
+    for arrow_x in [180, 420, 660]:
+        pdf.line(arrow_x, t2_y + 95, arrow_x, t2_y + 108, GRAY, width=1)
+    # === TIER 3: DATA & EXTERNAL ===
+    t3_y = 310
+    pdf.rect(35, t3_y, 770, 65, WHITE, radius=8)
+    pdf.rect(35, t3_y, 770, 4, GREEN)
+    pdf.text(48, t3_y + 18, "[ TIER 3 ]  DATA & EXTERNAL SERVICES", size=9, color=GREEN, font='bold')
+    data_cards = [
+        (GREEN, "MongoDB", "Primary DB - Users, Orders, Inventory"),
+        (RED, "Redis", "Cache, GPS, Sessions, OTP, Rate Limits"),
+        (PURPLE, "External APIs", "Ola Maps, Razorpay, AWS S3, SMTP, SMS"),
+    ]
+    for i, (col, name, desc) in enumerate(data_cards):
+        cx = 45 + i * (cli_w + 5)
+        pdf.rect(cx, t3_y + 28, cli_w, 20, col, radius=4)
+        pdf.text_center(cx + cli_w/2, t3_y + 41, name, size=10, color=WHITE, font='bold')
+        pdf.text_center(cx + cli_w/2, t3_y + 60, desc, size=7, color=DARK_GRAY)
+    # === BOTTOM ROW: 3 panels ===
+    bot_y = 390
+    panel_w = 250
+    # Panel 1: Performance
+    pdf.rect(35, bot_y, panel_w, 145, NAVY_DEEP, radius=6)
+    pdf.rect(35, bot_y, panel_w, 4, AMBER)
+    pdf.text(48, bot_y + 18, "[*]  PERFORMANCE METRICS", size=10, color=AMBER, font='bold')
+    perf_metrics = [
+        ("Auto-Dispatch (9 ord)", "55-90 ms"),
+        ("Redis ops / sec", "6,289 reads"),
+        ("API (cached)", "< 5 ms"),
+        ("GPS broadcast", "every 5 s"),
+        ("Concurrent sockets", "1000+"),
+    ]
+    for i, (label, value) in enumerate(perf_metrics):
+        py = bot_y + 38 + i * 20
+        pdf.text(48, py, label, size=8, color=GRAY)
+        pdf.text(170, py, value, size=8, color=AMBER, font='bold')
+    # Panel 2: Algorithms
+    pdf.rect(290, bot_y, panel_w, 145, NAVY, radius=6)
+    pdf.rect(290, bot_y, panel_w, 4, ORANGE)
+    pdf.text(303, bot_y + 18, "[*]  CORE ALGORITHMS", size=10, color=ORANGE, font='bold')
+    algos = [
+        ("K-Means++", "Order GPS clustering"),
+        ("Greedy Nearest", "Agent-cluster pairing"),
+        ("Priority-Weighted", "Route sequencing"),
+        ("Heuristic P-Score", "Crisis allocation"),
+        ("Max-Heap Ranking", "Descending P order"),
+    ]
+    for i, (name, desc) in enumerate(algos):
+        py = bot_y + 38 + i * 20
+        pdf.text(303, py, name, size=8, color=ORANGE, font='bold')
+        pdf.text(395, py, desc, size=8, color=(0.78, 0.82, 0.88))
+    # Panel 3: Order Lifecycle
+    pdf.rect(545, bot_y, 260, 145, NAVY_MID, radius=6)
+    pdf.rect(545, bot_y, 260, 4, GREEN)
+    pdf.text(558, bot_y + 18, "[*]  ORDER LIFECYCLE", size=10, color=GREEN, font='bold')
+    states = [("CREATED", BLUE_BR), ("ASSIGNED", ORANGE), ("OUT FOR DELIVERY", PURPLE), ("DELIVERED", GREEN)]
+    for i, (st, col) in enumerate(states):
+        py = bot_y + 38 + i * 22
+        pdf.circle(568, py + 3, 8, col)
+        pdf.text_center(568, py + 6, str(i+1), size=9, color=WHITE, font='bold')
+        pdf.text(585, py + 6, st, size=9, color=WHITE, font='bold')
+        if i < len(states) - 1:
+            pdf.line(568, py + 11, 568, py + 18, col, width=1.5)
+    pdf.text(558, bot_y + 135, "OTP + Photo proof verification at delivery", size=7, color=AMBER, font='bold')
+    # Footer caption
+    pdf.text(35, 558, "Production-grade backend  -  Docker + K8s ready  -  REST + WebSocket  -  Multi-database (MongoDB + Redis)",
+             size=8, color=GRAY, font='bold')
+    pdf.text(PW - 30, 575, "12", size=12, color=GRAY, font='bold')
+
+
+# ============================================================
 # Main
 # ============================================================
 def main():
@@ -1225,6 +1469,8 @@ def main():
     slide7(pdf)
     slide8(pdf)
     slide9(pdf)
+    slide_zonal_crisis(pdf)
+    slide_architecture(pdf)
     out = "/projects/sandbox/cyldist-lpg-platform/CylDist_Platform_Presentation.pdf"
     pdf.save(out)
 
