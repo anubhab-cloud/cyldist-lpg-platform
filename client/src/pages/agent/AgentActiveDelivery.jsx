@@ -1,53 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { ordersAPI, chatAPI } from '../../api';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { StatusBadge, PageLoader, Modal } from '../../components';
+import { StatusBadge, PageLoader, Modal, OlaDeliveryMap } from '../../components';
 import { Topbar } from '../../components/Sidebar';
 import ProofOfDeliveryModal from '../../components/agent/ProofOfDeliveryModal';
-
-// Fix default Leaflet icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-const agentIcon = new L.DivIcon({
-  className: '',
-  html: `<div style="
-    width:36px;height:36px;border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    border:3px solid #fff;box-shadow:0 0 0 3px rgba(99,102,241,0.45),0 4px 14px rgba(0,0,0,0.5);
-    display:flex;align-items:center;justify-content:center;
-    font-size:1rem;
-  ">🚴</div>`,
-  iconSize: [36, 36], iconAnchor: [18, 18],
-});
-
-const destIcon = new L.DivIcon({
-  className: '',
-  html: `<div style="
-    width:36px;height:36px;border-radius:50%;
-    background:linear-gradient(135deg,#ef4444,#dc2626);
-    border:3px solid #fff;box-shadow:0 0 0 3px rgba(239,68,68,0.4),0 4px 14px rgba(0,0,0,0.5);
-    display:flex;align-items:center;justify-content:center;
-    font-size:1rem;
-  ">📍</div>`,
-  iconSize: [36, 36], iconAnchor: [18, 36],
-});
-
-function MapFlyTo({ center }) {
-  const map = useMap();
-  useEffect(() => { if (center) map.flyTo(center, map.getZoom(), { animate: true, duration: 1 }); }, [center, map]);
-  return null;
-}
 
 // ── Priority helpers ──
 const PRIORITY_CONFIG = {
@@ -153,6 +112,11 @@ export default function AgentActiveDelivery() {
   // Delivery notes
   const [notes, setNotes] = useState('');
 
+  // Delivery proof photo
+  const [proofFile, setProofFile] = useState(null);
+  const [proofPreview, setProofPreview] = useState(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+
   // Partial delivery
   const [partialMode, setPartialMode] = useState(false);
   const [partialQty, setPartialQty]   = useState(1);
@@ -186,7 +150,11 @@ export default function AgentActiveDelivery() {
         const o = orderRes.data.data;
         setOrder(o);
         setPartialQty(o.cylinderCount || 1);
-        geocodeAddress(o.deliveryAddress);
+        if (o.deliveryAddress?.location?.lat && o.deliveryAddress?.location?.lng) {
+          setDestPos([o.deliveryAddress.location.lat, o.deliveryAddress.location.lng]);
+        } else {
+          geocodeAddress(o.deliveryAddress);
+        }
         const qOrders = (queueRes.data.data || []).filter(q => q.orderId !== orderId);
         setQueue(qOrders.slice(0, 3));
       })
@@ -219,30 +187,83 @@ export default function AgentActiveDelivery() {
 
   // ── GPS Tracking ──
   const startTracking = () => {
-    if (!navigator.geolocation || !socket) {
-      toast('GPS unavailable', 'Cannot access location', 'error'); return;
-    }
+    if (!socket) return;
+    
     setTracking(true);
-    watchRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        setAgentPos(coords);
-        socket.emit('agent:location_update', { orderId, lat: coords[0], lng: coords[1] });
-      },
-      (err) => { console.error('GPS error', err); setTracking(false); },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-    );
-    // Get initial position immediately
+
+    const startSimulationMode = (reason) => {
+      console.warn(`Browser GPS blocked/failed (${reason}). Falling back to E2E Mock Route Simulator.`);
+      toast('🛰️ Simulator Active', 'Browser Geolocation blocked — Running E2E Mock Route Simulator', 'info');
+      
+      const targetLat = destPos ? destPos[0] : 12.9716;
+      const targetLng = destPos ? destPos[1] : 77.5946;
+      
+      let step = 0;
+      const totalSteps = 15;
+      const startLat = targetLat - 0.008;
+      const startLng = targetLng - 0.012;
+      
+      setAgentPos([startLat, startLng]);
+      socket.emit('agent:location_update', { orderId, lat: startLat, lng: startLng });
+      
+      watchRef.current = setInterval(() => {
+        step++;
+        if (step > totalSteps) {
+          clearInterval(watchRef.current);
+          watchRef.current = null;
+          setTracking(false);
+          socket.emit('agent:reached_location', { orderId });
+          setLocalReached(true);
+          toast('📍 Arrived!', 'Simulator reached customer destination!', 'success');
+          return;
+        }
+        
+        const ratio = step / totalSteps;
+        const currentLat = startLat + (targetLat - startLat) * ratio;
+        const currentLng = startLng + (targetLng - startLng) * ratio;
+        
+        setAgentPos([currentLat, currentLng]);
+        socket.emit('agent:location_update', { orderId, lat: currentLat, lng: currentLng });
+      }, 4000);
+    };
+
+    if (!navigator.geolocation) {
+      startSimulationMode('unsupported');
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => setAgentPos([pos.coords.latitude, pos.coords.longitude]),
-      () => {}
+      (pos) => {
+        const initialCoords = [pos.coords.latitude, pos.coords.longitude];
+        setAgentPos(initialCoords);
+        socket.emit('agent:location_update', { orderId, lat: initialCoords[0], lng: initialCoords[1] });
+
+        watchRef.current = navigator.geolocation.watchPosition(
+          (watchPos) => {
+            const coords = [watchPos.coords.latitude, watchPos.coords.longitude];
+            setAgentPos(coords);
+            socket.emit('agent:location_update', { orderId, lat: coords[0], lng: coords[1] });
+          },
+          (err) => {
+            console.error('GPS tracking error:', err);
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        );
+        toast('GPS tracking started', 'Location sharing is active', 'info');
+      },
+      (err) => {
+        startSimulationMode(err.message || 'permission_denied');
+      },
+      { timeout: 2500 }
     );
-    toast('GPS tracking started', 'Location sharing is active', 'info');
   };
 
   const stopTracking = () => {
     if (watchRef.current !== null) {
-      navigator.geolocation.clearWatch(watchRef.current);
+      clearInterval(watchRef.current);
+      if (navigator.geolocation && typeof watchRef.current === 'number') {
+        navigator.geolocation.clearWatch(watchRef.current);
+      }
       watchRef.current = null;
     }
     socket?.emit('agent:location_stop', { orderId });
@@ -298,6 +319,29 @@ export default function AgentActiveDelivery() {
     } catch (err) {
       toast('Error', err.response?.data?.message || 'Rejection failed', 'error');
     } finally { setRejecting(false); }
+  };
+
+  // ── Delivery proof photo ──
+  const handleProofSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
+  const uploadProof = async () => {
+    if (!proofFile) return;
+    setUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', proofFile);
+      await ordersAPI.uploadDeliveryProof(orderId, formData);
+      toast('📸 Proof uploaded', 'Delivery photo saved', 'success');
+    } catch (err) {
+      toast('Error', err.response?.data?.message || 'Failed to upload proof', 'error');
+    } finally {
+      setUploadingProof(false);
+    }
   };
 
   // ── Quick messages ──
@@ -381,36 +425,13 @@ export default function AgentActiveDelivery() {
         <div className="card stagger-1 animate-in" style={{ marginBottom: '1.25rem', padding: '1rem' }}>
           <div className="section-title">📍 Live Map & Route</div>
 
-          <div className="agent-map" style={{ marginBottom: '0.875rem' }}>
-            <MapContainer
+          <div className="agent-map" style={{ marginBottom: '0.875rem', height: 350 }}>
+            <OlaDeliveryMap
               center={mapCenter}
               zoom={destPos ? 14 : 5}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={true}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution=""
-                className="leaflet-tile"
-              />
-              {agentPos && (
-                <Marker position={agentPos} icon={agentIcon}>
-                  <Popup>📍 Your location</Popup>
-                </Marker>
-              )}
-              {destPos && (
-                <Marker position={destPos} icon={destIcon}>
-                  <Popup>🏠 {order.deliveryAddress?.line1}</Popup>
-                </Marker>
-              )}
-              {agentPos && destPos && (
-                <Polyline
-                  positions={[agentPos, destPos]}
-                  pathOptions={{ color: '#6366f1', weight: 3, dashArray: '8 6', opacity: 0.85 }}
-                />
-              )}
-              {agentPos && <MapFlyTo center={agentPos} />}
-            </MapContainer>
+              agentLocation={agentPos}
+              destLocation={destPos}
+            />
           </div>
 
           {/* ETA strip */}
@@ -587,6 +608,43 @@ export default function AgentActiveDelivery() {
             {/* Mark delivered */}
             {canDeliver && !showOtpInput && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Delivery Proof Photo */}
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                    📸 Delivery Proof Photo
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <label style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                      padding: '0.5rem 1rem', borderRadius: 8, cursor: 'pointer',
+                      background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)',
+                      fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary)',
+                    }}>
+                      📷 {proofFile ? 'Change Photo' : 'Take / Upload Photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleProofSelect}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {proofFile && !uploadingProof && (
+                      <button className="btn btn-primary btn-sm" onClick={uploadProof}>
+                        ⬆ Upload
+                      </button>
+                    )}
+                    {uploadingProof && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>⏳ Uploading...</span>}
+                  </div>
+                  {proofPreview && (
+                    <img
+                      src={proofPreview}
+                      alt="Delivery proof preview"
+                      style={{ marginTop: '0.75rem', width: 120, height: 120, objectFit: 'cover', borderRadius: 10, border: '2px solid var(--primary)' }}
+                    />
+                  )}
+                </div>
+
                 {/* Partial delivery toggle */}
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>

@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 export { default as InvoiceModal } from './InvoiceModal';
+export { default as OlaDeliveryMap } from './OlaDeliveryMap';
 
 export function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();

@@ -304,6 +304,22 @@ const orderSchema = new mongoose.Schema(
       type: String,
       select: false, // hidden by default unless specifically requested
     },
+    // Delivery proof photo uploaded by agent
+    deliveryProofImage: {
+      type: String,
+      default: null,
+    },
+    // Customer rating (1-5 stars)
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
+    ratingComment: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

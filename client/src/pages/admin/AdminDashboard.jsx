@@ -96,46 +96,49 @@ const fadeUp = {
 };
 
 export default function AdminDashboard() {
-  const [orders, setOrders] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      ordersAPI.list({ limit: 100 }),
-      usersAPI.list({ limit: 100 }),
-      inventoryAPI.list({ limit: 50 }),
-    ]).then(([o, u, w]) => {
-      setOrders(o.data.data || []);
-      setUsers(u.data.data || []);
-      setWarehouses(w.data.data || []);
+    ordersAPI.analytics().then(r => {
+      setAnalytics(r.data.data);
+    }).catch(() => {
+      // Fallback: fetch raw data if analytics endpoint fails
+      Promise.all([
+        ordersAPI.list({ limit: 100 }),
+        usersAPI.list({ limit: 100 }),
+        inventoryAPI.list({ limit: 50 }),
+      ]).then(([o, u, w]) => {
+        const orders = o.data.data || [];
+        const users = u.data.data || [];
+        const warehouses = w.data.data || [];
+        setAnalytics({
+          totalOrders: orders.length,
+          activeOrders: orders.filter(o => ['created','assigned','out_for_delivery'].includes(o.status)).length,
+          deliveredOrders: orders.filter(o => o.status === 'delivered').length,
+          cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
+          revenue: orders.filter(o => o.status === 'delivered').reduce((s, o) => s + (o.totalAmount || 0), 0),
+          avgDeliveryTimeMinutes: 0,
+          ordersByStatus: orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {}),
+          last7DaysTrend: [],
+          topAgents: [],
+          recentOrders: orders.slice(0, 10),
+        });
+      });
     }).finally(() => setLoading(false));
   }, []);
 
-  const stats = {
-    totalOrders: orders.length,
-    activeOrders: orders.filter(o => ['created','assigned','out_for_delivery'].includes(o.status)).length,
-    revenue: orders.filter(o => o.status === 'delivered').reduce((s, o) => s + (o.totalAmount || 0), 0),
-    customers: users.filter(u => u.role === 'customer').length,
-    agents: users.filter(u => u.role === 'agent').length,
-    onDuty: users.filter(u => u.role === 'agent' && u.isOnDuty).length,
-    totalStock: warehouses.reduce((s, w) => s + (w.availableCylinders || 0), 0),
-  };
+  if (loading || !analytics) return <SkeletonDashboard />;
 
-  const statusData = Object.entries(
-    orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {})
-  ).map(([name, value]) => ({ name, value }));
+  const stats = analytics;
+  const statusData = Object.entries(stats.ordersByStatus || {}).filter(([,v]) => v > 0).map(([name, value]) => ({ name, value }));
+  const trendData = (stats.last7DaysTrend || []).map(d => ({
+    day: new Date(d.date).toLocaleDateString('en', { weekday: 'short' }),
+    orders: d.orders,
+    revenue: d.revenue,
+  }));
 
-  const trendData = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() - (6 - i));
-    const dayOrders = orders.filter(o => new Date(o.createdAt).toDateString() === d.toDateString());
-    return { day: d.toLocaleDateString('en', { weekday: 'short' }), orders: dayOrders.length };
-  });
-
-  if (loading) return <SkeletonDashboard />;
-
-  const lowStockWarehouses = warehouses.filter(w => w.availableCylinders < w.lowStockThreshold);
+  const lowStockWarehouses = []; // We don't fetch warehouses in analytics; skip this for now
 
   return (
     <div>
@@ -172,13 +175,13 @@ export default function AdminDashboard() {
           <PremiumStatCard icon="📦" label="Total Orders"       value={stats.totalOrders}  color="var(--primary)" delay={0.05} />
           <PremiumStatCard icon="🚀" label="Active Deliveries"  value={stats.activeOrders} color="var(--accent)"  delay={0.10} />
           <PremiumStatCard icon="₹" label="Revenue"            value={stats.revenue}      color="var(--success)" prefix="₹" suffix=""  delay={0.15} />
-          <PremiumStatCard icon="🛢" label="Available Stock"   value={stats.totalStock}   color="var(--warning)" delay={0.20} />
+          <PremiumStatCard icon="✅" label="Delivered"          value={stats.deliveredOrders} color="var(--success)" delay={0.20} />
         </motion.div>
 
         <motion.div className="grid-3" style={{ marginBottom: '1.5rem', position: 'relative', zIndex: 1 }} variants={container} initial="hidden" animate="show">
-          <PremiumStatCard icon="👥" label="Customers"   value={stats.customers} color="var(--primary)" delay={0.25} />
-          <PremiumStatCard icon="🏍" label="Total Agents" value={stats.agents}   color="var(--accent)"  delay={0.30} />
-          <PremiumStatCard icon="✅" label="On Duty Now"  value={stats.onDuty}   color="var(--success)" delay={0.35} />
+          <PremiumStatCard icon="⏱" label="Avg Delivery Time" value={stats.avgDeliveryTimeMinutes} color="var(--accent)" suffix=" min" delay={0.25} />
+          <PremiumStatCard icon="❌" label="Cancelled"         value={stats.cancelledOrders} color="var(--danger, #ef4444)" delay={0.30} />
+          <PremiumStatCard icon="🏍" label="Top Agent Rating"  value={stats.topAgents?.[0]?.avgRating || 0} color="var(--warning, #f59e0b)" suffix="/5" delay={0.35} />
         </motion.div>
 
         {/* Charts */}
@@ -199,19 +202,54 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div className="card glass-card" variants={fadeUp}>
-            <h3 className="section-title">Orders (Last 7 Days)</h3>
+            <h3 className="section-title">Orders & Revenue (Last 7 Days)</h3>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={trendData}>
                 <XAxis dataKey="day" stroke="#52525b" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#52525b" tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="left" stroke="#52525b" tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="right" orientation="right" stroke="#52525b" tick={{ fontSize: 11 }} />
                 <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="orders" stroke="#6366f1" strokeWidth={2.5}
+                <Legend wrapperStyle={{ fontSize: '0.7rem' }} />
+                <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#6366f1" strokeWidth={2.5} name="Orders"
                   dot={{ fill: '#6366f1', strokeWidth: 0, r: 4 }}
                   activeDot={{ r: 6, fill: '#a5b4fc', stroke: '#6366f1', strokeWidth: 2 }} />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Revenue (₹)" strokeDasharray="5 3"
+                  dot={{ fill: '#10b981', strokeWidth: 0, r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </motion.div>
         </motion.div>
+
+        {/* Top Agents Leaderboard */}
+        {stats.topAgents && stats.topAgents.length > 0 && (
+          <motion.div className="card glass-card" style={{ marginBottom: '1rem', position: 'relative', zIndex: 1 }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }}>
+            <h3 className="section-title">🏆 Top Performing Agents</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+              {stats.topAgents.map((agent, i) => (
+                <div key={agent.name} style={{
+                  padding: '1rem', borderRadius: 12, background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: i === 0 ? 'linear-gradient(135deg, #f59e0b, #d97706)' : i === 1 ? 'linear-gradient(135deg, #94a3b8, #64748b)' : 'linear-gradient(135deg, #a16207, #78350f)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.85rem', fontWeight: 800, color: '#fff',
+                  }}>
+                    #{i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-primary)' }}>{agent.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {agent.deliveries} deliveries · ⭐ {agent.avgRating}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Low stock alert */}
         <AnimatePresence>
@@ -234,9 +272,9 @@ export default function AdminDashboard() {
           <h3 className="section-title">Recent Orders</h3>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Qty</th><th>Status</th></tr></thead>
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
               <tbody>
-                {orders.slice(0, 8).map((o, i) => (
+                {(stats.recentOrders || []).slice(0, 8).map((o, i) => (
                   <motion.tr key={o._id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -244,7 +282,7 @@ export default function AdminDashboard() {
                     <td><span style={{ fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.75rem' }}>{o.orderId}</span></td>
                     <td>{o.customerId?.name || '—'}</td>
                     <td style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
-                    <td>{o.cylinderCount}</td>
+                    <td style={{ fontWeight: 600 }}>₹{o.totalAmount?.toLocaleString()}</td>
                     <td><span className={`badge badge-${o.status}`}>{o.status?.replace(/_/g,' ')}</span></td>
                   </motion.tr>
                 ))}

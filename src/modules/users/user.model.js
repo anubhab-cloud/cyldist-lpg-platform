@@ -170,6 +170,11 @@ const userSchema = new mongoose.Schema(
       enum: ['household', 'commercial', 'medical', 'institutional'],
       default: 'household',
     },
+    // Agent average rating (computed from order ratings)
+    rating: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,

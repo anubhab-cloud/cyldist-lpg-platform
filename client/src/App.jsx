@@ -46,11 +46,15 @@ import AgentPerformance from './pages/agent/AgentPerformance';
 import AgentNotifications from './pages/agent/AgentNotifications';
 import AgentProfile from './pages/agent/AgentProfile';
 
+// Demo
+import DispatchDemo from './pages/DispatchDemo';
+
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/dispatch-demo" element={<DispatchDemo />} />
 
       {/* Customer routes */}
       <Route path="/customer" element={

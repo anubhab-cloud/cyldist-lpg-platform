@@ -29,6 +29,7 @@ const productRoutes = require('./modules/products/product.routes');
 const couponRoutes = require('./modules/coupons/coupon.routes');
 const whatsappRoutes = require('./modules/whatsapp/whatsapp.routes');
 const crisisRoutes   = require('./modules/crisis/crisis.routes');
+const dispatchRoutes = require('./modules/dispatch/dispatch.routes');
 
 const app = express();
 
@@ -163,6 +164,7 @@ app.use(`${apiPrefix}/products`, productRoutes);
 app.use(`${apiPrefix}/coupons`, couponRoutes);
 app.use(`${apiPrefix}/whatsapp`, whatsappRoutes);
 app.use(`${apiPrefix}/crisis`,   crisisRoutes);
+app.use(`${apiPrefix}/dispatch`, dispatchRoutes);
 
 
 // ============================================================

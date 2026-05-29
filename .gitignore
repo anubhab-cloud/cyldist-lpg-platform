@@ -7,3 +7,11 @@ logs/
 .DS_Store
 Thumbs.db
 .nyc_output/
+
+# IDE
+.vscode/
+.idea/
+
+# Uploaded user files (KYC, delivery proofs)
+public/uploads/kyc-*
+public/uploads/delivery-proofs/

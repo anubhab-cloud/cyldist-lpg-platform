@@ -1410,8 +1410,7 @@ tr:hover td{background:rgba(255,255,255,0.015)}
 .dq-addr { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.1rem; }
 
 /* ── Map Container Extended ── */
-.agent-map { height: 320px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); position: relative; }
-.agent-map .leaflet-container { height: 100%; width: 100%; background: #0d0d14; }
+.agent-map { height: 350px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); position: relative; }
 
 /* ── ETA Card ── */
 .eta-strip {
@@ -1454,10 +1453,6 @@ tr:hover td{background:rgba(255,255,255,0.015)}
   background: var(--bg-elevated); border: 1px solid var(--border);
 }
 .gps-bar.active { border-color: rgba(6,182,212,0.35); background: rgba(6,182,212,0.05); }
-
-/* Leaflet tile dark filter */
-.leaflet-tile { filter: brightness(0.7) saturate(0.8) hue-rotate(180deg) invert(1); }
-
 /* ── Print Styles for Invoice Modal ── */
 @media print {
   body * {

@@ -221,45 +221,71 @@ class CrisisAllocationEngine {
       })
     );
 
-    // ── Step 5: Max-Heap Sort — descending by P ───────────────────────────────
-    // Medical orders handled from emergency pool; all others from public pool.
-    const medicalOrders = scoredOrders
-      .filter(o => (o.customerId?.facilityType ?? 'household') === 'medical')
-      .sort((a, b) => b._score - a._score);
-
-    const otherOrders = scoredOrders
-      .filter(o => (o.customerId?.facilityType ?? 'household') !== 'medical')
-      .sort((a, b) => b._score - a._score);
+    // ── Step 5: Sort ALL orders descending by score (no medical/other split) ──
+    // ALL customers compete from the SAME public pool (85% of stock).
+    // The 15% reserve is UNTOUCHED — it's for unexpected emergencies only.
+    // If unused by end of batch, reserve rolls into next batch's total stock.
+    const allOrdersSorted = scoredOrders.sort((a, b) => b._score - a._score);
 
     const leaderboard   = [];
     let totalAllocated  = 0;
     let totalWaitlisted = 0;
-    let emergencyUsed   = 0;
+    let totalPartial    = 0;
     let publicUsed      = 0;
     let rank            = 1;
 
-    // ── Step 6a: Allocate medical orders from emergency reserve ────────────────
-    for (const order of medicalOrders) {
-      const qty     = order.cylinderCount ?? 1;
-      const canFill = emergencyPool >= qty;
-      const newCrisisStatus = canFill ? 'allocated' : 'waitlisted_crisis_batch';
-      const notes = canFill
-        ? `Allocated from emergency reserve. Score: ${order._score.toFixed(1)}`
-        : `Emergency reserve exhausted (${emergencyPool} left, need ${qty}). Rolled to next window.`;
+    // ── Step 6: Allocate from public pool (85%) — ALL sectors compete equally ──
+    // Priority is determined ONLY by score (hospitals score higher due to sector weight).
+    // Partial allocation: if customer needs 3 but only 1 left, give them 1.
+    for (const order of allOrdersSorted) {
+      const qtyRequested = order.cylinderCount ?? 1;
+      let qtyAllocated = 0;
+      let newCrisisStatus;
+      let notes;
 
-      await Order.findByIdAndUpdate(order._id, {
+      if (publicPool >= qtyRequested) {
+        // Full allocation
+        qtyAllocated = qtyRequested;
+        newCrisisStatus = 'allocated';
+        notes = `Fully allocated from public pool. Score: ${order._score.toFixed(1)}. Rank #${rank}.`;
+      } else if (publicPool > 0) {
+        // Partial allocation — give whatever is left
+        qtyAllocated = publicPool;
+        newCrisisStatus = 'allocated';
+        notes = `Partial allocation: ${qtyAllocated}/${qtyRequested} cylinders. Pool had only ${publicPool} left. Score: ${order._score.toFixed(1)}. Remainder waitlisted for next batch.`;
+        totalPartial++;
+      } else {
+        // No stock left — waitlist
+        qtyAllocated = 0;
+        newCrisisStatus = 'waitlisted_crisis_batch';
+        notes = `Public pool exhausted (0 left, need ${qtyRequested}). Score: ${order._score.toFixed(1)}. Rolled to next batch window.`;
+      }
+
+      const updateFields = {
         crisisStatus:               newCrisisStatus,
         crisisPriorityScore:        order._score,
         crisisScoreBreakdown:       order._breakdown,
         crisisHoardingPenaltyApplied: order._hoarding,
         crisisAllocationNotes:      notes,
         crisisBatchId:              batchId,
-        ...(canFill ? { status: 'created' } : {}), // release to normal processing when allocated
-      });
+      };
 
-      if (canFill) {
-        emergencyPool -= qty;
-        emergencyUsed += qty;
+      // If allocated (full or partial), mark for delivery processing
+      if (qtyAllocated > 0) {
+        updateFields.status = 'created'; // Release to normal order flow
+        if (qtyAllocated < qtyRequested) {
+          // Partial: store original count and cap the delivery
+          updateFields.crisisCapApplied = true;
+          updateFields.crisisOriginalCount = qtyRequested;
+          updateFields.cylinderCount = qtyAllocated; // Reduce to what's available
+        }
+      }
+
+      await Order.findByIdAndUpdate(order._id, updateFields);
+
+      if (qtyAllocated > 0) {
+        publicPool -= qtyAllocated;
+        publicUsed += qtyAllocated;
         totalAllocated++;
       } else {
         totalWaitlisted++;
@@ -272,76 +298,38 @@ class CrisisAllocationEngine {
         customerName: order.customerId?.name ?? 'Unknown',
         email:        order.customerId?.email,
         facilityType: order.customerId?.facilityType ?? 'household',
-        cylinders:    qty,
-        score:        order._score,
-        breakdown:    order._breakdown,
-        hoarding:     order._hoarding,
-        source:       'emergency_reserve',
-        status:       newCrisisStatus,
-        notes,
-      });
-    }
-
-    // ── Step 6b: Allocate everyone else from public pool (score order) ────────
-    for (const order of otherOrders) {
-      const qty     = order.cylinderCount ?? 1;
-      const canFill = publicPool >= qty;
-      const newCrisisStatus = canFill ? 'allocated' : 'waitlisted_crisis_batch';
-      const notes = canFill
-        ? `Allocated from public pool. Score: ${order._score.toFixed(1)}. Rank #${rank}.`
-        : `Insufficient public stock (${publicPool} left, need ${qty}). Score: ${order._score.toFixed(1)}. Rolled to next window.`;
-
-      await Order.findByIdAndUpdate(order._id, {
-        crisisStatus:               newCrisisStatus,
-        crisisPriorityScore:        order._score,
-        crisisScoreBreakdown:       order._breakdown,
-        crisisHoardingPenaltyApplied: order._hoarding,
-        crisisAllocationNotes:      notes,
-        crisisBatchId:              batchId,
-        ...(canFill ? { status: 'created' } : {}),
-      });
-
-      if (canFill) {
-        publicPool -= qty;
-        publicUsed += qty;
-        totalAllocated++;
-      } else {
-        totalWaitlisted++;
-      }
-
-      leaderboard.push({
-        rank: rank++,
-        orderId:      order.orderId,
-        customerId:   order.customerId?._id,
-        customerName: order.customerId?.name ?? 'Unknown',
-        email:        order.customerId?.email,
-        facilityType: order.customerId?.facilityType ?? 'household',
-        cylinders:    qty,
+        cylindersRequested: qtyRequested,
+        cylindersAllocated: qtyAllocated,
         score:        order._score,
         breakdown:    order._breakdown,
         hoarding:     order._hoarding,
         source:       'public_pool',
         status:       newCrisisStatus,
+        partial:      qtyAllocated > 0 && qtyAllocated < qtyRequested,
         notes,
       });
     }
 
     // ── Step 7: Deduct allocated cylinders from inventory ────────────────────
-    const totalDeducted = emergencyUsed + publicUsed;
-    if (totalDeducted > 0) {
+    // Note: emergencyReserve remains UNTOUCHED in the warehouse.
+    // If unused, it automatically becomes part of next batch's totalAvailable.
+    if (publicUsed > 0) {
       await Inventory.findByIdAndUpdate(warehouse._id, {
-        $inc: { availableCylinders: -totalDeducted },
+        $inc: { availableCylinders: -publicUsed },
       });
     }
 
     // ── Step 8: Persist batch summary in AppSettings ─────────────────────────
     const summary = {
-      totalProcessed:      pendingOrders.length,
+      totalProcessed:      allOrdersSorted.length,
       totalAllocated,
       totalWaitlisted,
-      emergencyAllocated:  emergencyUsed,
+      totalPartialAllocations: totalPartial,
       publicAllocated:     publicUsed,
+      reserveUntouched:    emergencyReserve, // Reserve stays intact
       stockSnapshotBefore: totalAvailable,
+      stockAfter:          totalAvailable - publicUsed,
+      note:                `15% reserve (${emergencyReserve} cylinders) kept for unexpected emergencies. Will roll into next batch if unused.`,
     };
 
     await AppSettings.findOneAndUpdate(
@@ -349,7 +337,7 @@ class CrisisAllocationEngine {
       {
         $set: {
           'crisisMode.lastBatchRunAt':     new Date(),
-          'crisisMode.lastBatchRunBy':     adminId,
+          'crisisMode.lastBatchRunBy':     adminId?.toString() || null,
           'crisisMode.currentBatchId':     batchId,
           'crisisMode.lastBatchSummary':   summary,
         },

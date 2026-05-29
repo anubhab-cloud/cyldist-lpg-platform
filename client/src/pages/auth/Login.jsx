@@ -100,26 +100,253 @@ export default function Login() {
 
       {/* ── CSS PARTICLE / GRID BACKGROUND ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none' }}>
-        {/* Radial grid */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-        }} />
 
-        {/* Ambient color blobs */}
-        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '50vw', height: '50vh', background: 'radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 65%)', filter: 'blur(40px)' }} />
-        <div style={{ position: 'absolute', bottom: '-15%', right: '-5%', width: '45vw', height: '45vh', background: 'radial-gradient(ellipse, rgba(220,38,38,0.15) 0%, transparent 65%)', filter: 'blur(50px)' }} />
-        <div style={{ position: 'absolute', top: '40%', left: '35%', width: '30vw', height: '30vh', background: 'radial-gradient(ellipse, rgba(170,59,255,0.1) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        {/* Multi-layer moving grid (optical illusion effect) */}
+        <div className="grid-layer grid-layer-h" />
+        <div className="grid-layer grid-layer-v" />
+        <div className="grid-layer grid-layer-h2" />
+        <div className="grid-layer grid-layer-v2" />
 
-        {/* Bottom dark vignette to ground the form */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,11,15,0.3) 0%, rgba(10,11,15,0.15) 40%, rgba(10,11,15,0.6) 100%)' }} />
-        {/* Left vignette */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,11,15,0.6) 0%, transparent 40%)' }} />
+        {/* Animated ambient orbs (slow-moving gradient blobs) */}
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+
+        {/* Energy ring pulse around the cylinder center */}
+        <div className="energy-ring energy-ring-1" />
+        <div className="energy-ring energy-ring-2" />
+        <div className="energy-ring energy-ring-3" />
+
+        {/* Floating data stream lines (like network connections) */}
+        <svg className="data-streams" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+          <line className="stream stream-1" x1="0" y1="200" x2="1000" y2="600" />
+          <line className="stream stream-2" x1="1000" y1="100" x2="0" y2="700" />
+          <line className="stream stream-3" x1="200" y1="0" x2="800" y2="1000" />
+          <line className="stream stream-4" x1="800" y1="0" x2="300" y2="1000" />
+          <line className="stream stream-5" x1="0" y1="500" x2="1000" y2="400" />
+        </svg>
+
+        {/* Floating hex nodes (connection points) */}
+        <div className="hex-nodes">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="hex-node" style={{
+              left: `${10 + (i * 12)}%`,
+              top: `${15 + Math.sin(i * 1.2) * 30 + 25}%`,
+              animationDelay: `${i * 0.7}s`,
+            }}>
+              <div className="hex-node-inner" />
+            </div>
+          ))}
+        </div>
+
+        {/* Rising ember particles */}
+        <div className="particles-container">
+          {Array.from({ length: 25 }).map((_, i) => (
+            <div key={i} className="particle" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 10}s`,
+              animationDuration: `${7 + Math.random() * 8}s`,
+              width: `${1.5 + Math.random() * 2.5}px`,
+              height: `${1.5 + Math.random() * 2.5}px`,
+            }} />
+          ))}
+        </div>
+
+        {/* Scanning line (like a radar sweep) */}
+        <div className="scan-line" />
+
+        {/* Vignettes */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,11,15,0.15) 0%, rgba(10,11,15,0.0) 30%, rgba(10,11,15,0.7) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10,11,15,0.5) 0%, transparent 30%)' }} />
       </div>
+
+      {/* Keyframe Animations */}
+      <style>{`
+        /* ═══ MULTI-LAYER MOVING GRID (ZIG-ZAG ILLUSION) ═══ */
+        .grid-layer {
+          position: absolute;
+          inset: 0;
+          background-repeat: repeat;
+        }
+        .grid-layer-h {
+          background-image: linear-gradient(0deg, rgba(99,102,241,0.08) 1px, transparent 1px);
+          background-size: 100% 50px;
+          animation: gridMoveRight 20s linear infinite;
+        }
+        .grid-layer-v {
+          background-image: linear-gradient(90deg, rgba(139,92,246,0.08) 1px, transparent 1px);
+          background-size: 50px 100%;
+          animation: gridMoveDown 25s linear infinite;
+        }
+        .grid-layer-h2 {
+          background-image: linear-gradient(0deg, rgba(236,72,153,0.05) 1px, transparent 1px);
+          background-size: 100% 70px;
+          animation: gridMoveLeft 18s linear infinite;
+        }
+        .grid-layer-v2 {
+          background-image: linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px);
+          background-size: 70px 100%;
+          animation: gridMoveUp 22s linear infinite;
+        }
+        @keyframes gridMoveRight {
+          0% { background-position: 0 0; }
+          100% { background-position: 200px 0; }
+        }
+        @keyframes gridMoveLeft {
+          0% { background-position: 0 0; }
+          100% { background-position: -200px 0; }
+        }
+        @keyframes gridMoveDown {
+          0% { background-position: 0 0; }
+          100% { background-position: 0 200px; }
+        }
+        @keyframes gridMoveUp {
+          0% { background-position: 0 0; }
+          100% { background-position: 0 -200px; }
+        }
+
+        /* ═══ GRADIENT ORBS ═══ */
+        .orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(70px);
+          animation: orbFloat 14s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+          top: -5%; left: -5%;
+          width: 40vw; height: 40vh;
+          background: radial-gradient(ellipse, rgba(99,102,241,0.25) 0%, transparent 70%);
+        }
+        .orb-2 {
+          bottom: -10%; right: -5%;
+          width: 35vw; height: 35vh;
+          background: radial-gradient(ellipse, rgba(220,38,38,0.2) 0%, transparent 65%);
+          animation-delay: -4s;
+          animation-duration: 11s;
+        }
+        .orb-3 {
+          top: 30%; right: 20%;
+          width: 25vw; height: 25vh;
+          background: radial-gradient(ellipse, rgba(139,92,246,0.15) 0%, transparent 70%);
+          animation-delay: -8s;
+          animation-duration: 16s;
+        }
+        @keyframes orbFloat {
+          0% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(20px, -25px) scale(1.08); }
+          100% { transform: translate(-15px, 10px) scale(0.95); }
+        }
+
+        /* ═══ ENERGY RINGS (pulsing from center) ═══ */
+        .energy-ring {
+          position: absolute;
+          top: 50%; left: 50%;
+          width: 300px; height: 300px;
+          margin: -150px 0 0 -150px;
+          border-radius: 50%;
+          border: 1px solid rgba(99,102,241,0.2);
+          animation: ringPulse 4s ease-out infinite;
+          opacity: 0;
+        }
+        .energy-ring-2 { animation-delay: 1.3s; }
+        .energy-ring-3 { animation-delay: 2.6s; }
+        @keyframes ringPulse {
+          0% { transform: scale(0.5); opacity: 0.8; border-color: rgba(99,102,241,0.4); }
+          100% { transform: scale(3); opacity: 0; border-color: rgba(99,102,241,0); }
+        }
+
+        /* ═══ DATA STREAM LINES ═══ */
+        .data-streams {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0.4;
+        }
+        .stream {
+          stroke: rgba(99,102,241,0.15);
+          stroke-width: 0.5;
+          stroke-dasharray: 8 40;
+          animation: streamFlow 6s linear infinite;
+        }
+        .stream-1 { animation-duration: 7s; }
+        .stream-2 { animation-duration: 9s; animation-delay: -2s; }
+        .stream-3 { animation-duration: 8s; animation-delay: -4s; }
+        .stream-4 { animation-duration: 10s; animation-delay: -1s; }
+        .stream-5 { animation-duration: 6s; animation-delay: -3s; }
+        @keyframes streamFlow {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: -96; }
+        }
+
+        /* ═══ HEX NODES (floating connection points) ═══ */
+        .hex-nodes {
+          position: absolute;
+          inset: 0;
+        }
+        .hex-node {
+          position: absolute;
+          width: 12px; height: 12px;
+          animation: nodeFloat 5s ease-in-out infinite alternate;
+        }
+        .hex-node-inner {
+          width: 100%; height: 100%;
+          background: rgba(99,102,241,0.3);
+          border: 1px solid rgba(99,102,241,0.5);
+          border-radius: 2px;
+          transform: rotate(45deg);
+          animation: nodePulse 3s ease-in-out infinite;
+          box-shadow: 0 0 8px rgba(99,102,241,0.3);
+        }
+        @keyframes nodeFloat {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-15px); }
+        }
+        @keyframes nodePulse {
+          0%, 100% { opacity: 0.3; transform: rotate(45deg) scale(0.8); }
+          50% { opacity: 1; transform: rotate(45deg) scale(1.2); }
+        }
+
+        /* ═══ RISING PARTICLES ═══ */
+        .particles-container {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+        }
+        .particle {
+          position: absolute;
+          bottom: -5px;
+          background: rgba(99,102,241,0.7);
+          border-radius: 50%;
+          animation: particleRise linear infinite;
+          box-shadow: 0 0 6px rgba(99,102,241,0.5), 0 0 12px rgba(99,102,241,0.2);
+        }
+        @keyframes particleRise {
+          0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+          5% { opacity: 0.8; }
+          50% { transform: translateY(-50vh) translateX(${Math.random() > 0.5 ? '' : '-'}20px); }
+          95% { opacity: 0.3; }
+          100% { transform: translateY(-105vh) translateX(${Math.random() > 0.5 ? '' : '-'}40px) scale(0.2); opacity: 0; }
+        }
+
+        /* ═══ HORIZONTAL SCAN LINE ═══ */
+        .scan-line {
+          position: absolute;
+          left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.4) 20%, rgba(139,92,246,0.6) 50%, rgba(99,102,241,0.4) 80%, transparent 100%);
+          animation: scanMove 8s ease-in-out infinite;
+          box-shadow: 0 0 15px rgba(99,102,241,0.3), 0 0 30px rgba(99,102,241,0.1);
+          opacity: 0.6;
+        }
+        @keyframes scanMove {
+          0%, 100% { top: 15%; opacity: 0; }
+          5% { opacity: 0.6; }
+          50% { top: 85%; opacity: 0.6; }
+          95% { opacity: 0.6; }
+          100% { top: 15%; opacity: 0; }
+        }
+      `}</style>
 
       {/* ── TOP NAV BAR ── */}
       <div style={{

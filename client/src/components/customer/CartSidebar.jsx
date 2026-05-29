@@ -10,7 +10,7 @@ export default function CartSidebar({ isOpen, onClose }) {
 
   const handleCheckout = () => {
     onClose();
-    navigate('/customer/book');
+    navigate('/customer/orders/new');
   };
 
   return (

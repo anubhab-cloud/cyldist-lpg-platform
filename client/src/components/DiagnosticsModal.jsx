@@ -9,7 +9,7 @@ export default function DiagnosticsModal({ open, onClose }) {
     redisStatus: 'HEALTHY',
     redisLatency: '2ms',
     socketTransport: 'WebSocket',
-    leafletPing: '42ms',
+    olaMapsPing: '42ms',
     systemLoad: '0.42',
     memoryUsage: '34.8 MB',
     activeRooms: '1',
@@ -36,7 +36,7 @@ export default function DiagnosticsModal({ open, onClose }) {
         ...prev,
         dbLatency: `${Math.floor(Math.random() * 8) + 4}ms`,
         redisLatency: `${(Math.random() * 2 + 1).toFixed(1)}ms`,
-        leafletPing: `${Math.floor(Math.random() * 15) + 30}ms`,
+        olaMapsPing: `${Math.floor(Math.random() * 15) + 30}ms`,
         systemLoad: (Math.random() * 0.15 + 0.35).toFixed(2),
         memoryUsage: `${(Math.random() * 2 + 34).toFixed(1)} MB`,
         activeRooms: socket?.connected ? '2' : '1',
@@ -49,7 +49,7 @@ export default function DiagnosticsModal({ open, onClose }) {
       'Performing database ping... Success.',
       'Checking Redis cluster replication status... OK.',
       'Verifying JWT authentication integrity keys... Valid.',
-      'Polling GIS provider servers (Leaflet/OSM)... Operational.',
+      'Polling GIS provider servers (Ola Maps Web SDK v2)... Operational.',
       'Garbage collector sweep completed successfully.',
       'Re-validating socket session channel syncs...',
     ];
@@ -110,7 +110,7 @@ export default function DiagnosticsModal({ open, onClose }) {
           <div className="diag-card">
             <div className="diag-label">GIS Map Engine API</div>
             <div className="diag-value" style={{ color: 'var(--success)' }}>
-              ACTIVE <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>({metrics.leafletPing})</span>
+              ACTIVE <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>({metrics.olaMapsPing})</span>
             </div>
           </div>
 

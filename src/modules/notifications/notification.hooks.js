@@ -42,6 +42,10 @@ async function sendOutForDeliveryNotification({ order, customer }) {
     orderId: order?.orderId,
   });
   if (customer?.phone) {
+    await smsService.sendOrderStatusSMS(customer.phone, order?.orderId, 'out_for_delivery');
+    if (order?.deliveryOtp) {
+      await smsService.sendDeliveryOtpSMS(customer.phone, order.deliveryOtp, order.orderId);
+    }
     const otpText = order?.deliveryOtp ? ` Your delivery verification OTP is *${order.deliveryOtp}*. Please share this code with the agent upon arrival to confirm delivery.` : '';
     await whatsappService.sendTextMessage(
       customer.phone,
@@ -55,6 +59,7 @@ async function sendDeliveredNotification({ order, customer }) {
     orderId: order?.orderId,
   });
   if (customer?.phone) {
+    await smsService.sendOrderStatusSMS(customer.phone, order?.orderId, 'delivered');
     await whatsappService.sendTextMessage(
       customer.phone,
       `Your cylinder delivery #${order?.orderId} has been DELIVERED successfully. Thank you for using CylDist!`
@@ -75,6 +80,7 @@ async function sendCancelledNotification({ order, customer }) {
 
 async function sendOrderCreatedSMS({ order, customer }) {
   if (customer?.phone) {
+    await smsService.sendOrderStatusSMS(customer.phone, order?.orderId, 'assigned');
     await whatsappService.sendTextMessage(
       customer.phone,
       `Hello ${customer.name}, your cylinder booking #${order?.orderId} is confirmed and will be processed shortly.`
@@ -86,6 +92,7 @@ async function sendOrderCreatedSMS({ order, customer }) {
 
 async function sendOrderAssignedSMS({ order, customer, agent }) {
   if (customer?.phone) {
+    await smsService.sendOrderStatusSMS(customer.phone, order?.orderId, 'assigned');
     await whatsappService.sendTextMessage(
       customer.phone,
       `Your cylinder delivery #${order?.orderId} has been assigned to ${agent?.name}. They will contact you soon.`

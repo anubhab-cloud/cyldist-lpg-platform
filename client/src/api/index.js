@@ -40,6 +40,10 @@ export const ordersAPI = {
   setPriority: (orderId, data) => api.patch(`/orders/${orderId}/priority`, typeof data === 'string' ? { priority: data } : data),
   partialDeliver: (orderId, data) => api.patch(`/orders/${orderId}/status`, data),
   verifyPayment: (orderId, data) => api.post(`/orders/${orderId}/verify-payment`, data),
+  autoDispatch: () => api.post('/orders/auto-dispatch'),
+  uploadDeliveryProof: (orderId, formData) => api.post(`/orders/${orderId}/delivery-proof`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  rateOrder: (orderId, data) => api.post(`/orders/${orderId}/rate`, data),
+  analytics: () => api.get('/orders/analytics'),
 };
 
 export const inventoryAPI = {

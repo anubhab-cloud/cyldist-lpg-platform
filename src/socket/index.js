@@ -6,6 +6,7 @@ const logger = require('../config/logger');
 const { socketAuth } = require('./auth.middleware');
 const { registerLocationHandlers } = require('./location.handler');
 const { registerChatHandlers } = require('./chat.handler');
+const { registerDispatchHandlers } = require('../modules/dispatch/dispatch.socket');
 
 /**
  * Initialize Socket.IO server and attach to the HTTP server.
@@ -51,6 +52,7 @@ function initSocket(httpServer) {
     // Register feature handlers
     registerLocationHandlers(socket, io);
     registerChatHandlers(socket, io);
+    registerDispatchHandlers(socket, io);
 
     /**
      * Subscribe to order location updates (customers/admins).

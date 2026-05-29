@@ -1,6 +1,7 @@
 'use strict';
 
 const orderService = require('./order.service');
+const { autoDispatchOrders } = require('./autoDispatch.service');
 const response = require('../../shared/utils/response');
 const asyncHandler = require('../../shared/utils/asyncHandler');
 
@@ -152,4 +153,109 @@ const verifyPayment = asyncHandler(async (req, res) => {
   return response.success(res, 200, 'Payment verified successfully.', order);
 });
 
-module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder, rejectOrder, setPriority, verifyPayment };
+/**
+ * POST /orders/auto-dispatch
+ * One-click: automatically assign ALL unassigned orders to available agents.
+ * Uses K-Means clustering + priority-weighted nearest-neighbor routing.
+ */
+const autoDispatch = asyncHandler(async (req, res) => {
+  const io = req.app.get('io');
+  const result = await autoDispatchOrders(req.user.id, io);
+
+  if (!result.success) {
+    return response.success(res, 200, result.message, result);
+  }
+
+  return response.success(res, 200, result.message, result);
+});
+
+/**
+ * POST /orders/:orderId/delivery-proof
+ * Agent uploads a delivery proof photo.
+ */
+const uploadDeliveryProof = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    const AppError = require('../../shared/utils/AppError');
+    throw new AppError('No image file uploaded.', 400);
+  }
+
+  const Order = require('./order.model');
+  const order = await Order.findOne({ orderId: req.params.orderId });
+
+  if (!order) {
+    const AppError = require('../../shared/utils/AppError');
+    throw new AppError('Order not found.', 404);
+  }
+
+  // Verify agent owns this order
+  if (order.agentId?.toString() !== req.user.id) {
+    const AppError = require('../../shared/utils/AppError');
+    throw new AppError('You are not assigned to this order.', 403);
+  }
+
+  order.deliveryProofImage = req.file.filename;
+  await order.save();
+
+  return response.success(res, 200, 'Delivery proof uploaded successfully.', {
+    deliveryProofImage: req.file.filename,
+  });
+});
+
+/**
+ * POST /orders/:orderId/rate
+ * Customer rates a delivered order (1-5 stars + optional comment).
+ */
+const rateOrder = asyncHandler(async (req, res) => {
+  const { rating, comment } = req.body;
+  const AppError = require('../../shared/utils/AppError');
+
+  if (!rating || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+    throw new AppError('Rating must be an integer between 1 and 5.', 400);
+  }
+
+  const Order = require('./order.model');
+  const order = await Order.findOne({ orderId: req.params.orderId });
+
+  if (!order) {
+    throw new AppError('Order not found.', 404);
+  }
+
+  // Only the customer who placed the order can rate
+  if (order.customerId?.toString() !== req.user.id) {
+    throw new AppError('You can only rate your own orders.', 403);
+  }
+
+  if (order.status !== 'delivered') {
+    throw new AppError('Only delivered orders can be rated.', 400);
+  }
+
+  if (order.rating) {
+    throw new AppError('This order has already been rated.', 400);
+  }
+
+  order.rating = rating;
+  order.ratingComment = comment || '';
+  await order.save();
+
+  // Update agent's average rating
+  if (order.agentId) {
+    const avgResult = await Order.aggregate([
+      { $match: { agentId: order.agentId, rating: { $ne: null } } },
+      { $group: { _id: null, avgRating: { $avg: '$rating' }, count: { $sum: 1 } } },
+    ]);
+
+    if (avgResult.length > 0) {
+      const User = require('../users/user.model');
+      await User.findByIdAndUpdate(order.agentId, {
+        rating: Math.round(avgResult[0].avgRating * 10) / 10,
+      });
+    }
+  }
+
+  return response.success(res, 200, 'Rating submitted successfully.', {
+    rating: order.rating,
+    ratingComment: order.ratingComment,
+  });
+});
+
+module.exports = { createOrder, listOrders, getOrder, assignAgent, updateOrderStatus, cancelOrder, rejectOrder, setPriority, verifyPayment, autoDispatch, uploadDeliveryProof, rateOrder };

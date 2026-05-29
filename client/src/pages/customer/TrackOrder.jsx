@@ -2,31 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { deliveryAPI, ordersAPI } from '../../api';
 import { useSocket } from '../../context/SocketContext';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { StatusBadge, PageLoader } from '../../components';
+import { StatusBadge, PageLoader, OlaDeliveryMap } from '../../components';
 import { Topbar } from '../../components/Sidebar';
-
-// Fix default Leaflet icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-const agentIcon = new L.DivIcon({
-  className: '',
-  html: `<div style="background:var(--accent);width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 0 15px rgba(34,211,238,0.8);"></div>`,
-  iconSize: [22, 22], iconAnchor: [11, 11],
-});
-
-function MapFlyTo({ center }) {
-  const map = useMap();
-  useEffect(() => { if (center) map.flyTo(center, map.getZoom(), { animate: true, duration: 1 }); }, [center, map]);
-  return null;
-}
 
 export default function TrackOrder() {
   const { orderId } = useParams();
@@ -166,14 +143,13 @@ export default function TrackOrder() {
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Waiting for agent to share location...</p>
                   </div>
                 ) : (
-                  <div className="map-container" style={{ position: 'relative', overflow: 'hidden' }}>
-                    <MapContainer center={mapCenter} zoom={14} style={{ height: '100%', width: '100%' }}>
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap contributors" />
-                      <Marker position={mapCenter} icon={agentIcon}>
-                        <Popup>🚚 Delivery Agent</Popup>
-                      </Marker>
-                      <MapFlyTo center={mapCenter} />
-                    </MapContainer>
+                  <div className="map-container" style={{ position: 'relative', overflow: 'hidden', height: 300 }}>
+                    <OlaDeliveryMap
+                      center={mapCenter}
+                      zoom={14}
+                      agentLocation={mapCenter}
+                      destLocation={order.deliveryAddress ? [order.deliveryAddress.location?.lng || 77.5946, order.deliveryAddress.location?.lat || 12.9716] : null}
+                    />
                   </div>
                 )}
               </>
