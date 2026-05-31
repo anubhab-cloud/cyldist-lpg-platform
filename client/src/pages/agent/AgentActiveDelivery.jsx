@@ -187,7 +187,36 @@ export default function AgentActiveDelivery() {
 
   // ── GPS Tracking ──
   const startTracking = () => {
-    if (!socket) return;
+    // Get socket from context — may connect after page loads
+    const currentSocket = socket;
+    if (!currentSocket) {
+      // Fallback: try to check if socket will connect soon
+      toast('⏳ Connecting...', 'Waiting for real-time connection. Try again in 2 seconds.', 'info');
+      console.error('[GPS] Socket is null — cannot start tracking. Socket context:', { socket, connected });
+      // Attempt to start simulation mode anyway (doesn't need socket for visual)
+      setTracking(true);
+      const targetLat = destPos ? destPos[0] : 12.9716;
+      const targetLng = destPos ? destPos[1] : 77.5946;
+      let step = 0;
+      const totalSteps = 15;
+      const startLat = targetLat - 0.008;
+      const startLng = targetLng - 0.012;
+      setAgentPos([startLat, startLng]);
+      watchRef.current = setInterval(() => {
+        step++;
+        if (step > totalSteps) {
+          clearInterval(watchRef.current);
+          watchRef.current = null;
+          setTracking(false);
+          setLocalReached(true);
+          toast('📍 Arrived!', 'Simulator reached destination.', 'success');
+          return;
+        }
+        const ratio = step / totalSteps;
+        setAgentPos([startLat + (targetLat - startLat) * ratio, startLng + (targetLng - startLng) * ratio]);
+      }, 3000);
+      return;
+    }
     
     setTracking(true);
 
