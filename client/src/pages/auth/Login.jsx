@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -12,7 +12,7 @@ const DEV_ACCOUNTS = [
 ];
 
 export default function Login() {
-  const { login, requestOtp, verifyOtp } = useAuth();
+  const { user, loading: authLoading, login, requestOtp, verifyOtp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -23,10 +23,33 @@ export default function Login() {
   const [otpSent, setOtpSent]     = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
+  // ✅ THE PROPER FIX: Watch the committed user state and navigate only after
+  // React has fully applied the setUser() update from AuthContext.
+  // This avoids the race condition where navigate() fired before setUser()
+  // had been committed, causing ProtectedRoute to see user=null and bounce back.
+  useEffect(() => {
+    if (user) {
+      const dest = user.role === 'admin' ? '/admin' : user.role === 'agent' ? '/agent' : '/customer';
+      navigate(dest, { replace: true });
+    }
+  }, [user, navigate]);
 
-  const redirectTo = (role) =>
-    navigate(role === 'admin' ? '/admin' : role === 'agent' ? '/agent' : '/customer');
+  // If AuthContext is still loading (restoring session), wait.
+  if (authLoading) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#0a0b0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="loader-spin" style={{ width: 40, height: 40 }} />
+      </div>
+    );
+  }
+
+  // If already logged in (e.g. user navigated back to /login manually), redirect.
+  if (user) {
+    const dest = user.role === 'admin' ? '/admin' : user.role === 'agent' ? '/agent' : '/customer';
+    return <Navigate to={dest} replace />;
+  }
+
+  const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,8 +58,9 @@ export default function Login() {
     try {
       if (loginMode === 'password') {
         const res = await login({ email: form.email, password: form.password });
+        // ✅ Do NOT call navigate here. The useEffect above watches user state
+        // and will navigate once React commits the setUser() update.
         toast('Welcome back!', `Logged in as ${res.user.name}`, 'success');
-        redirectTo(res.user.role);
       } else if (loginMode === 'otp' && !otpSent) {
         const credentials = form.email ? { email: form.email } : { phone: form.phone };
         if (!credentials.email && !credentials.phone) throw new Error('Email or phone required');
@@ -54,7 +78,7 @@ export default function Login() {
           : { phone: form.phone, otp: form.otp };
         const res = await verifyOtp(credentials);
         toast('Welcome back!', `Logged in as ${res.user.name}`, 'success');
-        redirectTo(res.user.role);
+        // ✅ Same here — useEffect handles navigation after user state commits.
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed.');

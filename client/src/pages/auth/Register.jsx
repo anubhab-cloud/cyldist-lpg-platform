@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -59,7 +59,7 @@ const inputStyle = {
 };
 
 export default function Register() {
-  const { register } = useAuth();
+  const { user, loading: authLoading, register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -75,6 +75,25 @@ export default function Register() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // ✅ Navigate only after React has committed the user state from register()
+  useEffect(() => {
+    if (user) {
+      navigate('/customer', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // While restoring session, show spinner
+  if (authLoading) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#0a0b0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="loader-spin" style={{ width: 40, height: 40 }} />
+      </div>
+    );
+  }
+
+  // Already logged in — redirect away
+  if (user) return <Navigate to="/customer" replace />;
+
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const selectedFacility = FACILITY_TYPES.find((f) => f.key === form.facilityType);
@@ -86,7 +105,7 @@ export default function Register() {
     try {
       await register(form);
       toast('🎉 Account created!', `Welcome to CylDist, ${form.name.split(' ')[0]}!`, 'success');
-      navigate('/customer');
+      // ✅ Don't navigate here — useEffect handles it after user state commits
     } catch (err) {
       const msg =
         err.response?.data?.errors?.[0]?.message ||

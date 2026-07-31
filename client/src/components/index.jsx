@@ -5,8 +5,21 @@ export { default as OlaDeliveryMap } from './OlaDeliveryMap';
 
 export function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
+
+  // Show loader while AuthContext is initialising (initial page load).
   if (loading) return <div className="loader-page"><div className="loader-spin" style={{ width: 36, height: 36 }} /></div>;
-  if (!user) return <Navigate to="/login" replace />;
+
+  // Race-condition guard: right after login(), navigate() fires before React's
+  // setUser() has flushed.  If a token is already in localStorage but `user`
+  // is still null, keep showing the loader for one more tick instead of
+  // bouncing back to /login.
+  if (!user) {
+    if (localStorage.getItem('accessToken')) {
+      return <div className="loader-page"><div className="loader-spin" style={{ width: 36, height: 36 }} /></div>;
+    }
+    return <Navigate to="/login" replace />;
+  }
+
   if (roles && !roles.includes(user.role)) {
     const redirects = { admin: '/admin', customer: '/customer', agent: '/agent' };
     return <Navigate to={redirects[user.role] || '/login'} replace />;
